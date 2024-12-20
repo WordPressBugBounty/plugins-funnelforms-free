@@ -47,10 +47,24 @@ function af_get_months_array(){
 }
 
 function fnsf_af2_get_post_content( $post ) {
+    require_once AF2F_PLUGIN_DIR."/misc/array_serializer.php";
+
     if(empty($post) || $post == null) return null;
+    $allowed_post_types = [
+        FNSF_FORMULAR_POST_TYPE,
+        FNSF_FRAGE_POST_TYPE,
+        FNSF_KONTAKTFNSF_FORMULAR_POST_TYPE,
+        FNSF_REQUEST_POST_TYPE,
+    ];
+    if(!in_array(get_post_type($post), $allowed_post_types)) { return null; }
+
     $post_content = get_post_field( 'post_content', $post );
     if(empty($post_content) || $post_content == null) return null;
-    $post_content_array = unserialize(urldecode($post_content));
+    $post_content_array = urldecode($post_content);
+    $post_content_array = Array_Serializer::secure_unserialize($post_content_array);
+    if(!$post_content_array) {
+        return null;
+    }
     $post_content_array = stripslashes_deep($post_content_array);
 
     return $post_content_array;

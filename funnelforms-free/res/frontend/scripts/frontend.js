@@ -2483,6 +2483,7 @@ function Form($, id, num, preload, size, errormail, activateScrollToAnchor, acti
                     attachment_ids: this.attachment_ids,
                     af2_queryString: af2_queryString,
                     af2_url: af2_url,
+                    af2_post_title: af2_frontend_ajax.analytics_data.post_title,
                     verificationSMS: [verVal, verNum],
                     contactFormAnswers: this.contactFormAnswers,
                 },

@@ -8,7 +8,7 @@ Author URI: https://funnelforms.io/
 Author E-Mail: support@funnelforms.io
 Text Domain: funnelforms-free
 Domain Path: /languages/
-Version: 3.7.4.1
+Version: 3.7.5.1
 */
 
 

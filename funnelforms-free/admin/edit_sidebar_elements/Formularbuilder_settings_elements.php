@@ -106,7 +106,7 @@ function fnsf_get_formularbuilder_settings_elements($filesarray) {
                 ),*/
                 array(
                     'type' => 'checkbox',
-                    'label' => __('Automatic scroll to form title (desktop)', 'af2_multilanguage'),
+                    'label' => __('Automatic scroll to form title (desktop)', 'funnelforms-free'),
                     'details' => array(
                         'html' => false,
                         'saveObjectId' => 'activateScrollToAnchorDesktop',
@@ -235,8 +235,8 @@ function fnsf_get_formularbuilder_settings_elements($filesarray) {
                 array(
                     'type' => 'text',
                     'icon' => 'fas fa-text-height',
-                    'label' => __('Icon desktop size (Grid)', 'af2_multilanguage'),
-                    'placeholder' => __('Enter value...', 'af2_multilanguage'),
+                    'label' => __('Icon desktop size (Grid)', 'funnelforms-free'),
+                    'placeholder' => __('Enter value...', 'funnelforms-free'),
                     'required' => true,
                     'details' => array(
                         'html' => false,
@@ -247,8 +247,8 @@ function fnsf_get_formularbuilder_settings_elements($filesarray) {
                 array(
                     'type' => 'text',
                     'icon' => 'fas fa-text-height',
-                    'label' => __('Icon desktop size (List 1 column)', 'af2_multilanguage'),
-                    'placeholder' => __('Enter value...', 'af2_multilanguage'),
+                    'label' => __('Icon desktop size (List 1 column)', 'funnelforms-free'),
+                    'placeholder' => __('Enter value...', 'funnelforms-free'),
                     'required' => true,
                     'details' => array(
                         'html' => false,
@@ -259,8 +259,8 @@ function fnsf_get_formularbuilder_settings_elements($filesarray) {
                 array(
                     'type' => 'text',
                     'icon' => 'fas fa-text-height',
-                    'label' => __('Icon desktop size (List 2 column)', 'af2_multilanguage'),
-                    'placeholder' => __('Enter value...', 'af2_multilanguage'),
+                    'label' => __('Icon desktop size (List 2 column)', 'funnelforms-free'),
+                    'placeholder' => __('Enter value...', 'funnelforms-free'),
                     'required' => true,
                     'details' => array(
                         'html' => false,
@@ -271,8 +271,8 @@ function fnsf_get_formularbuilder_settings_elements($filesarray) {
                 array(
                     'type' => 'text',
                     'icon' => 'fas fa-text-height',
-                    'label' => __('Icon mobile size (Grid)', 'af2_multilanguage'),
-                    'placeholder' => __('Enter value...', 'af2_multilanguage'),
+                    'label' => __('Icon mobile size (Grid)', 'funnelforms-free'),
+                    'placeholder' => __('Enter value...', 'funnelforms-free'),
                     'required' => true,
                     'details' => array(
                         'html' => false,
@@ -283,8 +283,8 @@ function fnsf_get_formularbuilder_settings_elements($filesarray) {
                 array(
                     'type' => 'text',
                     'icon' => 'fas fa-text-height',
-                    'label' => __('Icon mobile size (List)', 'af2_multilanguage'),
-                    'placeholder' => __('Enter value...', 'af2_multilanguage'),
+                    'label' => __('Icon mobile size (List)', 'funnelforms-free'),
+                    'placeholder' => __('Enter value...', 'funnelforms-free'),
                     'required' => true,
                     'details' => array(
                         'html' => false,

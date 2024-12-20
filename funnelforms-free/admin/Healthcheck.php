@@ -122,7 +122,6 @@ class Af2Healthcheck {
             $currentPhpVersion  = phpversion();
             $targetPhpVersion  = $jsonData['php'];
             $checkPhp = false;
-            $message = "<strong>".$plugin['name']."</strong><br>".__("Version", "funnelforms-free").": ".$currentPluginVersion;
 
             if(strpos($targetPhpVersion, "-") !== false) {
                 $targetPhpVersion  = explode('-', $targetPhpVersion);

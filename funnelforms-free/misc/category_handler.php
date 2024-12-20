@@ -13,8 +13,10 @@ function fnsf_get_all_categories() {
     $categories = fnsf_get_all_categories_vanilla();
 
     $all_cats = array();
-    foreach($categories as $category){
-        array_push($all_cats, array('value'=>$category['id'], 'label'=>$category['label']));
+    if(!is_null($categories)) {
+        foreach($categories as $category){
+            array_push($all_cats, array('value'=>$category['id'], 'label'=>$category['label']));
+        }
     }
 
     return $all_cats;
@@ -23,8 +25,10 @@ function fnsf_get_all_categories() {
 function fnsf_get_category_id_of_element($elementid) {
     $categories = fnsf_get_all_categories_vanilla();
 
-    foreach($categories as $category) {
-        if(in_array($elementid, $category['elements'])) return $category['id'];
+    if(!is_null($categories)) {
+        foreach($categories as $category) {
+            if(in_array($elementid, $category['elements'])) return $category['id'];
+        }
     }
 
     return 'empty';

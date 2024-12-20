@@ -42,6 +42,10 @@ class Fnsf_FrontendView {
         require_once FNSF_AF2_RESOURCE_HANDLER_PATH;
 
         $dataid = $atts['id'];                                                            // The Dataid of the Formular
+        if(get_post_type($atts['id']) !== FNSF_FORMULAR_POST_TYPE) {
+            // Translator: %s: id added as attribute to the shortcode
+            return sprintf(__("Invalid id %s. Please use only form ids", 'af2_multilanguage'), $atts['id']);
+        }
         $base_post = get_post($dataid);                                                   // The post of it out of DB
         require_once FNSF_AF2_MISC_FUNCTIONS_PATH;
         $base_json = fnsf_af2_get_post_content($base_post);             
@@ -80,6 +84,9 @@ class Fnsf_FrontendView {
                 'supported_file_types' => implode(',', $suported_types),
                 'server_max_size' => trim(str_replace("MB","", $server_max_size)),
                 'supported_server_size' => 'AIzaSyBndbQcPBJHZyoqmdgexoTStZUk53dHRNw',
+                'analytics_data' => [
+                    "post_title" => get_the_title(),
+                ],
                 'strings' => array(
                     'antworten_tag' => __('[ANSWERS]', 'funnelforms-free'),
                     'error_01' => __('ERROR - [01] Ajax error (caching error, please contact support)!', 'funnelforms-free'),
@@ -334,7 +341,7 @@ class Fnsf_FrontendView {
 
             /** Checking that no Errors are given * */
             if ($base_posts[$x] === 'ERROR') {
-                $returnarray["error"] = __('ERROR - [02] Please contact support!', 'af2_multilanguage');
+                $returnarray["error"] = __('ERROR - [02] Please contact support!', 'funnelforms-free');
                 return $returnarray;
             }
 
@@ -356,7 +363,7 @@ class Fnsf_FrontendView {
             /** Checking that no Error is given * */
             $check = $this->fnsf_af2_check_for_errors($base_jsons[$x]);
             if ($check === 'ERROR') {
-                $returnarray["error"] = __('ERROR - [03] There is an error in a form element!', 'af2_multilanguage');;
+                $returnarray["error"] = __('ERROR - [03] There is an error in a form element!', 'funnelforms-free');;
                 return $returnarray;
             }
 
@@ -1556,7 +1563,8 @@ function fnsf_af2_send_mail() {
         $queryStringData = array("id" => 'queryString', "value" => $querysData );
         $afUrl = sanitize_url($_POST['af2_url']);
         $urlData = array("id" => 'url', "value" => $afUrl);
-        $zapier_json['analyticsData'] = array($queryStringData, $urlData);
+        $post_title = array("id" => 'post_title', "value" => sanitize_text_field($_POST['af2_post_title']));
+        $zapier_json['analyticsData'] = array($queryStringData, $urlData, $post_title);
 
         $save_json = urlencode(serialize($zapier_json));
 
@@ -1658,6 +1666,7 @@ function fnsf_af2_send_mail() {
         $mailtext = str_ireplace('[queryString]', $mailtextString, $mailtext);
         $mailtext = str_ireplace('[url]', $mailtextUrl, $mailtext);
         $mailtext = str_ireplace('[ID]', $lead_id, $mailtext);
+        $mailtext = str_ireplace('[post_title]', sanitize_text_field($_POST['af2_post_title']), $mailtext);
 
 
 
@@ -1734,6 +1743,10 @@ function fnsf_af2_send_mail() {
 
             die();
         } else { // SEND EMAIL
+            $format = true;
+            if(get_option('af2_custom_system_no_nl2br') == 'true') {
+                $format = false;
+            } 
             // E-Mail
             //EMAIL TEXT FROM CF
             //$messag = '';
@@ -1744,7 +1757,7 @@ function fnsf_af2_send_mail() {
             //else {
               //  $messag = $mail_sendtext;
             //}
-            $mailtext =  nl2br($mailtext);
+            $mailtext = $format == true ? nl2br($mailtext) : $mailtext;
             if ($smtp_do === true || $smtp_do === 'true') {
                 $cc_list = explode(',', $mailcc);
                 $bcc_list = explode(',', $mailbcc);

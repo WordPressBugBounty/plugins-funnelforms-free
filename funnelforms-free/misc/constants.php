@@ -145,7 +145,7 @@ define( 'FNSF_REQUEST_POST_TYPE', 'af2_request' );
 define( 'FNSF_REQUEST_POST_TYPE_', 'af2_request' );
 
 // Other constants
-define( 'FNSF_AF2_FINAL_VERSION', '3.7.4.1' );
+define( 'FNSF_AF2_FINAL_VERSION', '3.7.5.1' );
 define( 'FNSF_AF2_MENU_ICON_URL', plugins_url("/res/images/menu_icon.png", AF2F_PLUGIN) );
 define( 'FNSF_AF2_OPENAI_IMAGE_URL', plugins_url("/res/images/openai.png", AF2F_PLUGIN) );
 define( 'FNSF_AF2_HEALTHCHECK_JSON', AF2F_PLUGIN_DIR."/res/backend/healthcheck.json");

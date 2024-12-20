@@ -25,6 +25,7 @@ class Fnsf_Af2KontaktformularbuilderSettings extends Fnsf_Af2MenuBuilder {
                 'id_tag' => __('[ID]', 'funnelforms-free'),
                 'answers_tag' => __('[ANTWORTEN]', 'funnelforms-free'),
                 'querystring_tag' => __('[QUERYSTRING]', 'funnelforms-free'),
+                'post_title_tag' => __('[POST_TITLE]', 'funnelforms-free'),
                 'code_tag' => __('[CODE]', 'funnelforms-free'),
                 'url_tag' => __('[URL]', 'funnelforms-free'),
                 'name_placeholder' => __('Your name...', 'funnelforms-free'),

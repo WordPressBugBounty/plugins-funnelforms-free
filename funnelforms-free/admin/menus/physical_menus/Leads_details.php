@@ -86,6 +86,7 @@ class Fnsf_Af2LeadsDetails extends Fnsf_Af2MenuCustom {
                 $label = $field['id'];
                 if($label == 'queryString') $label = __('Received URL parameters', 'funnelforms-free');
                 if($label == 'url') $label = __('URL on which the form was submitted', 'funnelforms-free');
+                if($label == 'post_title') $label = __('Page Title', 'funnelforms-free');
                 $new_field = array( 'label' => $label, 'value' => $field['value'] );
                 array_push($lead_details_array, $new_field);
             }

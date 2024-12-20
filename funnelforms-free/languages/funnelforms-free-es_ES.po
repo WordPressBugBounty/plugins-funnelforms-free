@@ -2865,3 +2865,9 @@ msgstr "Clave de licencia:"
 
 msgid "Note: The sender e-mail should be from the same domain on which this form is active. If you want to use a different domain for sending emails, we recommend using the SMTP function."
 msgstr "Nota: El e-mail remitente debe ser del mismo dominio en el que está activo este formulario. Si desea utilizar un dominio diferente para el envío de correos electrónicos, le recomendamos que utilice la función SMTP."
+
+msgid "Invalid id %s. Please use only form ids"
+msgstr "Id %s inválido. Utilice sólo identificadores de formulario"
+
+msgid "Page Title"
+msgstr "Título de la página"

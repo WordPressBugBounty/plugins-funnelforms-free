@@ -1,15 +1,15 @@
 <div class="af2_custom_builder_wrapper af2_formularbuilder_settings">
 
     <div id="af2_manage_fonts" class="af2_modal" 
-        data-heading="<?=__('Funnelforms Fonts', 'af2_multilanguage')?>"
-        data-close="<?=__('Close', 'af2_multilanguage')?>">
+        data-heading="<?=__('Funnelforms Fonts', 'funnelforms-free')?>"
+        data-close="<?=__('Close', 'funnelforms-free')?>">
         
         <!-- Modal content -->
         <div class="af2_modal_content">
             <div class="af2_add_font_header">
                 <form id="af2_upload_font" enctype="multipart/form-data">
                     <input type="file" name="af2FontFile" id="af2FontFile" accept=".ttf, .otf, .woff, .woff2">
-                    <button type="button" class="af2_upload_file_button af2_btn af2_btn_secondary_outline"><?= __('Upload File', 'af2_multilanguage') ?></button>
+                    <button type="button" class="af2_upload_file_button af2_btn af2_btn_secondary_outline"><?= __('Upload File', 'funnelforms-free') ?></button>
                 </form>
             </div>
             <div class="af2_font_wrapper_container">
@@ -76,7 +76,7 @@
             <div class="af2_card_block">
                 <div class="af2_card_label">
                     <div class="af2_fb_settings_icon"><i class="fas fa-font"></i></div>
-                    <h5><?=__('Manage own fonts', 'af2_multilanguage')?></h5>
+                    <h5><?=__('Manage own fonts', 'funnelforms-free')?></h5>
                 </div>
             </div>
         </div>

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plugins - Interactive Contact Form and Multi Step Form Builder with Drag &amp; Drop Editor &#8211; Funnelforms Free - Stable (latest release)\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2024-08-25 17:30+0200\n"
+"PO-Revision-Date: 2024-12-08 23:34+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: ru\n"
@@ -4313,3 +4313,9 @@ msgstr "Лицензионный ключ:"
 
 msgid "Note: The sender e-mail should be from the same domain on which this form is active. If you want to use a different domain for sending emails, we recommend using the SMTP function."
 msgstr "Примечание: Электронная почта отправителя должна быть с того же домена, на котором активна данная форма. Если вы хотите использовать другой домен для отправки писем, рекомендуем воспользоваться функцией SMTP."
+
+msgid "Invalid id %s. Please use only form ids"
+msgstr "Неверный идентификатор %s. Пожалуйста, используйте только идентификаторы форм"
+
+msgid "Page Title"
+msgstr "Название страницы"

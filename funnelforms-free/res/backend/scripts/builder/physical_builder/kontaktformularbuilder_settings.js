@@ -123,7 +123,8 @@ jQuery( document ).ready(function() {
     const af2_get_analytics_tags = () => {
         return [
             af2_kontaktformularbuilder_settings_object.strings.querystring_tag,
-            af2_kontaktformularbuilder_settings_object.strings.url_tag
+            af2_kontaktformularbuilder_settings_object.strings.url_tag,
+            af2_kontaktformularbuilder_settings_object.strings.post_title_tag,
         ]
     }
 

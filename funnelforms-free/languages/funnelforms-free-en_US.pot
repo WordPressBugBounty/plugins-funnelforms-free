@@ -2804,3 +2804,9 @@ msgstr ""
 
 msgid "License key:"
 msgstr ""
+
+msgid "Invalid id %s. Please use only form ids"
+msgstr ""
+
+msgid "Page Title"
+msgstr ""

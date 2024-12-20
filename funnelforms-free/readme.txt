@@ -2,9 +2,9 @@
 Contributors: Funnelforms
 Tags: multi step form, contact form, quiz, form, funnel
 Requires at least: 5.0
-Tested up to: 6.6.1
+Tested up to: 6.7.1
 Requires PHP: 7.4
-Stable tag: 3.7.4.1
+Stable tag: 3.7.5.1
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -244,6 +244,14 @@ Don't worry, we always try to meet our customers' wishes and to develop the mult
 9. Preview of the created form
 
 == Changelog ==
+
+= 3.7.5.1 - 14. December 2024 =
+* Fixed Security Issue
+* Minor Bugfixes
+
+= 3.7.5 - 09. December 2024 =
+* Fixed Security Issue
+* Add Page Title Information to Leads
 
 = 3.7.4.1 - 25. August 2024 =
 * Scroll To Anchor (Desktop) Feature
