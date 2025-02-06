@@ -460,6 +460,7 @@ jQuery( document ).ready(function() {
         const val = jQuery(dom_element).val();
 
         af2SetValueToSaveObject(editContentArrayId, saveObjectEditId, saveObjectEditFieldId, saveObjectEditSpreadFields, val);
+        af2_load_field_html_data(dataHandler, dataHandler.fields[fieldNumber]);
     }
     
     const af2_make_sidebar_select_content_change = (dom_element) => {

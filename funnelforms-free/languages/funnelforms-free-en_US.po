@@ -2848,3 +2848,9 @@ msgstr "Nicht nutzbare ID %s. Bitte nutze nur Formular IDs"
 
 msgid "Page Title"
 msgstr "Page Title"
+
+msgid "Optional field"
+msgstr "Optional field"
+
+msgid "Multiple selection settings"
+msgstr "Multiple selection settings"

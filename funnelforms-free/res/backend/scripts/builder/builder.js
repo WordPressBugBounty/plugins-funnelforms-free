@@ -32,13 +32,19 @@ const af2_load_field_html_data = (sidebar_element, field) => {
     else saveObjectValues = [af2_builder_object.af2_save_object[field.details.saveObjectId]];
 
     if(saveObjectValues == null || !Array.isArray(saveObjectValues)) return;
-
     if(field.details.saveObjectId == "hide_icons") {
         if(saveObjectValues[0]) {
             jQuery("#af2_answers_container").addClass("hide_icons");
         } else {
             jQuery("#af2_answers_container").removeClass("hide_icons");
         }
+    }
+
+    if(field.details.saveObjectId == "desktop_layout") {
+        jQuery("#af2_answers_container").removeClass("af2-select-desktop_layout--grid");
+        jQuery("#af2_answers_container").removeClass("af2-select-desktop_layout--list");
+        jQuery("#af2_answers_container").removeClass("af2-select-desktop_layout--list2");
+        jQuery("#af2_answers_container").addClass("af2-select-desktop_layout--" + saveObjectValues[0]);
     }
 
     saveObjectValues.forEach((saveObjectValue, i) => {

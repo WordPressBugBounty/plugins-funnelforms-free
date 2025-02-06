@@ -68,6 +68,8 @@ $menustab = ''; if($menu_blur_option == true){ $menustab = 'af2_blurred'; }
                                  }
                                  if($table_column['lable'] == 'Category'){ _e('Category', 'funnelforms-free');
                                  } 
+                                 if($table_column['lable'] == 'Direct URL'){ _e('Direct URL', 'funnelforms-free');
+                                 } 
 
                                 ?></h5>
                             </div>

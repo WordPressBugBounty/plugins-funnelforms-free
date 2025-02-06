@@ -387,6 +387,7 @@ __("Friday", "funnelforms-free");
 __("from", "funnelforms-free");
 __("Funnelforms", "funnelforms-free");
 __("Funnelforms Pro", "funnelforms-free");
+__("Direct URL", "funnelforms-free");
 __("Gardening-Demo", "funnelforms-free");
 __("General settings", "funnelforms-free");
 __("Generate", "funnelforms-free");

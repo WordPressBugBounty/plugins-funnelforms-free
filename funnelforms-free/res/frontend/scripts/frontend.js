@@ -1786,6 +1786,13 @@ function Form($, id, num, preload, size, errormail, activateScrollToAnchor, acti
         else if(datas[this.actualData].typ === 'af2_dateiupload') {
 
         }
+        else if(datas[this.actualData].typ === 'af2_multiselect') {
+            if(datas[this.actualData].type_specifics.mandatory == true) {
+                if(goBefore != true) $(this.formSelector + ' .af2_form_foward_button').addClass('af2_disabled');
+            } else {
+                if(goBefore != true) $(this.formSelector + ' .af2_form_foward_button').removeClass('af2_disabled');
+            }
+        }
         else
         {
             //
@@ -1928,6 +1935,7 @@ function Form($, id, num, preload, size, errormail, activateScrollToAnchor, acti
                 {
                     if (datas[this.actualData].typ === 'af2_multiselect')
                     {
+                        console.log('actual data', datas[this.actualData]);
                         let arr = [];
                         jQuery(this.formSelector + ' #' + this.actualCarouselItem + '.af2_carousel_item .af2_answer.selected_item').each((i, el) => {
                             arr.push(jQuery(el).attr('id'));
@@ -1995,6 +2003,7 @@ function Form($, id, num, preload, size, errormail, activateScrollToAnchor, acti
                 jQuery(ev.currentTarget).removeClass('hover');
 
                 const len = jQuery(this.formSelector + ' #' + this.actualCarouselItem + '.af2_carousel_item .af2_answer.selected_item').length;
+                const isMultiselectMandatory = datas[this.actualData].type_specifics.mandatory === true;
                 if (len > 0)
                 {
                     jQuery(this.formSelector + ' .af2_form_foward_button').removeClass('af2_disabled');
@@ -2014,8 +2023,11 @@ function Form($, id, num, preload, size, errormail, activateScrollToAnchor, acti
                     }
                 } else
                 {
-                    jQuery(this.formSelector + ' .af2_form_foward_button').addClass('af2_disabled');
-                }
+                    if(isMultiselectMandatory) {
+                        $(this.formSelector + ' .af2_form_foward_button').addClass('af2_disabled');
+                    } else {
+                        $(this.formSelector + ' .af2_form_foward_button').removeClass('af2_disabled');
+                    }                }
             } else
             {
                 const id = parseInt(jQuery(ev.currentTarget).attr('id'));
@@ -2664,6 +2676,9 @@ function Form($, id, num, preload, size, errormail, activateScrollToAnchor, acti
                 jQuery(el).removeClass('selected_item');
                 jQuery(el).removeClass('hover');
             });
+            if(datas[this.actualData].typ == "af2_multiselect" && Array.isArray(connectionFrom) && !connectionFrom.length) {
+                connectionFrom = "";
+            } 
 
             this.answers.push(connectionFrom);
 
@@ -2680,10 +2695,12 @@ function Form($, id, num, preload, size, errormail, activateScrollToAnchor, acti
                 }
                 case 'af2_multiselect': {
                     answerObjectAnswer = '';
-                    connectionFrom.forEach((el, i) => {
-                        answerObjectAnswer += datas[this.actualData].type_specifics.answers[el].text;
-                        if(i < connectionFrom.length - 1) answerObjectAnswer += ', ';
-                    });
+                    if(Array.isArray(connectionFrom)) {
+                        connectionFrom.forEach((el, i) => {
+                            answerObjectAnswer += datas[this.actualData].type_specifics.answers[el].text;
+                            if(i < connectionFrom.length - 1) answerObjectAnswer += ', ';
+                        });
+                    }
                     break;
                 }
                 case 'af2_textfeld': {
@@ -2870,7 +2887,12 @@ function Form($, id, num, preload, size, errormail, activateScrollToAnchor, acti
                     if (datas[this.actualData].type_specifics.mandatory !== true) {
                         jQuery(this.formSelector + ' .af2_form_foward_button').removeClass("af2_disabled");
                     }
-                }else if (datas[this.actualData].typ === 'af2_dateiupload') {
+                }else if (datas[this.actualData].typ === 'af2_multiselect') {
+                    if (datas[this.actualData].type_specifics.mandatory !== true) {
+                        $(this.formSelector + ' .af2_form_foward_button').removeClass("af2_disabled");
+                    }
+                }
+                else if (datas[this.actualData].typ === 'af2_dateiupload') {
                     
                     if (datas[this.actualData].type_specifics.mandatory === true) {
                         let uploaded_files = 0;
@@ -2962,6 +2984,14 @@ function Form($, id, num, preload, size, errormail, activateScrollToAnchor, acti
                                 jQuery(el).focus();
                             }
                         });
+                    }
+
+                    if (datas[this.actualData].typ === 'af2_multiselect')
+                    {
+                        let is_mandatory = datas[this.actualData].type_specifics.mandatory;
+                        if (is_mandatory !== true) {
+                            $(this.formSelector + ' .af2_form_foward_button').removeClass("af2_disabled");
+                        }
                     }
 
                     if (datas[this.actualData].typ === 'af2_textbereich')

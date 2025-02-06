@@ -660,13 +660,8 @@ msgstr "Créez un formulaire de contact pour recueillir les informations personn
 msgid "Create an appointment booking question and link the appointment event"
 msgstr "Créer une question de prise de rendez-vous et lier l'événement de rendez-vous"
 
-msgid ""
-"Create innovative forms and optimize your lead generation, recruiting, pricing calculation, appointment booking or product configuration! Get more ready-to-buy customers, acquire the right staff and digitize your business processes with intuitive and "
-"smart multi-step forms! Create high-quality forms with just a few clicks using drag & drop, without touching a line of code and lead your website visitors intuitively through a sales-boosting form funnel."
-msgstr ""
-"Créez des formulaires innovants et optimisez vos activités de génération de prospects, de recrutement, de calcul de prix, de prise de rendez-vous ou de configuration de produits ! Obtenez plus de clients prêts à acheter, recrutez le personnel adéquat "
-"et numérisez vos processus commerciaux grâce à des formulaires multi-étapes intuitifs et intelligents ! Créez des formulaires de haute qualité en quelques clics à l'aide de la fonction glisser-déposer, sans toucher à une ligne de code, et guidez les "
-"visiteurs de votre site Web de manière intuitive à travers un entonnoir de formulaires propices à la vente."
+msgid "Create innovative forms and optimize your lead generation, recruiting, pricing calculation, appointment booking or product configuration! Get more ready-to-buy customers, acquire the right staff and digitize your business processes with intuitive and smart multi-step forms! Create high-quality forms with just a few clicks using drag & drop, without touching a line of code and lead your website visitors intuitively through a sales-boosting form funnel."
+msgstr "Créez des formulaires innovants et optimisez vos activités de génération de prospects, de recrutement, de calcul de prix, de prise de rendez-vous ou de configuration de produits ! Obtenez plus de clients prêts à acheter, recrutez le personnel adéquat et numérisez vos processus commerciaux grâce à des formulaires multi-étapes intuitifs et intelligents ! Créez des formulaires de haute qualité en quelques clics à l'aide de la fonction glisser-déposer, sans toucher à une ligne de code, et guidez les visiteurs de votre site Web de manière intuitive à travers un entonnoir de formulaires propices à la vente."
 
 msgid "Create the necessary questions for your first Funnelform"
 msgstr "Créez les questions nécessaires pour votre premier Funnelform"
@@ -2343,16 +2338,13 @@ msgid "This demo contains 5 questions from the field of web design and online ma
 msgstr "Cette démo contient 5 questions du domaine de la conception web et du marketing en ligne. Elle sert de base à un formulaire de demande de projet / formulaire de génération de pistes pour les agences Internet, web et en ligne."
 
 msgid "This demo contains 6 lead generation questions for insurance brokers. By querying the current situation, the inquirer is shown in this demo that independent support from an insurance broker is worthwhile for him."
-msgstr ""
-"Cette démo contient 6 questions de génération de prospects pour les courtiers d'assurance. En posant une question sur la situation actuelle, cette démo montre au demandeur que le soutien indépendant d'un courtier en assurances est intéressant pour lui."
+msgstr "Cette démo contient 6 questions de génération de prospects pour les courtiers d'assurance. En posant une question sur la situation actuelle, cette démo montre au demandeur que le soutien indépendant d'un courtier en assurances est intéressant pour lui."
 
 msgid "This demo contains 6 lead generation questions specifically for a fitness coach. The interested party indicates whether he wants to lose weight, build muscle or improve his condition."
 msgstr "Cette démo contient 6 questions de génération de prospects spécifiquement destinées à un coach de fitness. L'intéressé indique s'il veut perdre du poids, se muscler ou améliorer sa condition physique."
 
 msgid "This demo contains 6 lead generation questions specifically for lawyers. The interested party indicates whether he is inquiring as a private individual or as a company. It will also be asked whether the interested party would like to sue."
-msgstr ""
-"Cette démo contient 6 questions de génération de prospects spécifiquement destinées aux avocats. L'intéressé indique s'il se renseigne en tant que particulier ou en tant qu'entreprise. Il est également demandé si l'intéressé souhaite engager des "
-"poursuites."
+msgstr "Cette démo contient 6 questions de génération de prospects spécifiquement destinées aux avocats. L'intéressé indique s'il se renseigne en tant que particulier ou en tant qu'entreprise. Il est également demandé si l'intéressé souhaite engager des poursuites."
 
 msgid "This demo contains 6 lead generation questions specifically for tilers. Exact information is requested, e.g. where to tile (inside or outside) and which materials should be used."
 msgstr "Cette démo contient 6 questions de génération de prospects spécifiquement destinées aux carreleurs. Des informations précises sont demandées, par exemple où carreler (intérieur ou extérieur) et quels matériaux utiliser."
@@ -2364,16 +2356,13 @@ msgid "This demo contains 7 recruiting questions using the example of a bricklay
 msgstr "Cette démo contient 7 questions de recrutement utilisant l'exemple d'une entreprise de maçonnerie. Une distinction est faite entre la formation, les offres d'emploi pour les compagnons et les maîtres artisans."
 
 msgid "This demo contains 8 lead generation questions for moving companies. Information is requested on the size of the household, whether furniture needs to be put up or taken down, the distance between locations and when the move is to take place."
-msgstr ""
-"Cette démo contient 8 questions de génération de prospects pour les entreprises de déménagement. Des informations sont demandées sur la taille de l'entrepôt, si les meubles doivent être montés ou démontés, la distance entre les lieux et la date du "
-"déménagement."
+msgstr "Cette démo contient 8 questions de génération de prospects pour les entreprises de déménagement. Des informations sont demandées sur la taille de l'entrepôt, si les meubles doivent être montés ou démontés, la distance entre les lieux et la date du déménagement."
 
 msgid "This demo contains 8 questions from the field of an advertising agency. It serves as the basis for a project request form / lead generation form for advertising agencies."
 msgstr "Cette démo contient 8 questions issues du domaine d'une agence de publicité. Elle sert de base à un formulaire de demande de projet / formulaire de génération de leads pour les agences de publicité."
 
 msgid "This demo contains 9 lead generation questions for Ambulatory Care Services. Information is requested on the care level, whether the person being cared for is bedridden, and on the communication skills of the person being cared for."
-msgstr ""
-"Cette démo contient 9 questions de génération de leads pour les services de soins ambulatoires. Des informations sont demandées sur le niveau de soins, si la personne soignée est alitée, et sur les capacités de communication de la personne soignée."
+msgstr "Cette démo contient 9 questions de génération de leads pour les services de soins ambulatoires. Des informations sont demandées sur le niveau de soins, si la personne soignée est alitée, et sur les capacités de communication de la personne soignée."
 
 msgid "This demo contains 9 lead generation questions specific to gardening/landscaping. The prospect is asked specific questions that are made concrete by the built-in logic."
 msgstr "Cette démo contient 9 questions de génération de prospects spécifiques au jardinage/à l'aménagement paysager. Le prospect se voit poser des questions spécifiques qui sont concrétisées par la logique intégrée."
@@ -2857,3 +2846,9 @@ msgstr "Identifiant invalide %s. Veuillez n'utiliser que des identifiants de for
 
 msgid "Page Title"
 msgstr "Titre de la page"
+
+msgid "Optional field"
+msgstr "Champ facultatif"
+
+msgid "Multiple selection settings"
+msgstr "Paramètres de sélection multiple"

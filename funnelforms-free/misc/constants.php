@@ -48,6 +48,7 @@ define( 'FNSF_AF2_MENU_IMPORT_PATH', AF2F_PLUGIN_DIR.'/admin/menus/physical_menu
 define( 'FNSF_AF2_MENU_DEMOIMPORT_PATH', AF2F_PLUGIN_DIR.'/admin/menus/physical_menus/Demoimport.php' );
 define( 'FNSF_AF2_MENU_INTEGRATIONEN_PATH', AF2F_PLUGIN_DIR.'/admin/menus/physical_menus/Integrationen.php' );
 define( 'FNSF_AF2_MENU_OPENAI_PATH', AF2F_PLUGIN_DIR.'/admin/menus/physical_menus/OpenAI.php' );
+define( 'FNSF_AF2_MENU_SETTINGS_PATH', AF2F_PLUGIN_DIR.'/admin/menus/physical_menus/Settings.php' );
 define( 'FNSF_AF2_MENU_LIZENZ_PATH', AF2F_PLUGIN_DIR.'/admin/menus/physical_menus/Lizenz.php' );
 define( 'FNSF_AF2_MENU_CHECKLIST_PATH', AF2F_PLUGIN_DIR.'/admin/menus/physical_menus/Checklist.php' );
 
@@ -85,6 +86,7 @@ define( 'FNSF_AF2_CUSTOM_MENU_LIZENZ', AF2F_PLUGIN_DIR.'/admin/views/menu/custom
 define( 'FNSF_AF2_CUSTOM_MENU_CHECKLIST', AF2F_PLUGIN_DIR.'/admin/views/menu/custom_menus/checklist.php' );
 define( 'FNSF_AF2_CUSTOM_MENU_LEADDETAILS', AF2F_PLUGIN_DIR.'/admin/views/menu/custom_menus/leaddetails.php' );
 define( 'FNSF_AF2_CUSTOM_MENU_OPENAI', AF2F_PLUGIN_DIR.'/admin/views/menu/custom_menus/openai.php' );
+define( 'FNSF_AF2_CUSTOM_MENU_SETTINGS', AF2F_PLUGIN_DIR.'/admin/views/menu/custom_menus/settings.php' );
 
 define( 'FNSF_AF2_ICON_PICKER_MODAL_PATH', AF2F_PLUGIN_DIR.'/admin/views/modals/icon_picker.php' );
 
@@ -129,6 +131,7 @@ define( 'FNSF_TERMINEVENT_SLUG', 'af2_terminevents' );
 define( 'FNSF_CALCULATIONS_SLUG', 'af2_calculations' );
 define( 'FNSF_DEMOFNSF_IMPORT_SLUG', 'af2_demo_import' );
 define( 'FNSF_INTEGRATIONEN_SLUG', 'af2_integrationen' );
+define( 'FNSF_SETTINGS_SLUG', 'af2_settings' );
 define( 'FNSF_LIZENZ_SLUG', 'af2_lizenzen' );
 define( 'FNSF_OPENAI_SLUG', 'af2_openai' );
 define( 'FNSF_CHECKLIST_SLUG', 'af2_checklist' );
@@ -145,7 +148,7 @@ define( 'FNSF_REQUEST_POST_TYPE', 'af2_request' );
 define( 'FNSF_REQUEST_POST_TYPE_', 'af2_request' );
 
 // Other constants
-define( 'FNSF_AF2_FINAL_VERSION', '3.7.5.1' );
+define( 'FNSF_AF2_FINAL_VERSION', '3.7.8' );
 define( 'FNSF_AF2_MENU_ICON_URL', plugins_url("/res/images/menu_icon.png", AF2F_PLUGIN) );
 define( 'FNSF_AF2_OPENAI_IMAGE_URL', plugins_url("/res/images/openai.png", AF2F_PLUGIN) );
 define( 'FNSF_AF2_HEALTHCHECK_JSON', AF2F_PLUGIN_DIR."/res/backend/healthcheck.json");

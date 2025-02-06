@@ -37,6 +37,7 @@ function fnsf_af2_load_backend_resources() {
     af2_register_style('af2_import_export_style', FNSF_AF2_BACKEND_STYLES_PATH.'/custom_menus/import_export.css');
     af2_register_style('af2_demoimport_style', FNSF_AF2_BACKEND_STYLES_PATH.'/custom_menus/demoimport.css');
     af2_register_style('af2_integrationen_style', FNSF_AF2_BACKEND_STYLES_PATH.'/custom_menus/integrationen.css');
+    af2_register_style('af2_settings_style', FNSF_AF2_BACKEND_STYLES_PATH.'/custom_menus/settings.css');
     af2_register_style('af2_dashboard_style', FNSF_AF2_BACKEND_STYLES_PATH.'/custom_menus/dashboard.css');
     af2_register_style('af2_checklist_style', FNSF_AF2_BACKEND_STYLES_PATH.'/custom_menus/checklist.css');
     af2_register_style('af2_leaddetails_style', FNSF_AF2_BACKEND_STYLES_PATH.'/custom_menus/leaddetails.css');

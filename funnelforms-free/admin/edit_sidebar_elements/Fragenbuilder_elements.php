@@ -96,7 +96,7 @@ function fnsf_get_fragenbuilder_elements()
             ),
         ),
         array(
-            'editContentId' => 'condition',
+            'editContentId' => 'multiselect_settings',
             'fields' => array(
                 array(
                     'type' => 'text',
@@ -110,6 +110,13 @@ function fnsf_get_fragenbuilder_elements()
                         'htmlPreset' => __('Maximum number', 'funnelforms-free') . ': ',
                         'empty_value' => __('Maximum number of selectable answers (optional)', 'funnelforms-free'),
                         'saveObjectId' => 'condition'
+                    )
+                ),
+                array(
+                    'type' => 'checkbox',
+                    'label' => __('Optional field', 'funnelforms-free'),
+                    'details' => array(
+                        'saveObjectId' => 'multiselect_optional'
                     )
                 ),
             ),

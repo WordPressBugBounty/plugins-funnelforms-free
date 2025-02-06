@@ -24,6 +24,7 @@ class Admin {
     private $menu_object_integrationen = null;
     private $menu_object_checklist = null;
     private $menu_object_openai = null;
+    private $menu_object_settings = null;
 
     private $AdminHelper = null;
     private $af2_menu_ajax = null;
@@ -105,6 +106,9 @@ class Admin {
         
         require_once FNSF_AF2_MENU_OPENAI_PATH;
         $this->menu_object_openai = new FNSF_Af2OpenAI($this->AdminHelper);
+
+        require_once FNSF_AF2_MENU_SETTINGS_PATH;
+        $this->menu_object_settings = new Fnsf_Af2Settings($this->AdminHelper);
     }
 
     public function fnsf_af2_add_custom_post_types() {
@@ -203,6 +207,7 @@ class Admin {
             add_submenu_page(FNSF_MAIN_MENU_SLUG, __('Funnelforms AI', 'funnelforms-free'), __('Funnelforms AI', 'funnelforms-free').'<i class="fas fa-lock af2_locked_menu"></i>', 'manage_options', FNSF_OPENAI_SLUG, array($this->menu_object_openai, 'fnsf_get_content'));
             add_submenu_page(FNSF_MAIN_MENU_SLUG, __('Demo import', 'funnelforms-free'), __('Demo import', 'funnelforms-free').'<i class="fas fa-lock af2_locked_menu"></i>', 'manage_options', FNSF_DEMOFNSF_IMPORT_SLUG, array($this->menu_object_demoimport, 'fnsf_get_content'));
             add_submenu_page(FNSF_MAIN_MENU_SLUG, __('Integrations', 'funnelforms-free'), __('Integrations', 'funnelforms-free').'<i class="fas fa-lock af2_locked_menu"></i>', 'manage_options', FNSF_INTEGRATIONEN_SLUG, array($this->menu_object_integrationen, 'fnsf_get_content'));
+            add_submenu_page(FNSF_MAIN_MENU_SLUG, __('Settings', 'funnelforms-free'), __('Settings', 'funnelforms-free').'<i class="fas fa-lock af2_locked_menu"></i>', 'manage_options', FNSF_SETTINGS_SLUG, array($this->menu_object_settings, 'fnsf_get_content'));
         
 
         // External submenu pages

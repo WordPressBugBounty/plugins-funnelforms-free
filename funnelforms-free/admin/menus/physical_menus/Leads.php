@@ -32,6 +32,16 @@ class Fnsf_Af2Leads extends Fnsf_Af2MenuTable {
     protected function fnsf_get_table_builder_load_array_() { return array( 'page' => FNSF_LEADS_DETAILS_SLUG, 'id_label' => 'ID'); }
     protected function fnsf_get_menu_hook_inline_search_() { return "Name"; }
 
+    protected function fnsf_get_menu_hook_inline_checkbox_() {
+            return array(
+                'id' => 'af2_show_uncomplete',
+                'active' => false,
+                'label'  => __('Save incomplete entries', 'af2_multilanguage'),
+                'bonus_class' => 'af2_toggle_wrapper_disabled_free',
+                'disabled' => true,
+            );
+    }
+
     protected function fnsf_get_menu_hook_inline_button_form_() { 
         // $menu_hook_form = sanitize_text_field($_GET['form_id']) ;
         if(isset($_GET['form_id'])) {

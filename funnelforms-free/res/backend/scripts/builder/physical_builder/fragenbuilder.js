@@ -46,6 +46,7 @@ jQuery( document ).ready(function() {
         const mobile_layout = af2_builder_object.af2_save_object.mobile_layout;
         const hide_icons = af2_builder_object.af2_save_object.hide_icons;
         const condition = af2_builder_object.af2_save_object.condition;
+        const multiselect_optional = af2_builder_object.af2_save_object.multiselect_optional;
 
         // Textfeld - Textbereich attributes
         const textfeld = af2_builder_object.af2_save_object.textfeld;
@@ -96,6 +97,7 @@ jQuery( document ).ready(function() {
                 af2_builder_object.af2_save_object.hide_icons = hide_icons != undefined && hide_icons != null ? hide_icons : false;
                 af2_builder_object.af2_save_object.answers = answers != null && answers != '' ? answers : [{"text":af2_fragenbuilder_object.strings.antwort, "img":"fas fa-atom"}, {"text": af2_fragenbuilder_object.strings.antwort, "img":"fas fa-atom"}];
                 af2_builder_object.af2_save_object.condition = condition != null && condition.trim() != '' ? condition : null;
+                af2_builder_object.af2_save_object.multiselect_optional = multiselect_optional != undefined ? multiselect_optional : false;
                 jQuery('.af2_answers_container').prepend(af2FragenbuilderBuildAnswerPresets()); // add Answers
                 break;
             }

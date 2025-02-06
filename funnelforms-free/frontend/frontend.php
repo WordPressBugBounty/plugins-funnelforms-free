@@ -44,7 +44,7 @@ class Fnsf_FrontendView {
         $dataid = $atts['id'];                                                            // The Dataid of the Formular
         if(get_post_type($atts['id']) !== FNSF_FORMULAR_POST_TYPE) {
             // Translator: %s: id added as attribute to the shortcode
-            return sprintf(__("Invalid id %s. Please use only form ids", 'af2_multilanguage'), $atts['id']);
+            return sprintf(__("Invalid id %s. Please use only form ids", 'funnelforms-free'), $atts['id']);
         }
         $base_post = get_post($dataid);                                                   // The post of it out of DB
         require_once FNSF_AF2_MISC_FUNCTIONS_PATH;
@@ -666,6 +666,10 @@ class Fnsf_FrontendView {
                     $new_json->desktop_layout = $base_json->desktop_layout;
                     $new_json->mobile_layout = $base_json->mobile_layout;
                     $new_json->hide_icons = isset($base_json->hide_icons) ? $base_json->hide_icons : false;
+                    $new_json->mandatory = true; 
+                    if(isset($base_json->multiselect_optional)) {
+                        $new_json->mandatory = !$base_json->multiselect_optional; 
+                    }
                     break;
                 }
             case 'af2_textfeld': {

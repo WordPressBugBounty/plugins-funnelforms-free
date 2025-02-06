@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plugins - Interactive Contact Form and Multi Step Form Builder with Drag &amp; Drop Editor &#8211; Funnelforms Free - Stable (latest release)\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2024-12-09 00:00+0100\n"
+"PO-Revision-Date: 2025-01-11 21:45+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: pt\n"
@@ -4328,3 +4328,9 @@ msgstr "ID inválido %s. Utilize apenas ids de formulário"
 
 msgid "Page Title"
 msgstr "Título da página"
+
+msgid "Optional field"
+msgstr "Campo opcional"
+
+msgid "Multiple selection settings"
+msgstr "Definições de seleção múltipla"

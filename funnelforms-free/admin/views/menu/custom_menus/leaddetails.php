@@ -27,4 +27,23 @@
             </div>
         </div>
     </div>
+
+    <div class="af2_card af2_leaddetails">
+        <div class="af2_card_block">
+            <div class="af2_heading_pro">
+                <h4><?=__('Hidden fields', 'funnelforms-free')?></h4>
+                <div class="af2_pro_sign"><i class="fas fa-star"></i><?php _e('PRO', 'funnelforms-free'); ?></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="af2_card af2_leaddetails">
+        <div class="af2_card_block">
+            <div class="af2_heading_pro">
+                <h4><?=__('Calculations', 'funnelforms-free')?></h4>
+                <div class="af2_pro_sign"><i class="fas fa-star"></i><?php _e('PRO', 'funnelforms-free'); ?></div>
+            </div>
+            
+        </div>
+    </div>
 </div>

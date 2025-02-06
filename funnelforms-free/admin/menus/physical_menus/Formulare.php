@@ -25,6 +25,7 @@ class Fnsf_Af2Formulare extends Fnsf_Af2MenuTable{
             array( 'lable' => 'WordPress shortcode', 'translate' => true, 'highlight' => false,            'width' => '280px', 'flex' => '',  'max-width' => '', 'min-width' => '', 'button' => false, 'uid' => false),
             array( 'lable' => 'Popup shortcode', 'translate' => true, 'highlight' => false,                         'width' => '190px', 'flex' => '0.4',  'max-width' => '', 'min-width' => '', 'button' => true, 'buttonclass' => 'secondary_outline', 'btn_disabled' => true, 'buttonid' => true, 'uid' => false),
             array( 'lable' => 'External embed code', 'translate' => true, 'highlight' => false,                'width' => '190px', 'flex' => '0.4',  'max-width' => '', 'min-width' => '', 'button' => true, 'buttonclass' => 'secondary_outline', 'btn_disabled' => true, 'buttonid' => true, 'uid' => false),
+            array( 'lable' => 'Direct URL', 'translate' => true, 'highlight' => false,                         'width' => '190px', 'flex' => '0.4',  'max-width' => '', 'min-width' => '', 'button' => true, 'buttonclass' => 'secondary_outline', 'btn_disabled' => true, 'buttonid' => true, 'uid' => false),
             array( 'lable' => 'Leads', 'translate' => true, 'highlight' => true,                                    'width' => '190px', 'flex' => '0.4',  'max-width' => '', 'min-width' => '', 'button' => true, 'buttonclass' => 'primary', 'url' => true, 'urlnum' => 0, 'uid' => false)
         );
     }
@@ -52,6 +53,7 @@ class Fnsf_Af2Formulare extends Fnsf_Af2MenuTable{
             $new_post['WordPress shortcode'] = '[funnelforms id="'.get_post_field('ID', $post ).'"]';
             $new_post['Popup shortcode'] = __('Generate','funnelforms-free');
             $new_post['External embed code'] = __('Generate','funnelforms-free');
+            $new_post['Direct URL'] = __('Generate','funnelforms-free');
             $new_post['Leads'] = __('Show leads','funnelforms-free');
 
           /*  $new_post['error'] = isset($post_content['error']) ? $post_content['error'] : false; */

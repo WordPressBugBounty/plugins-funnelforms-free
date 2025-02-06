@@ -696,6 +696,16 @@ a.af2_btn_link {
     margin-bottom: 0 !important;
 }
 
+.af2_toggle_wrapper.af2_toggle_wrapper_disabled_free {
+    position: relative;
+}
+
+.af2_toggle_wrapper.af2_toggle_wrapper_disabled_free .af2_toggle_btn,
+.af2_toggle_wrapper.af2_toggle_wrapper_disabled_free .af2_toggle,
+.af2_toggle_wrapper.af2_toggle_wrapper_disabled_free .af2_toggle_label {
+    opacity: 0.5;
+}
+
 input[type="checkbox"].af2_toggle {
     visibility: hidden;
     display: none;
@@ -1492,6 +1502,34 @@ span.af2_edit_object:hover {
     background: var(--af2-primary-color);
     border-radius: var(--af2-border-radius-small);
     padding: 2px 4px;
+    font-size: 10px;
+}
+
+.af2_toggle_wrapper .af2_pro_sign {
+    background: var(--af2-primary-color);
+    border-radius: var(--af2-border-radius-small);
+    color: var(--af2-fix-white-color);
+    padding: 2px 4px;
+    font-size: 10px;
+    font-weight: var(--af2-font-weight-bold);
+    position: relative;
+    margin: 0;
+    margin-left: 8px;
+}
+
+.af2_heading_pro {
+    display: flex;
+}
+
+.af2_heading_pro .af2_pro_sign {
+    background: var(--af2-primary-color);
+    border-radius: var(--af2-border-radius-small);
+    color: var(--af2-fix-white-color);
+    padding: 2px 4px;
+    position: relative;
+    margin: 0;
+    margin-left: 8px;
+    display: inline;
     font-size: 10px;
 }
 

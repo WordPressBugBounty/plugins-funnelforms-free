@@ -1,11 +1,15 @@
 <div class="af2_menu_hooks_wrapper mb10">
     <?php if(isset($menu_hook_inline_checkbox)) {
             $menuHook = ''; if($menu_hook_inline_checkbox['active']){ $menuHook = 'checked'; }
+            $showProSign = false; if($menu_hook_inline_checkbox['disabled']){ $menuHook .= ' disabled'; $showProSign = true; }
     ?>
-        <div class="af2_toggle_wrapper">
+        <div class="af2_toggle_wrapper <?php _e(esc_html($menu_hook_inline_checkbox['bonus_class'])); ?>">
             <input type="checkbox" id="<?php _e($menu_hook_inline_checkbox['id']); ?>" class="af2_toggle" <?php _e($menuHook); ?>>
             <label for="<?php _e($menu_hook_inline_checkbox['id']); ?>" class="af2_toggle_btn"></label>
             <h4 class="af2_toggle_label ml5"><?php _e($menu_hook_inline_checkbox['label']); ?></h4>
+            <?php if($showProSign) { ?>
+            <div class="af2_pro_sign"><i class="fas fa-star"></i><?php _e('PRO', 'funnelforms-free'); ?></div>
+            <?php } ?>
         </div>
     <?php }; ?>
     <?php if(isset($menu_hook_extra_title)) { ?>

@@ -2871,3 +2871,9 @@ msgstr "Id %s inválido. Utilice sólo identificadores de formulario"
 
 msgid "Page Title"
 msgstr "Título de la página"
+
+msgid "Optional field"
+msgstr "Campo opcional"
+
+msgid "Multiple selection settings"
+msgstr "Configuración de selección múltiple"

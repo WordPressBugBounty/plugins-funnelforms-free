@@ -1,5 +1,10 @@
 <div class="af2_custom_builder_wrapper af2_formularbuilder_settings">
-
+    <div class="af2_toggle_wrapper af2_toggle_wrapper_disabled_free mb50">
+        <input type="checkbox" id="af2_toggle_dsgvo" class="af2_toggle" disabled>
+        <label for="af2_toggle_dsgvo" class="af2_toggle_btn"></label>
+        <h4 class="af2_toggle_label ml5"><?=__('Save incomplete entries (Note: At your own risk, not GDPR-compliant)', 'funnelforms-free')?></h4>
+        <div class="af2_pro_sign"><i class="fas fa-star"></i><?php _e('PRO', 'funnelforms-free'); ?></div>
+    </div>
     <div id="af2_manage_fonts" class="af2_modal" 
         data-heading="<?=__('Funnelforms Fonts', 'funnelforms-free')?>"
         data-close="<?=__('Close', 'funnelforms-free')?>">

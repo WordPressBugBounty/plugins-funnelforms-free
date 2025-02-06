@@ -2856,3 +2856,9 @@ msgstr "Id %s non valido. Si prega di utilizzare solo gli id dei moduli"
 
 msgid "Page Title"
 msgstr "Titolo della pagina"
+
+msgid "Optional field"
+msgstr "Campo opzionale"
+
+msgid "Multiple selection settings"
+msgstr "Impostazioni di selezione multipla"

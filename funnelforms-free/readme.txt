@@ -4,7 +4,7 @@ Tags: multi step form, contact form, quiz, form, funnel
 Requires at least: 5.0
 Tested up to: 6.7.1
 Requires PHP: 7.4
-Stable tag: 3.7.5.1
+Stable tag: 3.8
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -244,6 +244,11 @@ Don't worry, we always try to meet our customers' wishes and to develop the mult
 9. Preview of the created form
 
 == Changelog ==
+
+= 3.8 - 04. February 2025 =
+* Multiselect optional
+* UX improvements
+* Minor Bugfixes
 
 = 3.7.5.1 - 14. December 2024 =
 * Fixed Security Issue
