@@ -2,7 +2,7 @@
 Contributors: Funnelforms
 Tags: multi step form, contact form, quiz, form, funnel
 Requires at least: 5.0
-Tested up to: 6.7.1
+Tested up to: 6.7.2
 Requires PHP: 7.4
 Stable tag: 3.8
 License: GPLv2
@@ -233,15 +233,17 @@ Don't worry, we always try to meet our customers' wishes and to develop the mult
 
 == Screenshots ==
 
-1. First steps and checklist for your quick start with Funnelforms
-2. Overview of all generated leads
-3. All created questions with the different question types
-4. Question editor to create a question for the multi step form
-5. Contact form editor to create a contact form for capture of personal data
-6. Contact form settings for notification email and more
-7. Form editor to build multi step forms with conditional logic
-8. Form settings to adjust colors, design and fonts
-9. Preview of the created form
+1. Create beautiful multi step forms
+2. Suitable for all industries
+3. First steps and checklist for your quick start with Funnelforms
+4. Overview of all generated leads
+5. All created questions with the different question types
+6. Question editor to create a question for the multi step form
+7. Contact form editor to create a contact form for capture of personal data
+8. Contact form settings for notification email and more
+9. Form editor to build multi step forms with conditional logic
+10. Form settings to adjust colors, design and fonts
+11. Preview of the created form
 
 == Changelog ==
 
