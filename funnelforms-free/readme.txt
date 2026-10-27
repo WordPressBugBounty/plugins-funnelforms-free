@@ -1,376 +1,256 @@
-=== Interactive Contact Form and Multi Step Form Builder with Drag & Drop Editor - Funnelforms Free ===
-Contributors: Funnelforms
-Tags: multi step form, contact form, quiz, form, funnel
-Requires at least: 5.0
-Tested up to: 6.7.2
-Requires PHP: 7.4
-Stable tag: 3.8
-License: GPLv2
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
+=== Funnelforms Free – Multi Step Form, Contact Form & Lead Funnel Builder ===
+Contributors: funnelforms
+Tags: contact form, multi step form, form builder, lead generation, conversational form
+Requires at least: 6.5
+Tested up to: 7.1
+Requires PHP: 8.1
+Stable tag: 5.0.0
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-The easiest plugin for interactive contact forms. Create a custom contact form, multi step form or quiz in just minutes via drag & drop form builder.
+Conversion-optimized multi step forms and contact forms that turn visitors into leads. No limits. Import from Contact Form 7, WPForms and more.
 
 == Description ==
 
-https://vimeo.com/810409109
+Most contact forms lose visitors before they send anything: a long page of fields feels like work. Funnelforms turns the form into a conversation. Visitors answer one clear question at a time, mostly with a single tap, each answer leads to the question that fits it, and the contact details come last, when they have already invested in the answers. You get more leads, and you know what each lead needs before you call.
 
-Contact form redefined: Funnelforms Multi Step Form helps you generate **high-quality leads through targeted question sequences on your website** for free - whether through pre-qualified contact requests, configuration of service or product packages, or direct appointment booking within the multi step form. With the help of the fully customizable design, this contact form can also be seamlessly adapted to the corporate identity of the website.
+Funnelforms Free is not just another form plugin. It builds conversion-optimized funnels that collect leads, inquiries and appointment requests, with no limits: as many forms, steps, fields and entries as you like, for as many visitors as you have.
 
-**See for yourself and check out our [Live Demo](https://en.funnelforms.io/live-demo/)!**
- 
-With Funnelforms Free, you can easily and intuitively create an interactive form for your lead generation efforts to attract more **ready-to-buy customers, acquire the right staff and digitize your business processes**. The plugin's operation in the WordPress backend is effortless thanks to multiple drag & drop builders, making it very suitable for use by WordPress beginners. Since the form plugin is divided into the 3 main areas of question creation, contact form creation and form creation, simple and intuitive drag & drop builders are used here which also provide a live visual view of the form at the same time.
- 
-The overall goal of Funnelforms is to make **efficient lead generation via website accessible to everyone.** In doing so, the setup must be simple and the operation intuitive, which is why the users of the contact form plugin also range from the craftsman around the corner to real estate agents, consultants and online agencies. Depending on the industry and the use case, this means that different functions and integrations of the multi step form are used to reach the respective target group in the best possible way - with this type of contact form, this is quite easy to realize.
- 
-The Funnelforms Free contact form contains everything you need for your basic multi-step lead generation, the [Funnelforms Pro](https://en.funnelforms.io/) contact form and its many extensions offer even **more analytics data, question types, functions and integrations** that take your lead generation to a whole other level, especially in terms of business automations.
- 
-### IMPROVED LEAD GENERATION THROUGH INTERACTIVE MULTI STEP FORMS
- 
-To leave your competitors behind and attract new customers, you need to take care of **automated lead generation** of your website and make contacting them more pleasant. Multi step forms are much better for this than ordinary forms. Funnelforms helps you to easily **create visually appealing contact forms** and simplify the process of submission for the visitor - without overwhelming them. This includes a clear question and a well-defined choice of answers within the form. In addition, functions already integrated in the multi step form are also crucial, such as an automatic completion of addresses via Google Maps API or that of the text fields within the contact form.
+Use the drag and drop form builder for any form that should bring you customers: a **multi step contact form**, a **quote or estimate request form**, a **lead generation form**, a **callback request**, a **job application form**, a **survey or feedback form**, or a **conversational form** that asks one question at a time. No code needed, and it works with any theme.
 
-Funnelforms is designed in each of its components to always **achieve the optimal conversion rate on your website** - even if you create a completely custom form. We believe that **successful lead generation via website is the key to business success today**. But we also believe that it should not require any programming or special knowledge for the user. That's why our multi step form is packed with important features and details that **make life easier for you and your website visitors**.
- 
-### DRAG & DROP CONTACT FORM BUILDER TO SIMPLIFY YOUR WORKFLOW
- 
-Funnelforms is packed with features to help you get the most out of your multi step and contact forms, while making the submission process as enjoyable as possible for your website visitors. Here are some of the highlights:
- 
-* **Unlimited number of questions** with 4 different question types for more targeted queries and more precise answers (Single Selection, Multiple Selection, Text Line and Text Area).
-* **Unlimited contact forms** to capture all important contact details such as name, email address and phone number and receive them via notification email.
-* Up to **5 simultaneously usable forms** with up to 6 form steps incl. URL forwarding and categorization of questions, contact forms and forms - without visitor limits.
-* **Conditional logic within the form editor** to better guide your visitors based on their answers and ask relevant questions.
-* **Fully customizable responsive form design** that displays optimally on any device and extensive settings options.
-* For support: **First steps checklist incl. quick start video and help center** for your easy start.
-* **[Pro]** Dashboard Overview to get all the important **data and statistics about the performance of your contact forms.**
-* **[Pro] 7 more question types over the Free version** to create even more powerful forms, **including date picker, HTML content, address query with Google Maps integration, slider, appointment booking, file upload and dropdown**.
-* **[Pro]** Unlimited **appointment booking including calendar integration and synchronization** to iCloud, Google Calendar, Outlook, Exchange and Office 365.
-* **[Pro]** More than **5000 integrations**, e.g. to CRM, sales, email marketing and support systems, to achieve maximum post-submission automation.
-* **[Pro] 15 industry-specific demo templates** for example for craftsmen, financial service providers, agencies or real estate agents to import and customize.
-* **[Pro]** Unlimited number of questions, contact forms, form steps and logical branching and integrations.
-* **[Pro] Automatic email response** (autoresponder) and **form tracking for form views and submissions**.
-* **[Pro] Import and export function** for all questions, contact forms, forms, appointment events and settings as well as **CSV export** of all or individual leads.
-* **[Pro] App for iOS and Android** to keep track of all stats, leads and lead details for your contact forms on the go. Get informed in real time via push notifications.
-* **[Pro] Premium Support** around the clock via live chat and ticket system for all [Funnelforms Pro](https://en.funnelforms.io/) users.
- 
-### THE MAGIC OF THE DRAG & DROP FORM BUILDER
- 
-The intuitive drag-and-drop form builder within the question, contact form, and form builder is the heart of your multi step form and is itself visually designed as a sequence or "funnel". Additionally, the questions, contact forms, and appointment events available here can be **categorized and assigned to specific forms**. This way you never lose track of your queries and their structure.
- 
-In the form builder, you link all your questions, contact forms, appointment events and redirects **by drag and drop** one after the other, so that a flow is created for your visitors and **thanks to the integrated logic, all important questions are asked at the right time**. In this way, based on his previous answer, the website visitor will only be asked questions that make sense to his answer in the following and thus lead him to the completion - this **sales-psychological element of mutual dialogue extremely helps to increase your success in lead generation by a significant amount**. The visual representation of the multi step form in the form builder itself makes the creation of the funnel much easier and the user only has to click through.
+= Why multi-step funnels convert =
 
-**Check out the Quick Start Guide below to learn how to create your first multi step contact form:**
- 
-https://vimeo.com/782961075
- 
-### DATA PROTECTION FROM THE GROUND UP AS STANDARD
- 
-Funnelforms' contact form is **GDPR compliant** according to current, Europe-wide data protection law - which is mainly due to its technical structure and because it is installed locally on the WordPress system.
- 
-A major difference to comparable form builders available on the market is that Funnelforms, as **an external plugin, does not process or store any data on its own or third-party servers.** All leads and personal customer or appointment data is exclusively available to you. All personal data is stored on your web server, in your WordPress database and in the form of leads on your WordPress website and does not leave this closed system.
+* **An easy first step.** The form opens with one simple question instead of a wall of fields, so visitors start with a click, not with a decision.
+* **A path for every answer.** Each answer of a choice can lead to a step of its own, so every visitor only sees the questions that matter to them.
+* **Contact details at the end.** The contact step comes when visitors have already told you what they need: salutation, name, e-mail, phone, text, list, checkbox, consent and captcha, only the fields you choose.
+* **Progress you can see.** A progress bar and step count show visitors how close they are to the end.
+* **An end step that keeps the lead warm.** Say thank you, offer downloads or a button, or send visitors on to any page.
+* **Twelve field types.** Choice with icons or images (single and multiple), dropdown, short text, long text, e-mail, phone, web address, number, date, time, rating, text and media.
+* **Drag and drop canvas.** Every step and every path of the form at a glance. Several fields per step, undo and redo, autosave.
 
-In the Pro version of the multi step form, connections to iCloud, Google Calendar, Outlook, Exchange and Office 365 can be established via the appointment booking to offer synchronization and automatic entry into the respective calendars. Through the many integrations that can be connected after submitting the contact form, **only data selected by you will be sent to these respective third-party tools**. Each of these providers of calendars and integrations offers its own data protection standard.
+= Templates for every goal =
 
-### ACHIEVE YOUR BUSINESS GOALS ACROSS INDUSTRIES
+Start from a funnel that already asks the right questions. Funnelforms Free comes with 37 templates, sorted by goal and industry, each with a thank-you page with the next steps and a mail to you with every detail of the lead. Every question and text can be changed. The gallery also shows the 61 templates of Funnelforms Pro, such as price calculators and quizzes, marked with a lock.
 
-There is hardly any contact form plugin that can be **used across so many industries and still achieve such accurate results**. Funnelforms covers all major sources of lead generation in many different industries.
+* **Quotes:** roofing, electrician, plumbing and heating emergency, gardening, alarm system, car purchase, video production and photography.
+* **Inquiries and consultations:** contact form, kitchen studio, property sale, insurance check, private health insurance check, home care service, lawyer, tax advisor, funding check, business consulting, SaaS demo and marketing agency.
+* **Applications:** jobs in trades, nursing and logistics, apprenticeships, employee referrals, franchise partners and tenant interest for a flat.
+* **Appointments and sign-ups:** callback request, table reservation, property search, webinar and prize draw.
+* **Lead magnets and feedback:** checklist download, NPS and satisfaction survey with a way to reviews, service and complaint requests, and win-back for cancellations.
+* **Setup assistant.** Pick a goal and a template, add your colour and font, and your first form is live on a new page.
 
-Clients range from **web agencies, lawyers and accountants, car dealerships, coaches, service providers, financial companies, healthcare and nursing facilities, real estate agents, logistics companies and shipping companies, staffing agencies, travel providers and insurance companies**. All these companies use the multi step form in different ways and for different purposes. Nevertheless, due to its unique design and psychologically meaningful structure, the form builder manages to achieve very good results in each area.
+= Built for phones and fast pages =
 
-Personnel recruiters, for example, use the file upload to receive the applicant's resume along with other data while filling out the form - service providers ask for the desired services in a structured manner and thus know exactly what the potential customer expects from them - coaches have their potential customers book appointments directly for a free preliminary meeting. You see, there are **many good reasons to offer your website visitors a multi step form**, even if you don't believe it yet. You have a **much better data base for collaboration and can automate many digital processes and your users stay engaged**.
+* **One tap per answer.** Answers as tiles with icons or images or as a list, set apart for desktop and phone, so they are easy to tap on any screen.
+* **Fast and light.** The form loads one small script and works without jQuery, so your pages stay fast.
+* **Looks like your brand.** Themes, colours and fonts, with a live preview on desktop, tablet and phone.
+* Fonts are served from your own site, so visitors never contact a font service.
+* Built for everyone: keyboard use, screen reader labels, visible focus and reduced motion are part of every form.
+* Funnelforms block for the block editor, Elementor widget, shortcode, or a page of its own for each form.
 
-Take a look at the [Examples](https://en.funnelforms.io/examples) page to see for yourself that Funnelforms contact form can be used in almost any industry where contacts of any kind need to be generated (lead generation, recruitment, pricing, appointment setting, service and product configuration).
+= Measure and improve conversion =
 
-### PREMIUM SUPPORT FOR USERS OF THE PRO VERSION
- 
-Funnelforms team will offer you any support you need. As a user of the Free version, you have the possibility to **report errors via ticket**, which will of course be fixed for you as soon as possible. Furthermore you have unlimited **access to the Help Center**. The Help Center offers many helpful articles and instructions on how to create a multi step form, contact form and tips on form builder in general. If you still have questions or can't find an answer to your question in the Help Center, you can use the [live chat on our website](https://en.funnelforms.io/) for all other questions and help.
+Funnelforms Free shows how well each form turns visitors into leads and where visitors leave, so you know which question to change.
 
-But hopefully you'll understand that we have to prioritize all Pro version customers. The individual email and ticket support is available to users who have purchased a [Funnelforms Pro](https://en.funnelforms.io/) license. Here, in addition to classic support topics, individual adaptations of the contact form can be implemented or help with the optimal setup can be given. Furthermore, in addition to the unlimited functions mentioned above, you will benefit from other helpful tools for your lead generation via multi step form:
- 
-* **Lead Training Video Tutorial** of approx. 50 min. for the optimal use of Funnelforms on your website and best practices in using the form builder.
-* **25,000 premium icons** for download and free use in your multi step form and on your website.
-* **Free personal 1:1 onboarding** of 45 min for contact form setup, general questions and helpful tips for custom lead generation through your website.
-* **Smartphone app for iOS & Android** to see all your leads' contact information on the go and get statistics from your contact forms.
-* **Comprehensive and customized premium support** that even implements your personal requests.
+* **Conversion at a glance.** Views, entries and conversion rate of all forms, per day and per form, against the period before.
+* **From view to entry.** How many visitors see a form, start it and send it.
+* **Drop-off per step.** The steps most visitors leave on, in the statistics and right on the canvas, where each step shows how many visitors leave there.
+* **When and where.** The weekday and hour entries come in, and the devices your visitors use.
 
-So if you're really serious about lead generation through your website and want to get the most out of it at all levels, we recommend the contact form plugin [Funnelforms Pro](https://en.funnelforms.io/)! **Costs a little, but gets you even better lead generation results**!
+= Your leads in WordPress =
 
-### FUNNELFORMS IS TOP-RATED WITH MANY 5 STARS ON TRUSTPILOT
+* All entries in WordPress, with search, filters and **CSV export**.
+* A notification mail to you and a confirmation mail to the lead, with the answers, so you can reply quickly and the lead knows the request has arrived.
+* **Your own mail server.** Send the mails through the SMTP server of your mail provider (Gmail, Microsoft 365, IONOS, STRATO, Brevo, SendGrid and more), with a test mail, so they arrive reliably and not in spam. If the server is down, they still go out through WordPress.
 
-We are proud that the Funnelforms contact form has already convinced so many customers and brought them further. The plugin has more than 150 reviews on Trustpilot with an average of 4.9 stars. You can see [all reviews](https://de.trustpilot.com/review/funnelforms.io) here. However, we would like to present you some insightful reviews from satisfied customers here now as well:
+= Switch from another form plugin =
 
-**5 stars from Simon Krebs:**
+Funnelforms imports forms from **Contact Form 7, WPForms, Gravity Forms, Ninja Forms, Fluent Forms, Formidable Forms and Elementor forms**, from the plugin on the same site or from its export file. Each form arrives as a draft you can check and publish; the other plugin and its data stay as they are.
 
-**This tool is soo powerful!**
-I started with the first license 3 months ago and successfully upgraded to the 10 agency license today. The service is simply unbeatable and the pricing for such a powerful tool is a must-have.
-This tool improves the conversion rate so much that it is almost criminal.
+Then turn the long form into a funnel: spread its fields over steps on the canvas and give each answer its own path.
 
-There is simply no wish left unfulfilled. Every problem is fixed, the staff is just there.
+= Privacy and spam protection =
 
-The software is incredibly accurate and well thought out.
+* Your entries stay in your WordPress database. Funnelforms Free needs no account and sends nothing to Funnelforms unless you opt in to diagnostic data.
+* Entries are deleted after the period you choose; personal data export and erasure work through the WordPress privacy tools.
+* Spam protection without extra plugins: honeypot, time check and a limit per visitor, plus Google reCAPTCHA, Cloudflare Turnstile or hCaptcha if you want them.
 
-I am so happy to have found this tool
+= In your language =
 
+Funnelforms Free comes in English and 24 translations: German (with "du" and "Sie"), Spanish, French, Italian, Portuguese (Brazil and Portugal), Dutch, Polish, Russian, Japanese, Chinese, Korean, Turkish, Swedish, Danish, Norwegian, Finnish, Czech, Hungarian, Romanian, Greek, Indonesian, Vietnamese and Persian.
 
-**5 stars from Andi:**
+= Funnelforms Pro =
 
-**How the hell is this possible!!!**
-I usually never write reviews on the internet and am more the silent customer. Here I am downright forced by my results to say something, better yet I have no choice at all!
+Funnelforms Pro turns leads into appointments and sales. It is a separate plugin for the same forms. The launch trailer shows Funnelforms Pro 5.0 in two minutes:
 
-Funnelforms purchased a few days ago, installed and license activated in less than 5 minutes. The tool? Can't be beat for simplicity, intuitive and logical to use, all elements and buttons make sense where they are. Did it take me long to create my form? No.
+https://www.youtube.com/watch?v=zt98-Iwh7jI
 
-Form was up and running within 2 hours on the same day. But 2 hours not because I was overwhelmed and didn't find the functions right away, but because I took my time to create an absolutely awesome logic. So Funnelforms then went live on our website. We usually have between 3 and 5 requests per week. After going live of Funnelforms, say and write received 28 leads in the first week alone. I didn't think this was possible - and now shut up: no junk! Flawless quality of leads, good accessibility, genuine interest. Of these leads, 6 have already been converted into customers and sales.
+Funnelforms Pro adds:
 
-Again to let it sink in:
+* **Lead board** with the stages new, contacted, won and lost, notes on each lead and lead scoring.
+* **Appointment booking** with your calendar, right in the form.
+* **Payments** with Stripe and PayPal, **calculations** for prices and quotes, and quizzes.
+* **Reminders to visitors who leave** a form before they send it.
+* **Integrations** with CRM and newsletter tools, webhooks and text messages.
+* Conditions with AND/OR, file upload, address suggestions and signatures, PDF, A/B tests, forms in several languages, analytics with sources and campaigns, and support by ticket.
 
--Without changing the website
--Without increasing visitors or traffic to the website
--Without increasing the adspend
--Without creating new advertising campaigns
+Funnelforms Free names what Pro adds on one page in its menu and, where a Pro feature would be, in one line with a link to that page. Nothing in Free is locked or time limited. More at [funnelforms.io](https://funnelforms.io/).
 
-The only thing we did was replace our previous contact form with Funnelforms. I don't know how you do it, but I am deeply convinced and can advise every company: Buy this software!!!
+= Help =
 
+Answers to most questions are in the [Funnelforms help center](https://help.funnelforms.io/). Questions about Funnelforms Free are welcome in the [support forum](https://wordpress.org/support/plugin/funnelforms-free/).
 
-**5 stars from Florian I.:**
-
-**Perfect for all kind of forms with Funnel**
-Very very good form plugin, but actually it is much much more than that. We have been using the paid version for a while, but even now in the free version there are so many features unlocked that are really really great. Especially creating simple funnel forms is very fast and you don't need hours of training. It is almost self-explanatory.
-Top work and we are looking forward to updates.
-
-### READ MORE ABOUT THE FORM BUILDER
- 
-Need more information about multi step form builder, contact form creation and lead generation with Funnelforms? You can find us here:
- 
-* The official website of [Funnelforms Plugin](https://en.funnelforms.io/).
-* The [Funnelforms Help Center](https://help.funnelforms.io/en).
-* Also join our [Funnelforms Facebook Group](https://www.facebook.com/groups/639159471081043) to exchange ideas with other users and follow us on [Instagram](https://www.instagram.com/funnelforms/) and [Facebook](https://www.facebook.com/funnelforms).
- 
 == Installation ==
 
-You can install Funnelforms in two different ways explained below. After the installation you can visit the first steps menu to set up your first form.
-
-### INSTALL FUNNELFORMS DIRECTLY FROM WORDPRESS
-
-1. Go to the plugins page in your wordpress dashboard and select ‘Add New’;
-2. Search for ‘Funnelforms’;
-3. Activate Funnelforms from your Plugins page;
-4. Visit the First steps menu in the Funnelforms plugin to set up your first form
-
-### INSTALL FUNNELFORMS MANUALLY
-
-1. Upload the ‘funnelforms-free’ folder to the /wp-content/plugins/ directory;
-2. Activate the Funnelforms plugin through the ‘Plugins’ menu in WordPress;
-3. Visit the First steps menu in the Funnelforms plugin to set up your first form
+1. In WordPress, go to Plugins → Add New Plugin, search for "Funnelforms" and click Install Now, or upload the ZIP under Plugins → Add New Plugin → Upload Plugin.
+2. Activate Funnelforms Free.
+3. The setup assistant opens. Pick a goal and a template, choose your colour and font, and publish your first form on a new page.
+4. To add a form to another page, use the Funnelforms block, the Elementor widget or the shortcode shown in the builder.
 
 == Frequently Asked Questions ==
 
-= What is Funnelforms? =
+= Are there limits on forms, steps or entries? =
 
-Funnelforms is a multi step form and contact form builder plugin for WordPress that allows you to create high-quality, sales-optimized drag and drop custom forms for your website. In addition to many integrations, automations, designs and templates, many small conversion-increasing elements are built right in. With the help of simple drag and drop form builders, you can easily create a high-converting contact form or quiz for your website visitors. Thanks to the modern, intuitive design and the logical sequence of the multi step form, your visitors interact more with you. It creates a dialogue in which the users contact you in a natural way through your website. The sales psychology conversation technique of mutual dialogue provides you with significantly better results than conventional contact forms.
+No. Funnelforms Free has no limits on forms, steps, fields, entries or visitors, and no trial period.
 
-= How can I benefit from Funnelforms? =
+= What is a multi-step form, and why does it get more leads? =
 
-Funnelforms has one overall goal: increase inquiries and leads through your website. Used properly, you'll definitely generate more pre-qualified customers and prospects with this contact form plugin. The design increases user interaction on your website and the likelihood of visitors filling it out is significantly higher than with a standard contact form such as Contact Form 7. Additionally, you benefit from many possible uses: Be it to receive more contact inquiries overall via your website, to pre-qualify suitable applicants in your recruiting process, to have products or services configured individually or to arrange appointments with interested parties. Furthermore, all data generated in these areas of application can be transferred to your tools, such as CRM or e-mail software, via integrations or webhooks and thus automated.
+A multi-step form shows one question or a few fields at a time instead of a long page of fields. Visitors start with an easy click, see their progress and only answer the questions that fit their earlier answers. Funnelforms was built for exactly this kind of form.
 
-= How can I create questions? =
+= How does Funnelforms get more leads than a normal form? =
 
-New questions can be easily created in the question editor. You just need to select your question type and then configure the question with its answers. Later on, you have the possibility to copy and edit already created questions and to create a conditional logic with the created questions in the form builder, i.e. a chain of questions and possible answers that build on each other (if A -> then B). The same applies to created contact forms, which are also created simply by drag & drop form builder.
+A normal form shows every field at once and asks for personal data before visitors have told you anything, so many leave without sending it. Funnelforms starts with one easy question, shows only the questions that fit the answers so far and asks for contact details at the end, when visitors have already invested in their answers. The statistics show the step where visitors leave, so you can improve exactly that question. And every lead arrives with its answers, so you know what each lead needs before you call.
 
-= What are the integrations to other tools? =
+= Can I move my forms from Contact Form 7, WPForms or another plugin? =
 
-Funnelforms offers you a wide range of integrations for data transfer to other tools. Some integrations are natively built into the contact form plugin, others can be found through major interface providers. The integrations include CRM management systems, email marketing programs, SMS verification and a custom webhook - here's a brief overview:
+Yes. Under Funnelforms → Import from other plugins you choose the plugin on the same site or upload its export file. Supported are Contact Form 7, WPForms, Gravity Forms, Ninja Forms, Fluent Forms, Formidable Forms and Elementor forms. Each form becomes a draft in Funnelforms; nothing goes live and the other plugin stays as it is. Entries are not imported.
 
-**CRM**
-* Hubspot
-* Pipedrive
-* Deals & Projects
-* FinCRM
+= Does it work with my theme and page builder? =
 
-**Email Marketing**
-* ActiveCampaign
-* GetResponse
-* Mailchimp
-* KickTipp
+Funnelforms works with any theme. Add a form with the block in the block editor, with the widget in Elementor, or with the shortcode in any other builder. Every form also has a page of its own that you can link to.
 
-**SMS Verification**
-* MessageBird
+= Where are my entries stored? Does Funnelforms Free send data anywhere? =
 
-**Automations**
-* Zapier
-* Make
+Entries are stored in your WordPress database only. Funnelforms Free does not connect to Funnelforms servers unless you opt in to diagnostic data or sign up for tips and news by email; both are off by default. Captcha services and Google Fonts are used only when you set them up; the section "External services" below lists each of them.
 
-You can find an overview of all integrations on the [Integrations](https://en.funnelforms.io/integrations) page, we are also constantly developing the plugin so new integrations and automations are added all the time.
+= How does Funnelforms stop spam? =
 
-= Is it difficult to set up the multi step form? =
+Every form has a hidden honeypot field, a time check and a limit of entries per visitor. You can add Google reCAPTCHA, Cloudflare Turnstile or hCaptcha with your own keys in the settings.
 
-No, this custom form builder is very simple and easy to install. It can be found directly in the WordPress plugin repository and can be installed from there or downloaded and installed manually. For each step of the setup process you will find a checklist within the contact form plugin and additionally useful instructions and tutorials in the [Help Center](https://help.funnelforms.io/en). If you still get stuck, our support team will be happy to help you via email or live chat.
+= Can people with a keyboard or screen reader fill in the forms? =
 
-= What is the difference to other contact form plugins? =
+Yes. Every field has a label that screen readers announce, the form works with the keyboard alone, focus is always visible and animations follow the visitor's reduced motion setting.
 
-The main difference to comparable form plugins available on the market is that Funnelforms was explicitly designed to increase the conversion rate on your website. No other plugin is so focused on keeping the submission rate high, be it Contact Form 7, WPForms, Ninja Forms, Formidable Forms, Forminator or Ninja Forms. At the same time, it adds value to the user as they can click through many questions in the easiest way and manual entries are unnecessary. This saves time and facilitates the input. Through clearly defined and comprehensible logic for the user, a natural conversation structure can be recreated and the conversion rate of your contact form increases noticeably.
+= I use Funnelforms Free 3.x. What happens when I update? =
 
-= Is there a startup discount? = 
+Version 5 is a new core. After the update, Funnelforms copies your forms and entries into its new tables in the background and checks each form. Your 3.x data is only read, never changed. Each form returns on your website as soon as its copy is checked; shortcodes and pages stay as they are. If a form needs a look, Funnelforms says so on its pages and in the plugin list. Version 5 needs PHP 8.1 or newer; sites on older PHP keep version 3.8.3.
 
-Of course! We are passionate about helping startups grow with our contact form! Have you started your business within the last 12 months? Contact our sales team directly via our website and get a permanent 20% discount on any license - before that, of course, the 30-day trial period still applies.
+= Can I switch to Funnelforms Pro later? =
 
-= Is Funnelforms GDPR compliant? =
+Yes. Funnelforms Pro uses the same forms and entries. When you activate Pro, it takes over from Free; nothing has to be moved or built again.
 
-Funnelforms is GDPR-compliant according to current, europe-wide data protection laws. A significant difference to comparable tools available on the market is that at no point is data processed or stored on our or third-party servers. All leads and personal customer data reside entirely on your website and your web server and do not leave this closed system. With the Pro version of the multi step form, connections to calendar providers such as iCloud, Google Calendar, Outlook, Office 365 and Exchange can be established when using the appointment booking feature to enable synchronization and integration with the respective calendars. Through the many integrations that can be connected to the contact form after submission, only the data you select will be sent to these respective third-party tools. However, each of these providers of calendars and integrations in turn offers its own data protection standard.
+= Can I help translate Funnelforms? =
 
-= Can I customize the contact form to match the design of my website? =
-
-Yes, all steps of the multi step form as well as the contact form are 100% customizable to your corporate identity and website design. All colors, font sizes and fonts are freely configurable. Additionally, you can upload your own fonts via third-party plugins and use them for the form. You can also choose from different layouts for the appearance.
-
-= Is the multi step form also suitable for smartphones and tablets? =
-
-Yes, Funnelforms looks great on any device and is optimized for all device sizes. You also have the option to choose from different designs for the contact form layout. Options here are the classic tile view or the one-column or two-column list view, these can be selected separately for the desktop and mobile views.
-
-= What is the reseller license? =
-
-Funnelforms' contact form is interesting for almost every industry and can especially help agency owners to increase the lead generation performance on their customer websites. Many agencies also use this opportunity for optimization work for their customers. With the reseller license you secure a license for 10 domains. You can resell these licenses to your clients at your own price and generate additional profits.
-
-= For me a feature or integration is missing, what now? =
-
-Don't worry, we always try to meet our customers' wishes and to develop the multi step form in the interest of our customers. You can easily [suggest your feature](https://feedback.funnelforms.io/b/funnelforms-english/) via an internal feedback portal and let other customers rate and upvote it. After enough votes and a review we plan to include this feature within the next updates.
+Yes, at [translate.wordpress.org](https://translate.wordpress.org/projects/wp-plugins/funnelforms-free/). Translations made there reach every site with the next language update.
 
 == Screenshots ==
 
-1. Create beautiful multi step forms
-2. Suitable for all industries
-3. First steps and checklist for your quick start with Funnelforms
-4. Overview of all generated leads
-5. All created questions with the different question types
-6. Question editor to create a question for the multi step form
-7. Contact form editor to create a contact form for capture of personal data
-8. Contact form settings for notification email and more
-9. Form editor to build multi step forms with conditional logic
-10. Form settings to adjust colors, design and fonts
-11. Preview of the created form
+1. A multi-step form on a website: one clear question per step, answers as tiles and a progress bar.
+2. The same form on a phone: every answer is one tap away.
+3. The canvas: every step and every path of a funnel at a glance, built by drag and drop.
+4. Statistics: views, entries, conversion rate and the steps where visitors leave.
+5. Start from one of 37 templates, sorted by goal: inquiries, appointment requests, applications and more.
+6. Design with a live preview on desktop, tablet and phone: theme, colours, fonts and answer layout.
+7. Every lead in one place: entries with search, filters and CSV export.
+8. Bring your forms over from Contact Form 7, WPForms, Gravity Forms and other plugins.
+9. The setup assistant puts your first form live in a few minutes.
+
+== External services ==
+
+= Funnelforms diagnostic data (only if you opt in) =
+
+This plugin connects to api.funnelforms.cloud only if you opt in to diagnostic data, in the setup assistant or under Funnelforms > Settings > General > Diagnostic data. It is off by default.
+
+* What: once a week a report with the plugin, WordPress and PHP versions, server environment, features and question types in use, counts (forms, entries, views), drop-off per question type and the times entries come in. It never sends texts, answers, entries, email or IP addresses of your visitors, form IDs or page addresses. The report carries a random installation ID; Funnelforms Free needs no account. The website's address is sent only if you tick that box too. "View report" in the settings shows the report exactly as it would be sent.
+* When: once a week at a random time, and once shortly after you opt in. Turning it off stops sending and asks Funnelforms to delete all stored reports of the installation; so does deleting the plugin.
+* Where: api.funnelforms.cloud. Funnelforms LLC (Wyoming, USA) receives the reports on servers of Hetzner in Helsinki, Finland, and keeps them for 13 months.
+* Terms: https://en.funnelforms.io/terms-conditions, privacy: https://en.funnelforms.io/privacy-policy
+
+= Funnelforms tips and news by email (only if you sign up) =
+
+* What: the e-mail address you enter (your own address is filled in and can be changed), the language of the consent text (German, English, Spanish, French or Italian) and the version of the consent text you agreed to. Nothing about your site or your visitors. Funnelforms first sends one e-mail to confirm the sign-up (double opt-in); every e-mail has a link to unsubscribe. The plugin keeps only a note that the sign-up was sent, not the address.
+* When: only when you tick "Tips and news by email" in the setup assistant and click to go on. Opening the assistant sends nothing: the consent text is part of the plugin. If Funnelforms has a newer text, the plugin loads it right after that click and shows it; nothing more is sent until you tick the box again. There are no retries in the background.
+* Where: api.funnelforms.cloud, run by Funnelforms LLC (Wyoming, USA).
+* Terms: https://en.funnelforms.io/terms-conditions, privacy: https://en.funnelforms.io/privacy-policy (German: https://www.funnelforms.io/datenschutzerklarung)
+
+= Google Fonts =
+
+* What: the name of the font. No visitor data: the site downloads the font files once and serves them itself, so visitors never contact Google.
+* When: when someone who edits forms picks a Google Font.
+* Where: fonts.googleapis.com and fonts.gstatic.com.
+* Terms: https://policies.google.com/terms, privacy: https://policies.google.com/privacy
+
+= Spam protection (Google reCAPTCHA, Cloudflare Turnstile, hCaptcha) =
+
+* What: the visitor's browser loads the script of the provider; on sending, the site sends the answer token and the visitor's IP address to the provider to check it.
+* When: only in forms with a captcha field and a key of the provider in the settings.
+* Google reCAPTCHA: terms https://policies.google.com/terms, privacy https://policies.google.com/privacy
+* Cloudflare Turnstile: terms https://www.cloudflare.com/policies/terms/, privacy https://www.cloudflare.com/privacypolicy/
+* hCaptcha: terms https://www.hcaptcha.com/terms, privacy https://www.hcaptcha.com/privacy
+
+= Funnelforms account (only when you upgrade to Pro) =
+
+* What: nothing is sent in the background. The buttons on the page Funnelforms → Pro features open the account pages of Funnelforms in a new tab; the address of that page goes with the link, so the checkout can send you back to it.
+* When: only when you click "Upgrade to Pro", "No plan yet? Choose one" or "Open downloads in my account".
+* Where: api.funnelforms.cloud. Payments are handled by Stripe on its own checkout page.
+* Terms: https://en.funnelforms.io/terms-conditions, privacy: https://en.funnelforms.io/privacy-policy
+
+= Addresses you enter =
+
+The end step redirects visitors to the address you enter, and images and downloads load from the addresses you choose.
+
+If you set up a mail server under Funnelforms > Settings > E-mail, the mails of Funnelforms go through that server, with the user name and password you enter there. Nothing is sent to it otherwise.
+
+= Third-party code and icons =
+
+* Icons of answers and contact fields: Lucide (https://lucide.dev), ISC license, parts derived from Feather under the MIT license. The license text is in assets/icons/LICENSE.txt.
+* Font Awesome Free icons for forms from version 3 (https://fontawesome.com), SIL OFL 1.1 for the font files and MIT for the CSS.
+
+== Source code ==
+
+The scripts in assets/builder and assets/runtime are built and minified from TypeScript. The sources, with the build scripts, are in the folder source/ of this plugin. To build them: `pnpm install` and `pnpm -r build` in that folder (Node.js 20 or newer).
 
 == Changelog ==
 
-= 3.8 - 04. February 2025 =
-* Multiselect optional
-* UX improvements
-* Minor Bugfixes
+= 5.0.0 =
+* New core: canvas builder with several fields per step, branching by answer, twelve field types, themes, block, Elementor widget and funnel pages.
+* No more limits on forms or steps.
+* Import of forms from Contact Form 7, WPForms, Gravity Forms, Ninja Forms, Fluent Forms, Formidable Forms and Elementor forms.
+* 37 templates and a setup assistant for the first form. The gallery starts with your industry, its search looks through all industries, and the 61 templates of Funnelforms Pro are shown locked; using one says that it needs Pro.
+* Entries with CSV export, confirmation mail to the lead, statistics of all forms.
+* New forms mail each entry to the site's admin address with a {{lead}} summary of the contact details, page and source, labelled in the language of the form; numbers keep their unit ("100 m²") in mails, entries and the CSV export.
+* Mails through the SMTP server of your mail provider, with presets for common providers, a test mail and a fallback to WordPress.
+* Spam protection with honeypot, time check and limit per visitor, plus reCAPTCHA, Turnstile or hCaptcha.
+* Forms and entries from Funnelforms Free 3.x are copied and checked on their own; the 3.x data stays unchanged.
+* Removed: the licensing and analytics SDK of version 3 and every call to it.
+* The plugin in 24 languages: the 20 most used WordPress languages plus Portuguese (Portugal), Danish, Norwegian and Finnish; German with "du" and "Sie". A site in a region without its own translation (Mexico, Canada, Belgium) gets that of its language.
+* Optional sign-up for tips and news by email in the setup assistant: an unticked box, nothing is sent before you tick it, and Funnelforms asks you to confirm by e-mail.
+* Forms read well on every screen: on phones the bottom bar stays at the bottom only while it holds Next, so the consent and the send button are never covered; long answer words are hyphenated inside their tile, the theme gallery shows the theme in use and the admin pages fit a phone screen.
+* Light pages: a form loads one small script (about 27 KB gzipped); the code of phone fields with a country picker and of reCAPTCHA v3 loads only with the forms that use them.
+* Needs PHP 8.1 and WordPress 6.5 or newer.
 
-= 3.7.5.1 - 14. December 2024 =
-* Fixed Security Issue
-* Minor Bugfixes
+= 3.8.3 - 21 January 2026 =
+* Fixed a security issue.
 
-= 3.7.5 - 09. December 2024 =
-* Fixed Security Issue
-* Add Page Title Information to Leads
+= 3.8.2 - 7 March 2025 =
+* UX improvements.
+* Alt text for the success image.
 
-= 3.7.4.1 - 25. August 2024 =
-* Scroll To Anchor (Desktop) Feature
-* Bugfixes
-* UX improvements
-* Fixes small security issue
+= 3.8 - 4 February 2025 =
+* Optional multiple selection.
+* UX improvements and bug fixes.
 
-= 3.7.3.2 - 25. May 2024 =
-* Major Bugfixes
+== Upgrade Notice ==
 
-= 3.7.3.1 - 22. May 2024 =
-* Bugfixes
-
-= 3.7.3 - 15. May 2024 =
-* Bugfixes
-* UX improvements
-
-= 3.7.2 - 08. March 2024 =
-* Bugfixes
-* UX improvements
-
-= 3.7.1.1 - 19. February 2024 =
-* Bugfixes
-
-= 3.7 - 14. February 2024 =
-* Added custom fonts functionality
-* Added more form styling configurations
-* UX improvements
-* Bugfixes
-
-= 3.6.2.3 - 01. February 2024 =
-* Bugfixes
-
-= 3.6.2.2 - 29. January 2024 =
-* Bugfixes
-
-= 3.6.1 - 21. December 2023 =
-* Bugfixes
-
-= 3.6 - 20. December 2023 =
-* Caching system extensively reworked
-* Loading time fundamentally optimized
-
-= 3.5.3.1 - 23. November 2023 =
-* Bugfixes
-
-= 3.4.2.1 - 05. November 2023 =
-* Bugfixes
-
-= 3.4.2 - 29. October 2023 =
-* Bugfixes
-* Fixed security issues
-
-= 3.4 - 18. September 2023 =
-* Bugfixes
-* Fixed security issues
-
-= 3.3.9 - 08. August 2023 =
-* Bugfixes
-
-= 3.3.8.6 - 02. August 2023 =
-* Added B2B e-mail validation
-* UX improvements
-* Bugfixes
-
-= 3.3.8.5 - 06. July 2023 =
-* Updated Freemius SDK to the latest version
-
-= 3.3.8.4 - 20. June 2023 =
-* Bugfixes
-
-= 3.3.8.3 - 12. June 2023 =
-* Bugfixes
-
-= 3.3.8 - 04. May 2023 =
-* Healthcheck feature
-* Bugfixes
-
-= 3.3.7.2 - 03. May 2023 =
-* Bugfixes
-
-= 3.3.7.1 - 19. April 2023 =
-* Bugfixes
-
-= 3.3.7 - 14. April 2023 =
-* Bugfixes
-
-= 3.3.6 - 01. April 2023 =
-* Site navigation integrated for lead overview
-* Graphics and icons for selection questions can now be deactivated
-* Progress bar can be hidden
-* Double confirmation when deleting an answer linked in the form
-* Function to scroll to the beginning of the next question on mobile has been improved
-* Minor bug fixes for front- & backend
-
-= 3.3.5 - 08. March 2023 =
-* Bugfixes
-
-= 3.3.4 - 27. February 2023 =
-* Bugfixes
-
-= 3.3.3.3 - 28. January 2023 =
-* Bugfixes
-
-= 3.3.3 - 28. January 2023 =
-* Bugfixes
-
-= 3.2.10 - 13. January 2023 =
-* Bugfixes
-
-= 3.2.9 - 20. December 2022 =
-* Bugfixes
-
-= 3.2.7 - 14. December 2022 =
-* Initial Public Release
+= 5.0.0 =
+A new core with no limits. Your forms and entries are copied from 3.x and checked; the 3.x data stays unchanged. Needs PHP 8.1 and WordPress 6.5. Make a backup before you update.

@@ -1,0 +1,1224 @@
+{
+    "schemaVersion": 1,
+    "id": "frm_635",
+    "title": "Finanzdienstleister Demo",
+    "locales": {
+        "default": "de_DE",
+        "available": [
+            "de_DE"
+        ]
+    },
+    "start": "n0_0",
+    "nodes": [
+        {
+            "id": "n0_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q637",
+                    "key": "q637",
+                    "label": {
+                        "de_DE": "Was möchten Sie finanzieren?"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "legacy": {
+                        "questionId": 637
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q637_o0",
+                            "label": {
+                                "de_DE": "Haus"
+                            },
+                            "value": "Haus",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-home"
+                            }
+                        },
+                        {
+                            "id": "q637_o1",
+                            "label": {
+                                "de_DE": "Wohnung"
+                            },
+                            "value": "Wohnung",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-building"
+                            }
+                        },
+                        {
+                            "id": "q637_o2",
+                            "label": {
+                                "de_DE": "Auto"
+                            },
+                            "value": "Auto",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-car"
+                            }
+                        },
+                        {
+                            "id": "q637_o3",
+                            "label": {
+                                "de_DE": "Sonstiges"
+                            },
+                            "value": "Sonstiges",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-question-circle"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 637
+            }
+        },
+        {
+            "id": "n1_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q638",
+                    "key": "q638",
+                    "label": {
+                        "de_DE": "Handelt es sich um einen Neubau oder Bestandsimmobilie?"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "legacy": {
+                        "questionId": 638
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q638_o0",
+                            "label": {
+                                "de_DE": "Neubau"
+                            },
+                            "value": "Neubau",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-pencil-ruler"
+                            }
+                        },
+                        {
+                            "id": "q638_o1",
+                            "label": {
+                                "de_DE": "Bestandsimmobilie"
+                            },
+                            "value": "Bestandsimmobilie",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-home"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 638
+            }
+        },
+        {
+            "id": "n1_1",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q638_n1_1",
+                    "key": "q638",
+                    "label": {
+                        "de_DE": "Handelt es sich um einen Neubau oder Bestandsimmobilie?"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "legacy": {
+                        "questionId": 638
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q638_n1_1_o0",
+                            "label": {
+                                "de_DE": "Neubau"
+                            },
+                            "value": "Neubau",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-pencil-ruler"
+                            }
+                        },
+                        {
+                            "id": "q638_n1_1_o1",
+                            "label": {
+                                "de_DE": "Bestandsimmobilie"
+                            },
+                            "value": "Bestandsimmobilie",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-home"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 638
+            }
+        },
+        {
+            "id": "n1_2",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q646",
+                    "key": "q646",
+                    "label": {
+                        "de_DE": "Handelt es sich um einen Neu- oder Gebrauchtwagen?"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "legacy": {
+                        "questionId": 646
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q646_o0",
+                            "label": {
+                                "de_DE": "Neuwagen"
+                            },
+                            "value": "Neuwagen",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-car"
+                            }
+                        },
+                        {
+                            "id": "q646_o1",
+                            "label": {
+                                "de_DE": "Gebrauchtwagen"
+                            },
+                            "value": "Gebrauchtwagen",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-recycle"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 646
+            }
+        },
+        {
+            "id": "n1_3",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q648",
+                    "key": "q648",
+                    "label": {
+                        "de_DE": "Um was geht es genau?"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "legacy": {
+                        "questionId": 648
+                    },
+                    "type": "text",
+                    "required": false,
+                    "props": {
+                        "placeholder": {
+                            "de_DE": ""
+                        }
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 648
+            }
+        },
+        {
+            "id": "n2_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q639",
+                    "key": "q639",
+                    "label": {
+                        "de_DE": "Ist bereits ein Grundstück vorhanden?"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "legacy": {
+                        "questionId": 639
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q639_o0",
+                            "label": {
+                                "de_DE": "Ja"
+                            },
+                            "value": "Ja",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-check"
+                            }
+                        },
+                        {
+                            "id": "q639_o1",
+                            "label": {
+                                "de_DE": "Nein"
+                            },
+                            "value": "Nein",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-times"
+                            }
+                        },
+                        {
+                            "id": "q639_o2",
+                            "label": {
+                                "de_DE": "In Aussicht"
+                            },
+                            "value": "In Aussicht",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-search"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 639
+            }
+        },
+        {
+            "id": "n2_1",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q641",
+                    "key": "q641",
+                    "label": {
+                        "de_DE": "Sind umfassende Sanierungen notwendig?"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "legacy": {
+                        "questionId": 641
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q641_o0",
+                            "label": {
+                                "de_DE": "Fenster"
+                            },
+                            "value": "Fenster",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fab fa-windows"
+                            }
+                        },
+                        {
+                            "id": "q641_o1",
+                            "label": {
+                                "de_DE": "Dach"
+                            },
+                            "value": "Dach",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fab fa-accusoft"
+                            }
+                        },
+                        {
+                            "id": "q641_o2",
+                            "label": {
+                                "de_DE": "Sonstiges"
+                            },
+                            "value": "Sonstiges",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-question-circle"
+                            }
+                        },
+                        {
+                            "id": "q641_o3",
+                            "label": {
+                                "de_DE": "Nein"
+                            },
+                            "value": "Nein",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-times"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": true,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 641
+            }
+        },
+        {
+            "id": "n2_2",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q647",
+                    "key": "q647",
+                    "label": {
+                        "de_DE": "Marke und Modellbezeichnung eintragen"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "legacy": {
+                        "questionId": 647
+                    },
+                    "type": "text",
+                    "required": false,
+                    "props": {
+                        "placeholder": {
+                            "de_DE": ""
+                        }
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 647
+            }
+        },
+        {
+            "id": "n3_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q640",
+                    "key": "q640",
+                    "label": {
+                        "de_DE": "Haben Sie bereits eine Kostenschätzung vom Architekten?"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "legacy": {
+                        "questionId": 640
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q640_o0",
+                            "label": {
+                                "de_DE": "Ja"
+                            },
+                            "value": "Ja",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-check"
+                            }
+                        },
+                        {
+                            "id": "q640_o1",
+                            "label": {
+                                "de_DE": "Nein"
+                            },
+                            "value": "Nein",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-times"
+                            }
+                        },
+                        {
+                            "id": "q640_o2",
+                            "label": {
+                                "de_DE": "Wei&szlig; nicht"
+                            },
+                            "value": "Wei&szlig; nicht",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-question-circle"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 640
+            }
+        },
+        {
+            "id": "n4_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q642",
+                    "key": "q642",
+                    "label": {
+                        "de_DE": "Interessieren Sie sich für staatliche Förderung (KfW)?"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "legacy": {
+                        "questionId": 642
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q642_o0",
+                            "label": {
+                                "de_DE": "Ja"
+                            },
+                            "value": "Ja",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-check"
+                            }
+                        },
+                        {
+                            "id": "q642_o1",
+                            "label": {
+                                "de_DE": "Nein"
+                            },
+                            "value": "Nein",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-times"
+                            }
+                        },
+                        {
+                            "id": "q642_o2",
+                            "label": {
+                                "de_DE": "Unsicher"
+                            },
+                            "value": "Unsicher",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-question-circle"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 642
+            }
+        },
+        {
+            "id": "n5_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q643",
+                    "key": "q643",
+                    "label": {
+                        "de_DE": "Nennen Sie die gewünschte Darlehenssumme"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "legacy": {
+                        "questionId": 643
+                    },
+                    "type": "slider",
+                    "required": true,
+                    "props": {
+                        "min": 1000,
+                        "max": 1000000,
+                        "step": 1000,
+                        "start": 15000,
+                        "unit": {
+                            "text": {
+                                "de_DE": "€"
+                            },
+                            "position": "after"
+                        },
+                        "thousandsSeparator": true,
+                        "manualInput": {
+                            "enabled": true,
+                            "label": {
+                                "de_DE": "Alternativ eintippen:"
+                            }
+                        }
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 643
+            }
+        },
+        {
+            "id": "n6_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q644",
+                    "key": "q644",
+                    "label": {
+                        "de_DE": "Was trifft auf Sie zu?"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "legacy": {
+                        "questionId": 644
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q644_o0",
+                            "label": {
+                                "de_DE": "Angesteller, Vollzeit"
+                            },
+                            "value": "Angesteller, Vollzeit",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-address-card"
+                            }
+                        },
+                        {
+                            "id": "q644_o1",
+                            "label": {
+                                "de_DE": "Angestellter, Teilzeit"
+                            },
+                            "value": "Angestellter, Teilzeit",
+                            "media": {
+                                "kind": "icon",
+                                "value": "far fa-address-card"
+                            }
+                        },
+                        {
+                            "id": "q644_o2",
+                            "label": {
+                                "de_DE": "Selbstst&auml;ndig"
+                            },
+                            "value": "Selbstst&auml;ndig",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-user-alt"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 644
+            }
+        },
+        {
+            "id": "n7_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q645",
+                    "key": "q645",
+                    "label": {
+                        "de_DE": "Wann benötigen Sie das Darlehen?"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "legacy": {
+                        "questionId": 645
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q645_o0",
+                            "label": {
+                                "de_DE": "Sofort"
+                            },
+                            "value": "Sofort",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-stopwatch"
+                            }
+                        },
+                        {
+                            "id": "q645_o1",
+                            "label": {
+                                "de_DE": "In 1-3 Monaten"
+                            },
+                            "value": "In 1-3 Monaten",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-calendar-alt"
+                            }
+                        },
+                        {
+                            "id": "q645_o2",
+                            "label": {
+                                "de_DE": "&gt;3 Monate"
+                            },
+                            "value": "&gt;3 Monate",
+                            "media": {
+                                "kind": "icon",
+                                "value": "far fa-calendar-alt"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 645
+            }
+        },
+        {
+            "id": "n8_0",
+            "type": "contact",
+            "title": {
+                "de_DE": "Tragen Sie jetzt Ihre Kontaktdaten ein:"
+            },
+            "description": {
+                "de_DE": ""
+            },
+            "submitLabel": {
+                "de_DE": "Nachricht absenden!"
+            },
+            "fields": [
+                {
+                    "id": "c_name",
+                    "type": "name",
+                    "key": "name",
+                    "label": {
+                        "de_DE": "Ihr Name:"
+                    },
+                    "required": true,
+                    "props": {
+                        "placeholder": {
+                            "de_DE": "Ihr Name..."
+                        },
+                        "icon": "fas fa-user",
+                        "prefillFromQuery": "name"
+                    }
+                },
+                {
+                    "id": "c_email",
+                    "type": "email",
+                    "key": "email",
+                    "label": {
+                        "de_DE": "Ihre E-Mail Adresse:"
+                    },
+                    "required": true,
+                    "props": {
+                        "b2bOnly": false,
+                        "placeholder": {
+                            "de_DE": "Ihre E-Mail Adresse..."
+                        },
+                        "icon": "fas fa-envelope",
+                        "prefillFromQuery": "email"
+                    }
+                },
+                {
+                    "id": "c_tel",
+                    "type": "phone",
+                    "key": "tel",
+                    "label": {
+                        "de_DE": "Ihre Telefonnummer:"
+                    },
+                    "required": true,
+                    "props": {
+                        "placeholder": {
+                            "de_DE": "Ihre Telefonnummer..."
+                        },
+                        "icon": "fas fa-phone",
+                        "prefillFromQuery": "tel"
+                    }
+                },
+                {
+                    "id": "c_checkbox",
+                    "type": "consent",
+                    "key": "checkbox",
+                    "label": {
+                        "de_DE": ""
+                    },
+                    "required": true,
+                    "props": {
+                        "html": {
+                            "de_DE": "Hiermit akzeptiere ich die <a href=\"https://demo.de/datenschutz\">Datenschutzerklärung</a>"
+                        },
+                        "prefillFromQuery": "checkbox"
+                    }
+                }
+            ],
+            "showBottomBar": false,
+            "legacy": {
+                "contactFormId": 636
+            }
+        },
+        {
+            "id": "n8_0_end",
+            "type": "end",
+            "success": {
+                "show": true,
+                "text": {
+                    "de_DE": "Danke! Das Formular wurde erfolgreich gesendet!"
+                },
+                "image": "https://example.test/wp-content/plugins/Funnelforms-pro/res/images/success_standard.png"
+            },
+            "redirect": null
+        }
+    ],
+    "edges": [
+        {
+            "id": "e_n0_0_0",
+            "from": "n0_0",
+            "to": "n1_0",
+            "when": {
+                "field": "q637",
+                "op": "selected",
+                "value": "q637_o0"
+            }
+        },
+        {
+            "id": "e_n0_0_1",
+            "from": "n0_0",
+            "to": "n1_1",
+            "when": {
+                "field": "q637",
+                "op": "selected",
+                "value": "q637_o1"
+            }
+        },
+        {
+            "id": "e_n0_0_2",
+            "from": "n0_0",
+            "to": "n1_2",
+            "when": {
+                "field": "q637",
+                "op": "selected",
+                "value": "q637_o2"
+            }
+        },
+        {
+            "id": "e_n0_0_3",
+            "from": "n0_0",
+            "to": "n1_3",
+            "when": {
+                "field": "q637",
+                "op": "selected",
+                "value": "q637_o3"
+            }
+        },
+        {
+            "id": "e_n1_0_0",
+            "from": "n1_0",
+            "to": "n2_0",
+            "when": {
+                "field": "q638",
+                "op": "selected",
+                "value": "q638_o0"
+            }
+        },
+        {
+            "id": "e_n1_0_1",
+            "from": "n1_0",
+            "to": "n2_1",
+            "when": {
+                "field": "q638",
+                "op": "selected",
+                "value": "q638_o1"
+            }
+        },
+        {
+            "id": "e_n1_1_0",
+            "from": "n1_1",
+            "to": "n4_0",
+            "when": {
+                "field": "q638_n1_1",
+                "op": "selected",
+                "value": "q638_n1_1_o0"
+            }
+        },
+        {
+            "id": "e_n1_1_1",
+            "from": "n1_1",
+            "to": "n2_1",
+            "when": {
+                "field": "q638_n1_1",
+                "op": "selected",
+                "value": "q638_n1_1_o1"
+            }
+        },
+        {
+            "id": "e_n1_2_0",
+            "from": "n1_2",
+            "to": "n2_2",
+            "default": true
+        },
+        {
+            "id": "e_n1_3_0",
+            "from": "n1_3",
+            "to": "n5_0",
+            "default": true
+        },
+        {
+            "id": "e_n2_0_0",
+            "from": "n2_0",
+            "to": "n3_0",
+            "default": true
+        },
+        {
+            "id": "e_n2_1_0",
+            "from": "n2_1",
+            "to": "n4_0",
+            "default": true
+        },
+        {
+            "id": "e_n2_2_0",
+            "from": "n2_2",
+            "to": "n5_0",
+            "default": true
+        },
+        {
+            "id": "e_n3_0_0",
+            "from": "n3_0",
+            "to": "n4_0",
+            "default": true
+        },
+        {
+            "id": "e_n4_0_0",
+            "from": "n4_0",
+            "to": "n5_0",
+            "default": true
+        },
+        {
+            "id": "e_n5_0_0",
+            "from": "n5_0",
+            "to": "n6_0",
+            "default": true
+        },
+        {
+            "id": "e_n6_0_0",
+            "from": "n6_0",
+            "to": "n7_0",
+            "default": true
+        },
+        {
+            "id": "e_n7_0_0",
+            "from": "n7_0",
+            "to": "n8_0",
+            "default": true
+        },
+        {
+            "id": "e_n8_0_end",
+            "from": "n8_0",
+            "to": "n8_0_end",
+            "default": true
+        }
+    ],
+    "calculations": [],
+    "actions": [
+        {
+            "id": "a_n8_0_mail",
+            "on": "submit",
+            "node": "n8_0",
+            "kind": "email",
+            "config": {
+                "from": {
+                    "de_DE": "wordpress@demo.de"
+                },
+                "fromName": {
+                    "de_DE": "Demo"
+                },
+                "to": {
+                    "de_DE": "empfaenger@demo.de"
+                },
+                "cc": {
+                    "de_DE": ""
+                },
+                "bcc": {
+                    "de_DE": ""
+                },
+                "replyTo": {
+                    "de_DE": ""
+                },
+                "subject": {
+                    "de_DE": "NEUER LEAD"
+                },
+                "body": {
+                    "de_DE": "Vor- und Nachname: {{field:name}}\nE-Mail Adresse: {{field:email}}\nTelefon: {{field:tel}}\nDatenschutz: {{field:checkbox}}\n__\n\n{{answers_with_hidden}}"
+                },
+                "nl2br": true,
+                "transport": {
+                    "type": "wp_mail"
+                }
+            }
+        }
+    ],
+    "style": {
+        "preset": "classic",
+        "tokens": {
+            "color.primary": "rgba(157,65,221,1)",
+            "color.background": "rgba(255,255,255,1)",
+            "color.text": "rgba(51,51,51,1)",
+            "color.border": "rgba(157,65,221,1)",
+            "font.family": "Montserrat",
+            "radius.card": "10",
+            "radius.input": "10"
+        },
+        "legacy": {
+            "fe_title": "",
+            "global_main_color": "rgba(157,65,221,1)",
+            "global_main_background_color": "rgba(255,255,255,1)",
+            "global_prev_text": "",
+            "global_next_text": "",
+            "global_font": "Montserrat",
+            "form_heading_color": "rgba(157,65,221,1)",
+            "form_question_heading_color": "rgba(51,51,51,1)",
+            "form_question_description_color": "rgba(51,51,51,1)",
+            "form_answer_card_text_color": "rgba(51,51,51,1)",
+            "form_answer_card_icon_color": "rgba(157,65,221,1)",
+            "form_loader_color": "rgba(0,0,0,1)",
+            "form_background_color": "rgba(255,255,255,1)",
+            "form_answer_card_background_color": "rgba(255,255,255,1)",
+            "form_button_background_color": "rgba(157,65,221,1)",
+            "form_button_disabled_background_color": "rgba(225,225,225,1)",
+            "form_box_shadow_color": "rgba(157,65,221,1)",
+            "form_border_color": "rgba(157,65,221,1)",
+            "form_progress_bar_color": "rgba(157,65,221,1)",
+            "form_progress_bar_unfilled_background_color": "rgba(225,225,225,1)",
+            "form_slider_frage_bullet_color": "rgba(157,65,221,1)",
+            "form_slider_frage_thumb_background_color": "rgba(157,65,221,1)",
+            "form_slider_frage_background_color": "rgba(225,225,225,1)",
+            "form_input_background_color": "rgba(253,253,253,1)",
+            "form_datepicker_background_color": "rgba(157,65,221,1)",
+            "form_datepicker_color": "rgba(255,255,255,1)",
+            "form_heading_size_desktop": "32",
+            "form_heading_size_mobile": "20",
+            "form_heading_weight": "300",
+            "form_heading_line_height_desktop": "42",
+            "form_heading_line_height_mobile": "30",
+            "form_question_heading_size_desktop": "32",
+            "form_question_heading_size_mobile": "20",
+            "form_question_heading_weight": "600",
+            "form_question_heading_line_height_desktop": "42",
+            "form_question_heading_line_height_mobile": "30",
+            "form_answer_card_text_size_desktop": "17",
+            "form_answer_card_text_size_mobile": "15",
+            "form_answer_card_text_weight": "500",
+            "form_answer_card_text_line_height_desktop": "27",
+            "form_answer_card_text_line_height_mobile": "20",
+            "form_text_input_size_desktop": "17",
+            "form_text_input_size_mobile": "15",
+            "form_text_input_text_weight": "500",
+            "form_text_input_line_height_desktop": "27",
+            "form_text_input_line_height_mobile": "25",
+            "form_question_description_size_desktop": "20",
+            "form_question_description_size_mobile": "16",
+            "form_question_description_weight": "300",
+            "form_question_description_line_height_desktop": "30",
+            "form_question_description_line_height_mobile": "26",
+            "form_button_label_size_desktop": "17",
+            "form_button_label_size_mobile": "15",
+            "form_answer_card_border_radius": "10",
+            "form_text_input_border_radius": "10",
+            "form_contact_form_button_background_color": "rgba(157,65,221,1)",
+            "form_contact_form_button_color": "rgba(255,255,255,1)",
+            "form_contact_form_font_color": "rgba(51,51,51,1)",
+            "form_contact_form_button_size": "17",
+            "form_contact_form_button_weight": "500",
+            "form_contact_form_button_padding_top_bottom": "12",
+            "form_contact_form_button_padding_left_right": "12",
+            "form_contact_form_button_border_radius": "10",
+            "form_contact_form_label_size": "17",
+            "form_contact_form_label_weight": "500",
+            "form_contact_form_input_size": "15",
+            "form_contact_form_input_weight": "400",
+            "form_contact_form_cb_size": "15",
+            "form_contact_form_cb_weight": "400",
+            "form_contact_form_input_height": "50",
+            "form_contact_form_input_border_radius": "10",
+            "form_contact_form_input_padding_left_right": "10"
+        }
+    },
+    "settings": {
+        "uiLocale": "",
+        "progressBar": {
+            "show": true
+        },
+        "loadingAnimation": false,
+        "scrollToTop": {
+            "desktop": false,
+            "mobile": true
+        },
+        "rtl": false,
+        "autoHeight": false,
+        "iconFont": true,
+        "savePartialEntries": false
+    },
+    "layout": {
+        "nodes": {
+            "n0_0": {
+                "x": 150,
+                "y": 0
+            },
+            "n1_0": {
+                "x": 450,
+                "y": 0
+            },
+            "n2_0": {
+                "x": 750,
+                "y": 0
+            },
+            "n3_0": {
+                "x": 1050,
+                "y": 0
+            },
+            "n4_0": {
+                "x": 1350,
+                "y": 0
+            },
+            "n5_0": {
+                "x": 1650,
+                "y": 0
+            },
+            "n6_0": {
+                "x": 1950,
+                "y": 0
+            },
+            "n7_0": {
+                "x": 2250,
+                "y": 0
+            },
+            "n8_0": {
+                "x": 2550,
+                "y": 0
+            },
+            "n1_1": {
+                "x": 450,
+                "y": 246.97
+            },
+            "n2_1": {
+                "x": 750,
+                "y": 257.98
+            },
+            "n1_2": {
+                "x": 450,
+                "y": 493.95
+            },
+            "n2_2": {
+                "x": 750,
+                "y": 380.97
+            },
+            "n1_3": {
+                "x": 450,
+                "y": 740.92
+            }
+        }
+    },
+    "meta": {
+        "legacy": {
+            "formId": 635,
+            "migratorVersion": 1,
+            "notes": []
+        }
+    }
+}

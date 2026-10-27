@@ -1,0 +1,4529 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://funnelforms.io/schema/form.v1.json",
+  "title": "Funnelforms form document v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "title",
+    "locales",
+    "start",
+    "nodes",
+    "edges",
+    "calculations",
+    "actions",
+    "style",
+    "settings"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "$ref": "#/definitions/id"
+    },
+    "title": {
+      "type": "string"
+    },
+    "locales": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "default",
+        "available"
+      ],
+      "properties": {
+        "default": {
+          "type": "string",
+          "minLength": 2
+        },
+        "available": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "start": {
+      "$ref": "#/definitions/id"
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/node"
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/edge"
+      }
+    },
+    "calculations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/calculation"
+      }
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/action"
+      }
+    },
+    "experiments": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "$ref": "#/definitions/experiment"
+      }
+    },
+    "style": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preset",
+        "tokens"
+      ],
+      "properties": {
+        "preset": {
+          "enum": [
+            "default",
+            "classic"
+          ]
+        },
+        "theme": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "css": {
+          "type": "string",
+          "maxLength": 20000
+        },
+        "tokens": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "legacy": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "settings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "uiLocale",
+        "progressBar",
+        "loadingAnimation",
+        "scrollToTop",
+        "rtl",
+        "autoHeight",
+        "iconFont",
+        "savePartialEntries"
+      ],
+      "properties": {
+        "uiLocale": {
+          "type": "string",
+          "description": "Language of buttons and messages; empty for the language of the page (WPML, Polylang)."
+        },
+        "progressBar": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "show"
+          ],
+          "properties": {
+            "show": {
+              "type": "boolean"
+            },
+            "percent": {
+              "type": "boolean"
+            }
+          }
+        },
+        "loadingAnimation": {
+          "type": "boolean"
+        },
+        "scrollToTop": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "desktop",
+            "mobile"
+          ],
+          "properties": {
+            "desktop": {
+              "type": "boolean"
+            },
+            "mobile": {
+              "type": "boolean"
+            }
+          }
+        },
+        "rtl": {
+          "type": "boolean"
+        },
+        "languageSwitch": {
+          "type": "boolean",
+          "description": "Shows a choice of the form's languages on its first step (forms in several languages); the page loads again in the chosen language (?ffx_lang=)."
+        },
+        "autoHeight": {
+          "type": "boolean"
+        },
+        "iconFont": {
+          "type": "boolean"
+        },
+        "savePartialEntries": {
+          "type": "boolean"
+        },
+        "saveProgress": {
+          "type": "boolean",
+          "description": "Visitors may save their answers and continue later with a link (Application\\SaveProgress in the plugin)."
+        },
+        "scoreCalculation": {
+          "$ref": "#/definitions/id",
+          "description": "Calculation whose result is the lead score of an entry (sortable and filterable in the lead list)."
+        },
+        "valueCalculation": {
+          "$ref": "#/definitions/id",
+          "description": "Calculation whose result is the estimated order value of a lead (Funnelforms Pro): stored with each entry, shown and sorted in the lead list, sent to webhooks and CRMs."
+        },
+        "quiz": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "calculation",
+            "results"
+          ],
+          "description": "Quiz: a calculation adds up the points of the questions, and the contact steps lead to the result with the highest `min` the points reach. The builder keeps the formula and these edges in step.",
+          "properties": {
+            "kind": {
+              "enum": [
+                "points",
+                "knowledge",
+                "personality"
+              ],
+              "description": "points: answers score their calcValue; knowledge: a question scores 1 when exactly its right answers (correct) are chosen. personality: answers give points to categories (option scores) and the category with the most points decides the result; the calculation gives its position (from 1)."
+            },
+            "calculation": {
+              "$ref": "#/definitions/id"
+            },
+            "results": {
+              "type": "array",
+              "maxItems": 20,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "node",
+                  "min"
+                ],
+                "properties": {
+                  "node": {
+                    "$ref": "#/definitions/id",
+                    "description": "End node of the result."
+                  },
+                  "min": {
+                    "type": "number",
+                    "description": "Points from which the result shows."
+                  },
+                  "category": {
+                    "$ref": "#/definitions/id",
+                    "description": "Personality quiz: the category of the result."
+                  }
+                }
+              }
+            },
+            "feedback": {
+              "type": "boolean",
+              "description": "Knowledge quiz: after each question the visitor sees whether the answer was right. The right answers then reach the browser."
+            },
+            "categories": {
+              "type": "array",
+              "maxItems": 20,
+              "description": "Personality quiz: the types a visitor can be, in order; ties go to the first.",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "label"
+                ],
+                "properties": {
+                  "id": {
+                    "$ref": "#/definitions/id"
+                  },
+                  "label": {
+                    "type": "string",
+                    "maxLength": 200
+                  }
+                }
+              }
+            }
+          }
+        },
+        "doubleOptIn": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "field",
+            "subject",
+            "body",
+            "confirmation"
+          ],
+          "description": "Double opt-in: a confirmation link goes to the address in the e-mail contact field; only mails to the site owner run before the visitor confirms (Application\\DoubleOptIn in the plugin).",
+          "properties": {
+            "field": {
+              "$ref": "#/definitions/id",
+              "description": "E-mail field of the contact step."
+            },
+            "subject": {
+              "$ref": "#/definitions/text"
+            },
+            "body": {
+              "$ref": "#/definitions/text",
+              "description": "Mail text with the tokens of mail templates; {{confirm_url}} places the link, otherwise it is added at the end."
+            },
+            "confirmation": {
+              "$ref": "#/definitions/text",
+              "description": "HTML shown after confirming."
+            }
+          }
+        },
+        "abandonment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "field",
+            "basis",
+            "delayMinutes",
+            "subject",
+            "body"
+          ],
+          "description": "Win back visitors who leave: once a valid address is in this e-mail field of the contact step and the visitor leaves without sending, one reminder with a link back to the answers goes to it after the delay (Application\\Abandonment in the plugin).",
+          "properties": {
+            "field": {
+              "$ref": "#/definitions/id",
+              "description": "E-mail field of the contact step."
+            },
+            "basis": {
+              "enum": [
+                "consent",
+                "notice"
+              ],
+              "description": "consent: only when the visitor ticked consentField; notice: a notice under the e-mail field tells visitors and lets them say no."
+            },
+            "consentField": {
+              "$ref": "#/definitions/id",
+              "description": "Box to tick (consent or checkbox) of the contact step; needed for basis consent."
+            },
+            "notice": {
+              "$ref": "#/definitions/text",
+              "description": "Text under the e-mail field (basis notice); a standard text when empty."
+            },
+            "delayMinutes": {
+              "type": "integer",
+              "minimum": 15,
+              "maximum": 10080,
+              "description": "Minutes after leaving before the reminder goes out."
+            },
+            "secondAfterHours": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 336,
+              "description": "A second reminder this many hours after the first; without it there is only one."
+            },
+            "subject": {
+              "$ref": "#/definitions/text"
+            },
+            "body": {
+              "$ref": "#/definitions/text",
+              "description": "Mail text with the tokens of mail templates; {{resume_url}} places the link back (otherwise it is added at the end), {{unsubscribe_url}} the link to stop reminders (always added at the end)."
+            },
+            "layout": {
+              "enum": [
+                "branded",
+                "plain"
+              ],
+              "description": "branded (default): the designed mail layout; plain: the text as written."
+            },
+            "notifyOwner": {
+              "type": "boolean",
+              "description": "Also mail the site owner about the abandoned lead when the reminder is due."
+            }
+          }
+        },
+        "publicEntries": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "fields",
+            "approval"
+          ],
+          "description": "Entries shown on the website with [funnelforms_entries] (reviews, lists of participants): only these fields, only published entries.",
+          "properties": {
+            "fields": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 20,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/definitions/id"
+              }
+            },
+            "approval": {
+              "type": "boolean",
+              "description": "true: an admin publishes each entry; false: entries are published when sent."
+            },
+            "consentField": {
+              "$ref": "#/definitions/id"
+            },
+            "shortNames": {
+              "type": "boolean"
+            },
+            "showDate": {
+              "type": "boolean"
+            },
+            "perPage": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "payment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "connection",
+            "amount",
+            "currency",
+            "mode",
+            "description"
+          ],
+          "description": "Payment after the contact step, through the site's own Stripe, PayPal or Mollie account (Application\\Payments in the plugin). The plugin computes the amount on the server; actions with on \"paid\" wait for the payment.",
+          "properties": {
+            "connection": {
+              "type": "string",
+              "pattern": "^(stripe|paypal|mollie):[0-9a-z-]{1,64}$",
+              "description": "Ref of a payment connection; its type names the provider."
+            },
+            "amount": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "calculation"
+                  ],
+                  "properties": {
+                    "calculation": {
+                      "$ref": "#/definitions/id"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "fixed"
+                  ],
+                  "properties": {
+                    "fixed": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  }
+                }
+              ],
+              "description": "Amount in the currency (not in cents): the result of a calculation or a fixed amount. Nothing is charged when it comes to 0 or less."
+            },
+            "currency": {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$",
+              "description": "ISO 4217 code, e.g. EUR."
+            },
+            "mode": {
+              "enum": [
+                "payment",
+                "deposit",
+                "subscription"
+              ],
+              "description": "payment: the whole amount once; deposit: depositPercent of it; subscription: the amount every interval (Stripe only)."
+            },
+            "depositPercent": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 99
+            },
+            "interval": {
+              "enum": [
+                "month",
+                "year"
+              ]
+            },
+            "description": {
+              "$ref": "#/definitions/text",
+              "description": "What the visitor pays for, shown on the payment page; tokens of mail templates allowed."
+            },
+            "emailField": {
+              "$ref": "#/definitions/id",
+              "description": "E-mail field of the contact step: fills in the payment page and gets the receipt."
+            },
+            "node": {
+              "$ref": "#/definitions/id",
+              "description": "Only when the entry is submitted through this contact node; all submits when missing."
+            },
+            "coupons": {
+              "type": "array",
+              "maxItems": 100,
+              "description": "Coupon codes the visitor can enter in couponField; checked on the server, ignoring case.",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "code"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_-]{1,40}$"
+                  },
+                  "percent": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 100
+                  },
+                  "amount": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                }
+              }
+            },
+            "couponField": {
+              "$ref": "#/definitions/id",
+              "description": "Text field of a step or of the contact step that takes the coupon code."
+            },
+            "promotionCodes": {
+              "type": "boolean",
+              "description": "Stripe: the payment page also takes the promotion codes of the Stripe account."
+            }
+          }
+        },
+        "access": {
+          "description": "Checked on the server: password (hash from wp_hash_password, never sent to visitors), entry limit and time window.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "password": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "hash"
+              ],
+              "properties": {
+                "hash": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "maxEntries": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "opensAt": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2}(\\.\\d+)?)?(Z|[+-]\\d{2}:\\d{2})$"
+            },
+            "closesAt": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2}(\\.\\d+)?)?(Z|[+-]\\d{2}:\\d{2})$"
+            },
+            "closedMessage": {
+              "$ref": "#/definitions/text"
+            },
+            "loginRequired": {
+              "type": "boolean",
+              "description": "Only visitors logged in to the website see and send the form."
+            },
+            "loginMessage": {
+              "$ref": "#/definitions/text",
+              "description": "Shown with the login link; a standard text without."
+            }
+          }
+        },
+        "timeLimit": {
+          "description": "Minutes a visitor has from the start to send the form; the runtime shows a countdown and the server rejects later entries.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "minutes"
+          ],
+          "properties": {
+            "minutes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1440
+            },
+            "message": {
+              "$ref": "#/definitions/text"
+            }
+          }
+        },
+        "captcha": {
+          "description": "false: the form does without the captcha of the site's spam protection (captcha fields of the form that use it are left out too); without it the site's captcha applies.",
+          "type": "boolean"
+        },
+        "retentionDays": {
+          "description": "Entries of this form are deleted this many days after they were submitted; without it the site's period applies.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 36500
+        },
+        "prevLabel": {
+          "$ref": "#/definitions/text"
+        },
+        "nextLabel": {
+          "$ref": "#/definitions/text"
+        },
+        "heading": {
+          "$ref": "#/definitions/text"
+        }
+      }
+    },
+    "pdf": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "PDF of an entry (Application\\EntryPdf in the plugin): download in the entry and attachment of mails with attachPdf. Title, intro and footer take the tokens of mail templates.",
+      "required": [
+        "title",
+        "intro",
+        "footer",
+        "showAnswers",
+        "showContact",
+        "showCalculations"
+      ],
+      "properties": {
+        "title": {
+          "$ref": "#/definitions/text",
+          "description": "Empty: the form title."
+        },
+        "intro": {
+          "$ref": "#/definitions/text"
+        },
+        "footer": {
+          "$ref": "#/definitions/text"
+        },
+        "showAnswers": {
+          "type": "boolean"
+        },
+        "showContact": {
+          "type": "boolean"
+        },
+        "showCalculations": {
+          "type": "boolean"
+        }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nodes"
+      ],
+      "properties": {
+        "nodes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "x",
+              "y"
+            ],
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "legacy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "formId",
+            "migratorVersion",
+            "notes"
+          ],
+          "properties": {
+            "formId": {
+              "type": "integer"
+            },
+            "migratorVersion": {
+              "type": "integer"
+            },
+            "notes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,80}$"
+    },
+    "text": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "value"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "$ref": "#/definitions/text"
+        },
+        "value": {
+          "type": "string"
+        },
+        "media": {
+          "type": "object",
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "enum": [
+                "icon",
+                "image",
+                "lucide"
+              ]
+            },
+            "value": {
+              "type": "string"
+            }
+          }
+        },
+        "calcValue": {
+          "type": "number"
+        },
+        "correct": {
+          "type": "boolean",
+          "description": "Knowledge quiz: a right answer. A field with right answers counts 1 in calculations when exactly they are chosen, else 0."
+        },
+        "hiddenValue": {
+          "type": "string"
+        },
+        "scores": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "Personality quiz: points of this option per category id."
+        }
+      }
+    },
+    "field": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/choiceField"
+        },
+        {
+          "$ref": "#/definitions/dropdownField"
+        },
+        {
+          "$ref": "#/definitions/textField"
+        },
+        {
+          "$ref": "#/definitions/textareaField"
+        },
+        {
+          "$ref": "#/definitions/dateField"
+        },
+        {
+          "$ref": "#/definitions/sliderField"
+        },
+        {
+          "$ref": "#/definitions/contentField"
+        },
+        {
+          "$ref": "#/definitions/fileField"
+        },
+        {
+          "$ref": "#/definitions/addressField"
+        },
+        {
+          "$ref": "#/definitions/bookingField"
+        },
+        {
+          "$ref": "#/definitions/emailField"
+        },
+        {
+          "$ref": "#/definitions/phoneField"
+        },
+        {
+          "$ref": "#/definitions/urlField"
+        },
+        {
+          "$ref": "#/definitions/numberField"
+        },
+        {
+          "$ref": "#/definitions/timeField"
+        },
+        {
+          "$ref": "#/definitions/ratingField"
+        },
+        {
+          "$ref": "#/definitions/signatureField"
+        },
+        {
+          "$ref": "#/definitions/repeatField"
+        },
+        {
+          "$ref": "#/definitions/resultField"
+        }
+      ]
+    },
+    "choiceField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "type",
+        "label",
+        "description",
+        "required",
+        "props",
+        "options"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "key": {
+          "$ref": "#/definitions/id"
+        },
+        "type": {
+          "const": "choice"
+        },
+        "label": {
+          "$ref": "#/definitions/text"
+        },
+        "description": {
+          "$ref": "#/definitions/text"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "tracking": {
+          "type": "object",
+          "properties": {
+            "onShow": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "showWhen": {
+          "$ref": "#/definitions/condition"
+        },
+        "legacy": {
+          "type": "object",
+          "properties": {
+            "questionId": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "multiple",
+            "layout",
+            "hideIcons"
+          ],
+          "properties": {
+            "multiple": {
+              "type": "boolean"
+            },
+            "layout": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "desktop",
+                "mobile"
+              ],
+              "properties": {
+                "desktop": {
+                  "enum": [
+                    "grid",
+                    "list",
+                    "list2"
+                  ]
+                },
+                "mobile": {
+                  "enum": [
+                    "grid",
+                    "list"
+                  ]
+                }
+              }
+            },
+            "hideIcons": {
+              "type": "boolean"
+            },
+            "autoAdvanceAt": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "minChoices": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "maxChoices": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "columns": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "desktop": {
+                  "enum": [
+                    1,
+                    2,
+                    3,
+                    4
+                  ]
+                },
+                "mobile": {
+                  "enum": [
+                    1,
+                    2
+                  ]
+                }
+              }
+            },
+            "iconPosition": {
+              "enum": [
+                "top",
+                "left",
+                "right",
+                "bottom"
+              ]
+            },
+            "size": {
+              "enum": [
+                "s",
+                "m",
+                "l"
+              ]
+            },
+            "imageFull": {
+              "type": "boolean"
+            }
+          }
+        },
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/option"
+          }
+        }
+      }
+    },
+    "dropdownField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "type",
+        "label",
+        "description",
+        "required",
+        "props",
+        "options"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "key": {
+          "$ref": "#/definitions/id"
+        },
+        "type": {
+          "const": "dropdown"
+        },
+        "label": {
+          "$ref": "#/definitions/text"
+        },
+        "description": {
+          "$ref": "#/definitions/text"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "tracking": {
+          "type": "object",
+          "properties": {
+            "onShow": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "showWhen": {
+          "$ref": "#/definitions/condition"
+        },
+        "legacy": {
+          "type": "object",
+          "properties": {
+            "questionId": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [],
+          "properties": {
+            "placeholder": {
+              "$ref": "#/definitions/text"
+            },
+            "search": {
+              "type": "boolean"
+            },
+            "multiple": {
+              "type": "boolean"
+            },
+            "minChoices": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "maxChoices": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/option"
+          }
+        }
+      }
+    },
+    "textField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "type",
+        "label",
+        "description",
+        "required",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "key": {
+          "$ref": "#/definitions/id"
+        },
+        "type": {
+          "const": "text"
+        },
+        "label": {
+          "$ref": "#/definitions/text"
+        },
+        "description": {
+          "$ref": "#/definitions/text"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "tracking": {
+          "type": "object",
+          "properties": {
+            "onShow": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "showWhen": {
+          "$ref": "#/definitions/condition"
+        },
+        "legacy": {
+          "type": "object",
+          "properties": {
+            "questionId": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "placeholder"
+          ],
+          "properties": {
+            "placeholder": {
+              "$ref": "#/definitions/text"
+            },
+            "minLength": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxLength": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "restrict": {
+              "enum": [
+                "letters",
+                "digits",
+                "birthday"
+              ]
+            },
+            "autocomplete": {
+              "$ref": "#/definitions/autocompleteToken"
+            }
+          }
+        }
+      }
+    },
+    "textareaField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "type",
+        "label",
+        "description",
+        "required",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "key": {
+          "$ref": "#/definitions/id"
+        },
+        "type": {
+          "const": "textarea"
+        },
+        "label": {
+          "$ref": "#/definitions/text"
+        },
+        "description": {
+          "$ref": "#/definitions/text"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "tracking": {
+          "type": "object",
+          "properties": {
+            "onShow": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "showWhen": {
+          "$ref": "#/definitions/condition"
+        },
+        "legacy": {
+          "type": "object",
+          "properties": {
+            "questionId": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "placeholder"
+          ],
+          "properties": {
+            "placeholder": {
+              "$ref": "#/definitions/text"
+            },
+            "minLength": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxLength": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "autocomplete": {
+              "$ref": "#/definitions/autocompleteToken"
+            }
+          }
+        }
+      }
+    },
+    "dateField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "type",
+        "label",
+        "description",
+        "required",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "key": {
+          "$ref": "#/definitions/id"
+        },
+        "type": {
+          "const": "date"
+        },
+        "label": {
+          "$ref": "#/definitions/text"
+        },
+        "description": {
+          "$ref": "#/definitions/text"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "tracking": {
+          "type": "object",
+          "properties": {
+            "onShow": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "showWhen": {
+          "$ref": "#/definitions/condition"
+        },
+        "legacy": {
+          "type": "object",
+          "properties": {
+            "questionId": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "placeholder",
+            "format"
+          ],
+          "properties": {
+            "placeholder": {
+              "$ref": "#/definitions/text"
+            },
+            "format": {
+              "type": "string"
+            },
+            "range": {
+              "type": "boolean"
+            },
+            "allow": {
+              "enum": [
+                "future",
+                "past"
+              ]
+            },
+            "min": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "max": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          }
+        }
+      }
+    },
+    "sliderField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "type",
+        "label",
+        "description",
+        "required",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "key": {
+          "$ref": "#/definitions/id"
+        },
+        "type": {
+          "const": "slider"
+        },
+        "label": {
+          "$ref": "#/definitions/text"
+        },
+        "description": {
+          "$ref": "#/definitions/text"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "tracking": {
+          "type": "object",
+          "properties": {
+            "onShow": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "showWhen": {
+          "$ref": "#/definitions/condition"
+        },
+        "legacy": {
+          "type": "object",
+          "properties": {
+            "questionId": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "min",
+            "max",
+            "step",
+            "start",
+            "unit",
+            "thousandsSeparator",
+            "manualInput"
+          ],
+          "properties": {
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            },
+            "step": {
+              "type": "number"
+            },
+            "start": {
+              "type": "number"
+            },
+            "unit": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "text",
+                "position"
+              ],
+              "properties": {
+                "text": {
+                  "$ref": "#/definitions/text"
+                },
+                "position": {
+                  "enum": [
+                    "before",
+                    "after"
+                  ]
+                }
+              }
+            },
+            "thousandsSeparator": {
+              "type": "boolean"
+            },
+            "manualInput": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "enabled",
+                "label"
+              ],
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "label": {
+                  "$ref": "#/definitions/text"
+                }
+              }
+            },
+            "media": {
+              "type": "object",
+              "required": [
+                "kind",
+                "value"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "icon",
+                    "image"
+                  ]
+                },
+                "value": {
+                  "type": "string"
+                }
+              }
+            },
+            "range": {
+              "type": "boolean"
+            },
+            "startEnd": {
+              "type": "number"
+            },
+            "separator": {
+              "enum": [
+                ".",
+                ",",
+                " ",
+                "'"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "contentField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "type",
+        "label",
+        "description",
+        "required",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "key": {
+          "$ref": "#/definitions/id"
+        },
+        "type": {
+          "const": "content"
+        },
+        "label": {
+          "$ref": "#/definitions/text"
+        },
+        "description": {
+          "$ref": "#/definitions/text"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "tracking": {
+          "type": "object",
+          "properties": {
+            "onShow": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "showWhen": {
+          "$ref": "#/definitions/condition"
+        },
+        "legacy": {
+          "type": "object",
+          "properties": {
+            "questionId": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "html",
+            "button"
+          ],
+          "properties": {
+            "html": {
+              "$ref": "#/definitions/text"
+            },
+            "autoAdvanceMs": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "button": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "show",
+                "label"
+              ],
+              "properties": {
+                "show": {
+                  "type": "boolean"
+                },
+                "label": {
+                  "$ref": "#/definitions/text"
+                }
+              }
+            },
+            "loader": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "style",
+                "messages"
+              ],
+              "description": "Loading screen: an animation and texts that change while the step waits autoAdvanceMs, then moves on by itself.",
+              "properties": {
+                "style": {
+                  "enum": [
+                    "spinner",
+                    "bar",
+                    "dots",
+                    "circle",
+                    "search"
+                  ]
+                },
+                "messages": {
+                  "type": "array",
+                  "maxItems": 10,
+                  "items": {
+                    "$ref": "#/definitions/text"
+                  }
+                }
+              }
+            },
+            "media": {
+              "$ref": "#/definitions/contentMedia"
+            }
+          }
+        }
+      }
+    },
+    "fileField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "type",
+        "label",
+        "description",
+        "required",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "key": {
+          "$ref": "#/definitions/id"
+        },
+        "type": {
+          "const": "file"
+        },
+        "label": {
+          "$ref": "#/definitions/text"
+        },
+        "description": {
+          "$ref": "#/definitions/text"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "tracking": {
+          "type": "object",
+          "properties": {
+            "onShow": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "showWhen": {
+          "$ref": "#/definitions/condition"
+        },
+        "legacy": {
+          "type": "object",
+          "properties": {
+            "questionId": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "dropzoneText",
+            "maxSizeMb",
+            "maxFiles",
+            "deniedMimeTypes",
+            "visibility"
+          ],
+          "properties": {
+            "dropzoneText": {
+              "$ref": "#/definitions/text"
+            },
+            "maxSizeMb": {
+              "type": "number"
+            },
+            "maxFiles": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "deniedMimeTypes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "visibility": {
+              "enum": [
+                "public",
+                "private"
+              ]
+            },
+            "allowedExtensions": {
+              "type": "array",
+              "maxItems": 50,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z0-9]{1,10}$"
+              }
+            },
+            "hint": {
+              "$ref": "#/definitions/text"
+            },
+            "preview": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "addressField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "type",
+        "label",
+        "description",
+        "required",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "key": {
+          "$ref": "#/definitions/id"
+        },
+        "type": {
+          "const": "address"
+        },
+        "label": {
+          "$ref": "#/definitions/text"
+        },
+        "description": {
+          "$ref": "#/definitions/text"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "tracking": {
+          "type": "object",
+          "properties": {
+            "onShow": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "showWhen": {
+          "$ref": "#/definitions/condition"
+        },
+        "legacy": {
+          "type": "object",
+          "properties": {
+            "questionId": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "zoom",
+            "start",
+            "combined",
+            "showCountry",
+            "placesAutocomplete"
+          ],
+          "properties": {
+            "zoom": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 22
+            },
+            "start": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "lat",
+                "lng"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "lat": {
+                  "type": "number"
+                },
+                "lng": {
+                  "type": "number"
+                }
+              }
+            },
+            "combined": {
+              "type": "boolean"
+            },
+            "showCountry": {
+              "type": "boolean"
+            },
+            "placesAutocomplete": {
+              "type": "boolean"
+            },
+            "locate": {
+              "type": "boolean",
+              "description": "With Google suggestions: a button that fills the address from the visitor's location."
+            }
+          }
+        }
+      }
+    },
+    "bookingField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "type",
+        "label",
+        "description",
+        "required",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "key": {
+          "$ref": "#/definitions/id"
+        },
+        "type": {
+          "const": "booking"
+        },
+        "label": {
+          "$ref": "#/definitions/text"
+        },
+        "description": {
+          "$ref": "#/definitions/text"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "tracking": {
+          "type": "object",
+          "properties": {
+            "onShow": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "showWhen": {
+          "$ref": "#/definitions/condition"
+        },
+        "legacy": {
+          "type": "object",
+          "properties": {
+            "questionId": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "bookingTypeRef"
+          ],
+          "properties": {
+            "bookingTypeRef": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "emailField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "type",
+        "label",
+        "description",
+        "required",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "key": {
+          "$ref": "#/definitions/id"
+        },
+        "type": {
+          "const": "email"
+        },
+        "label": {
+          "$ref": "#/definitions/text"
+        },
+        "description": {
+          "$ref": "#/definitions/text"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "tracking": {
+          "type": "object",
+          "properties": {
+            "onShow": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "showWhen": {
+          "$ref": "#/definitions/condition"
+        },
+        "legacy": {
+          "type": "object",
+          "properties": {
+            "questionId": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "placeholder"
+          ],
+          "properties": {
+            "placeholder": {
+              "$ref": "#/definitions/text"
+            },
+            "b2bOnly": {
+              "type": "boolean",
+              "description": "Reject addresses of free mail providers."
+            }
+          }
+        }
+      }
+    },
+    "phoneField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "type",
+        "label",
+        "description",
+        "required",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "key": {
+          "$ref": "#/definitions/id"
+        },
+        "type": {
+          "const": "phone"
+        },
+        "label": {
+          "$ref": "#/definitions/text"
+        },
+        "description": {
+          "$ref": "#/definitions/text"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "tracking": {
+          "type": "object",
+          "properties": {
+            "onShow": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "showWhen": {
+          "$ref": "#/definitions/condition"
+        },
+        "legacy": {
+          "type": "object",
+          "properties": {
+            "questionId": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "placeholder"
+          ],
+          "properties": {
+            "placeholder": {
+              "$ref": "#/definitions/text"
+            },
+            "country": {
+              "$ref": "#/definitions/phoneCountries"
+            }
+          }
+        }
+      }
+    },
+    "urlField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "type",
+        "label",
+        "description",
+        "required",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "key": {
+          "$ref": "#/definitions/id"
+        },
+        "type": {
+          "const": "url"
+        },
+        "label": {
+          "$ref": "#/definitions/text"
+        },
+        "description": {
+          "$ref": "#/definitions/text"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "tracking": {
+          "type": "object",
+          "properties": {
+            "onShow": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "showWhen": {
+          "$ref": "#/definitions/condition"
+        },
+        "legacy": {
+          "type": "object",
+          "properties": {
+            "questionId": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "placeholder"
+          ],
+          "properties": {
+            "placeholder": {
+              "$ref": "#/definitions/text"
+            }
+          }
+        }
+      }
+    },
+    "numberField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "type",
+        "label",
+        "description",
+        "required",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "key": {
+          "$ref": "#/definitions/id"
+        },
+        "type": {
+          "const": "number"
+        },
+        "label": {
+          "$ref": "#/definitions/text"
+        },
+        "description": {
+          "$ref": "#/definitions/text"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "tracking": {
+          "type": "object",
+          "properties": {
+            "onShow": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "showWhen": {
+          "$ref": "#/definitions/condition"
+        },
+        "legacy": {
+          "type": "object",
+          "properties": {
+            "questionId": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "placeholder"
+          ],
+          "properties": {
+            "placeholder": {
+              "$ref": "#/definitions/text"
+            },
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            },
+            "step": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "Step of the arrows in the browser; any number is accepted."
+            },
+            "unit": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "text",
+                "position"
+              ],
+              "properties": {
+                "text": {
+                  "$ref": "#/definitions/text"
+                },
+                "position": {
+                  "enum": [
+                    "before",
+                    "after"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "timeField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "type",
+        "label",
+        "description",
+        "required",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "key": {
+          "$ref": "#/definitions/id"
+        },
+        "type": {
+          "const": "time"
+        },
+        "label": {
+          "$ref": "#/definitions/text"
+        },
+        "description": {
+          "$ref": "#/definitions/text"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "tracking": {
+          "type": "object",
+          "properties": {
+            "onShow": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "showWhen": {
+          "$ref": "#/definitions/condition"
+        },
+        "legacy": {
+          "type": "object",
+          "properties": {
+            "questionId": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [],
+          "properties": {
+            "min": {
+              "type": "string",
+              "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+            },
+            "max": {
+              "type": "string",
+              "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+            },
+            "stepMinutes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 720
+            }
+          }
+        }
+      }
+    },
+    "ratingField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "type",
+        "label",
+        "description",
+        "required",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "key": {
+          "$ref": "#/definitions/id"
+        },
+        "type": {
+          "const": "rating"
+        },
+        "label": {
+          "$ref": "#/definitions/text"
+        },
+        "description": {
+          "$ref": "#/definitions/text"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "tracking": {
+          "type": "object",
+          "properties": {
+            "onShow": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "showWhen": {
+          "$ref": "#/definitions/condition"
+        },
+        "legacy": {
+          "type": "object",
+          "properties": {
+            "questionId": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "min",
+            "max",
+            "style",
+            "lowLabel",
+            "highLabel"
+          ],
+          "properties": {
+            "min": {
+              "enum": [
+                0,
+                1
+              ]
+            },
+            "max": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 10
+            },
+            "style": {
+              "enum": [
+                "stars",
+                "numbers",
+                "colors"
+              ]
+            },
+            "lowLabel": {
+              "$ref": "#/definitions/text"
+            },
+            "highLabel": {
+              "$ref": "#/definitions/text"
+            },
+            "show": {
+              "enum": [
+                "emojis",
+                "labels"
+              ]
+            },
+            "labels": {
+              "type": "array",
+              "maxItems": 11,
+              "items": {
+                "$ref": "#/definitions/text"
+              }
+            }
+          }
+        }
+      }
+    },
+    "signatureField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "type",
+        "label",
+        "description",
+        "required",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "key": {
+          "$ref": "#/definitions/id"
+        },
+        "type": {
+          "const": "signature"
+        },
+        "label": {
+          "$ref": "#/definitions/text"
+        },
+        "description": {
+          "$ref": "#/definitions/text"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "tracking": {
+          "type": "object",
+          "properties": {
+            "onShow": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "showWhen": {
+          "$ref": "#/definitions/condition"
+        },
+        "legacy": {
+          "type": "object",
+          "properties": {
+            "questionId": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "clearLabel",
+            "typeLabel"
+          ],
+          "properties": {
+            "clearLabel": {
+              "$ref": "#/definitions/text"
+            },
+            "typeLabel": {
+              "$ref": "#/definitions/text",
+              "description": "Label of the box where visitors may type their name instead of drawing."
+            },
+            "penColor": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            },
+            "upload": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "repeatField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "type",
+        "label",
+        "description",
+        "required",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "key": {
+          "$ref": "#/definitions/id"
+        },
+        "type": {
+          "const": "repeat"
+        },
+        "label": {
+          "$ref": "#/definitions/text"
+        },
+        "description": {
+          "$ref": "#/definitions/text"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "tracking": {
+          "type": "object",
+          "properties": {
+            "onShow": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "showWhen": {
+          "$ref": "#/definitions/condition"
+        },
+        "legacy": {
+          "type": "object",
+          "properties": {
+            "questionId": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "minItems",
+            "maxItems",
+            "addLabel",
+            "itemLabel",
+            "fields"
+          ],
+          "properties": {
+            "minItems": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 20,
+              "description": "Items the visitor must fill in; a required group needs at least one."
+            },
+            "maxItems": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20
+            },
+            "addLabel": {
+              "$ref": "#/definitions/text",
+              "description": "Label of the button that adds an item."
+            },
+            "itemLabel": {
+              "$ref": "#/definitions/text",
+              "description": "Heading of each item; %d is its number (e.g. \"Person %d\")."
+            },
+            "fields": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 10,
+              "description": "Fields of one item. Their ids are unique within the group.",
+              "items": {
+                "oneOf": [
+                  {
+                    "$ref": "#/definitions/textField"
+                  },
+                  {
+                    "$ref": "#/definitions/textareaField"
+                  },
+                  {
+                    "$ref": "#/definitions/emailField"
+                  },
+                  {
+                    "$ref": "#/definitions/phoneField"
+                  },
+                  {
+                    "$ref": "#/definitions/urlField"
+                  },
+                  {
+                    "$ref": "#/definitions/numberField"
+                  },
+                  {
+                    "$ref": "#/definitions/dateField"
+                  },
+                  {
+                    "$ref": "#/definitions/timeField"
+                  },
+                  {
+                    "$ref": "#/definitions/dropdownField"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "description": "A group of fields the visitor fills in once per item, e.g. one row per person. The answer is a list of items, each an object of sub-field id to answer; calculations and conditions see the number of items."
+    },
+    "resultField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "type",
+        "label",
+        "description",
+        "required",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "key": {
+          "$ref": "#/definitions/id"
+        },
+        "type": {
+          "const": "result"
+        },
+        "label": {
+          "$ref": "#/definitions/text"
+        },
+        "description": {
+          "$ref": "#/definitions/text"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "tracking": {
+          "type": "object",
+          "properties": {
+            "onShow": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "showWhen": {
+          "$ref": "#/definitions/condition"
+        },
+        "legacy": {
+          "type": "object",
+          "properties": {
+            "questionId": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "style",
+            "lines"
+          ],
+          "properties": {
+            "style": {
+              "enum": [
+                "card",
+                "sticky"
+              ],
+              "description": "card: a box in the step; sticky: a bar at the bottom on narrow screens and a card beside the steps on wide ones, on this step and every later one."
+            },
+            "lines": {
+              "type": "array",
+              "maxItems": 10,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "calculation",
+                  "label"
+                ],
+                "properties": {
+                  "calculation": {
+                    "type": "string",
+                    "description": "Calculation whose result the line shows, in its format."
+                  },
+                  "to": {
+                    "type": "string",
+                    "description": "A range: this calculation’s result is the upper end."
+                  },
+                  "label": {
+                    "$ref": "#/definitions/text"
+                  },
+                  "from": {
+                    "type": "boolean",
+                    "description": "A starting price: \"from\" in front of the result."
+                  },
+                  "prefix": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "suffix": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "text": {
+                    "type": "boolean",
+                    "description": "Shows the text of the range the result lies in (the calculation's texts) instead of the number."
+                  }
+                }
+              },
+              "description": "The first line is the result, shown large; the others break it down."
+            },
+            "disclaimer": {
+              "$ref": "#/definitions/text"
+            },
+            "reveal": {
+              "enum": [
+                "show",
+                "contact"
+              ],
+              "description": "show (default): the results while the visitor answers. contact: blurred with the teaser until the contact step is sent; the plugin sends no number of its calculations to the browser before."
+            },
+            "teaser": {
+              "$ref": "#/definitions/text",
+              "description": "Line shown while the result is locked; empty for the default text."
+            }
+          }
+        }
+      },
+      "description": "Live result (Funnelforms Pro): results of calculations, worked out again by the plugin while the visitor answers. Asks nothing; the label is its heading."
+    },
+    "contactField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "key",
+        "label",
+        "required",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "type": {
+          "enum": [
+            "salutation",
+            "name",
+            "email",
+            "phone",
+            "phone_verification",
+            "text",
+            "consent",
+            "captcha",
+            "html",
+            "select",
+            "textarea",
+            "checkbox"
+          ]
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "$ref": "#/definitions/text"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "props": {
+          "type": "object"
+        }
+      }
+    },
+    "node": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "type",
+            "fields"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/id"
+            },
+            "type": {
+              "const": "step"
+            },
+            "fields": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/definitions/field"
+              }
+            },
+            "tracking": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [],
+              "properties": {
+                "onShow": {
+                  "type": "string"
+                }
+              }
+            },
+            "legacy": {
+              "type": "object",
+              "properties": {
+                "questionId": {
+                  "type": "integer"
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "type",
+            "title",
+            "description",
+            "submitLabel",
+            "fields",
+            "showBottomBar"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/id"
+            },
+            "type": {
+              "const": "contact"
+            },
+            "title": {
+              "$ref": "#/definitions/text"
+            },
+            "description": {
+              "$ref": "#/definitions/text"
+            },
+            "submitLabel": {
+              "$ref": "#/definitions/text"
+            },
+            "fields": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/contactField"
+              }
+            },
+            "showBottomBar": {
+              "type": "boolean"
+            },
+            "tracking": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [],
+              "properties": {
+                "onShow": {
+                  "type": "string"
+                },
+                "afterSubmit": {
+                  "type": "string"
+                }
+              }
+            },
+            "legacy": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [],
+              "properties": {
+                "contactFormId": {
+                  "type": "integer"
+                }
+              }
+            },
+            "layout": {
+              "$ref": "#/definitions/contactLayout"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "type",
+            "success",
+            "redirect"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/id"
+            },
+            "type": {
+              "const": "end"
+            },
+            "success": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "show",
+                    "text"
+                  ],
+                  "properties": {
+                    "show": {
+                      "type": "boolean"
+                    },
+                    "text": {
+                      "$ref": "#/definitions/text"
+                    },
+                    "image": {
+                      "type": "string"
+                    },
+                    "heading": {
+                      "$ref": "#/definitions/text"
+                    },
+                    "animation": {
+                      "enum": [
+                        "check",
+                        "confetti"
+                      ]
+                    },
+                    "button": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "label",
+                        "url"
+                      ],
+                      "properties": {
+                        "label": {
+                          "$ref": "#/definitions/text"
+                        },
+                        "url": {
+                          "$ref": "#/definitions/text"
+                        },
+                        "newTab": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "downloads": {
+                      "type": "array",
+                      "maxItems": 10,
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "label",
+                          "url"
+                        ],
+                        "properties": {
+                          "label": {
+                            "$ref": "#/definitions/text"
+                          },
+                          "url": {
+                            "type": "string",
+                            "pattern": "^https?://"
+                          }
+                        }
+                      }
+                    },
+                    "showAnswers": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              ]
+            },
+            "redirect": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "url",
+                    "newTab",
+                    "delayMs",
+                    "params"
+                  ],
+                  "properties": {
+                    "url": {
+                      "$ref": "#/definitions/text"
+                    },
+                    "newTab": {
+                      "type": "boolean"
+                    },
+                    "delayMs": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "params": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "name",
+                          "value"
+                        ],
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "value": {
+                            "$ref": "#/definitions/text"
+                          }
+                        }
+                      }
+                    },
+                    "countdown": {
+                      "type": "boolean",
+                      "description": "Shows the seconds until the redirect and a link to go now."
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "condition": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "all"
+          ],
+          "properties": {
+            "all": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/definitions/condition"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "any"
+          ],
+          "properties": {
+            "any": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/definitions/condition"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "field",
+            "op",
+            "value"
+          ],
+          "properties": {
+            "field": {
+              "$ref": "#/definitions/id"
+            },
+            "op": {
+              "enum": [
+                "selected",
+                "selectedOnly"
+              ]
+            },
+            "value": {
+              "$ref": "#/definitions/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "field",
+            "op",
+            "value"
+          ],
+          "properties": {
+            "field": {
+              "$ref": "#/definitions/id"
+            },
+            "op": {
+              "enum": [
+                "lt",
+                "lte",
+                "gt",
+                "gte",
+                "eq",
+                "neq"
+              ]
+            },
+            "value": {
+              "type": "number"
+            },
+            "number": {
+              "enum": [
+                "float",
+                "int",
+                "count"
+              ],
+              "description": "How the answer is read: a decimal (default), a whole number, or the number of answers chosen (options, files, items of a repeat group)."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "field",
+            "op",
+            "value"
+          ],
+          "properties": {
+            "field": {
+              "$ref": "#/definitions/id"
+            },
+            "op": {
+              "enum": [
+                "equalsText",
+                "notEqualsText",
+                "contains",
+                "notContains",
+                "startsWith",
+                "endsWith"
+              ]
+            },
+            "value": {
+              "type": "string"
+            },
+            "part": {
+              "$ref": "#/definitions/addressPart"
+            }
+          },
+          "description": "equalsText and notEqualsText compare exactly; the others ignore case and surrounding spaces. part: a part of an address answer."
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "field",
+            "op"
+          ],
+          "description": "Whether the field, or a part of an address, has an answer.",
+          "properties": {
+            "field": {
+              "$ref": "#/definitions/id"
+            },
+            "op": {
+              "enum": [
+                "filled",
+                "empty"
+              ]
+            },
+            "part": {
+              "$ref": "#/definitions/addressPart"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "field",
+            "op",
+            "value"
+          ],
+          "description": "A date answer (the start of a period) before, after or on a day: YYYY-MM-DD or today in the site's time zone, moved by days.",
+          "properties": {
+            "field": {
+              "$ref": "#/definitions/id"
+            },
+            "op": {
+              "enum": [
+                "dateBefore",
+                "dateAfter",
+                "dateOn"
+              ]
+            },
+            "value": {
+              "type": "string",
+              "pattern": "^(today|\\d{4}-\\d{2}-\\d{2})$"
+            },
+            "days": {
+              "type": "integer",
+              "minimum": -36500,
+              "maximum": 36500
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "calc",
+            "op",
+            "value"
+          ],
+          "description": "Compares the result of a calculation (e.g. a lead score); the plugin computes it, so the browser asks the server for the next step.",
+          "properties": {
+            "calc": {
+              "$ref": "#/definitions/id"
+            },
+            "op": {
+              "enum": [
+                "lt",
+                "lte",
+                "gt",
+                "gte",
+                "eq",
+                "neq"
+              ]
+            },
+            "value": {
+              "type": "number"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "experiment",
+            "variant"
+          ],
+          "description": "Holds for visitors shown this variant of an A/B test.",
+          "properties": {
+            "experiment": {
+              "$ref": "#/definitions/experimentId"
+            },
+            "variant": {
+              "$ref": "#/definitions/variantId"
+            }
+          }
+        }
+      ]
+    },
+    "addressPart": {
+      "enum": [
+        "street",
+        "number",
+        "zip",
+        "city",
+        "country",
+        "address"
+      ]
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "from",
+        "to"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "from": {
+          "$ref": "#/definitions/id"
+        },
+        "to": {
+          "$ref": "#/definitions/id"
+        },
+        "when": {
+          "$ref": "#/definitions/condition"
+        },
+        "default": {
+          "type": "boolean"
+        }
+      }
+    },
+    "expression": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "num"
+          ],
+          "properties": {
+            "num": {
+              "type": "number"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "var"
+          ],
+          "properties": {
+            "var": {
+              "$ref": "#/definitions/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "neg"
+          ],
+          "properties": {
+            "neg": {
+              "$ref": "#/definitions/expression"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "op",
+            "args"
+          ],
+          "properties": {
+            "op": {
+              "enum": [
+                "+",
+                "-",
+                "*",
+                "/",
+                "^",
+                "%"
+              ]
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "$ref": "#/definitions/expression"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "fn",
+            "args"
+          ],
+          "description": "A function: round, floor, ceil (number, optional decimal places), abs, sqrt, not (one argument), if (condition, then, optional else; only the branch taken is computed), min, max, sum, avg, and, or, argmax (position from 1 of the largest argument); clamp (number, min, max), lookup (number, then limit and value pairs, then the value for anything above: the value of the first limit the number is less than or equal to), days (date: days from today; from, to: days between), age (date: full years until today; from, to: full years between).",
+          "properties": {
+            "fn": {
+              "enum": [
+                "round",
+                "floor",
+                "ceil",
+                "abs",
+                "sqrt",
+                "min",
+                "max",
+                "sum",
+                "avg",
+                "if",
+                "and",
+                "or",
+                "not",
+                "argmax",
+                "clamp",
+                "lookup",
+                "days",
+                "age"
+              ]
+            },
+            "args": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 50,
+              "items": {
+                "$ref": "#/definitions/expression"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "cmp",
+            "args"
+          ],
+          "description": "1 when the comparison holds, else 0.",
+          "properties": {
+            "cmp": {
+              "enum": [
+                "<",
+                "<=",
+                ">",
+                ">=",
+                "=",
+                "!="
+              ]
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "$ref": "#/definitions/expression"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "count"
+          ],
+          "description": "Number of answers of the fields with this key: chosen options, files or items; 1 for any other answer.",
+          "properties": {
+            "count": {
+              "$ref": "#/definitions/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "score",
+            "category"
+          ],
+          "description": "Personality quiz: points the chosen options of the fields with this key give the category.",
+          "properties": {
+            "score": {
+              "$ref": "#/definitions/id"
+            },
+            "category": {
+              "$ref": "#/definitions/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ref"
+          ],
+          "description": "Result of another calculation of the document.",
+          "properties": {
+            "ref": {
+              "$ref": "#/definitions/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "date"
+          ],
+          "description": "The date answered in the fields with this key as days since 1970-01-01 (a period: its first day); for days() and age(). Not a number without a date.",
+          "properties": {
+            "date": {
+              "$ref": "#/definitions/id"
+            }
+          }
+        }
+      ]
+    },
+    "calculation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "expression",
+        "format"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/id"
+        },
+        "label": {
+          "type": "string"
+        },
+        "expression": {
+          "$ref": "#/definitions/expression"
+        },
+        "format": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "decimals",
+            "decimalSeparator",
+            "thousandsSeparator"
+          ],
+          "properties": {
+            "decimals": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10
+            },
+            "decimalSeparator": {
+              "type": "string"
+            },
+            "thousandsSeparator": {
+              "type": "string"
+            },
+            "prefix": {
+              "type": "string",
+              "maxLength": 20,
+              "description": "Text before the number, e.g. a currency sign."
+            },
+            "suffix": {
+              "type": "string",
+              "maxLength": 20,
+              "description": "Text after the number, e.g. \" €\"."
+            }
+          }
+        },
+        "legacy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [],
+          "properties": {
+            "calculationId": {
+              "type": "integer"
+            },
+            "formula": {
+              "type": "string"
+            },
+            "ignored": {
+              "type": "string"
+            },
+            "error": {
+              "type": "string",
+              "description": "The 3.x formula could not be computed (e.g. unknown_function). The expression is a 0 placeholder and the runtime shows the calculation error text, as 3.x did."
+            }
+          }
+        },
+        "texts": {
+          "type": "array",
+          "maxItems": 20,
+          "description": "Texts by range of the result (Funnelforms Pro): the first range the result lies in gives {{calc:<id>:text}} and live result lines with text.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "text"
+            ],
+            "properties": {
+              "from": {
+                "type": "number",
+                "description": "Smallest result of the range, included; none: no lower end."
+              },
+              "to": {
+                "type": "number",
+                "description": "Largest result of the range, included; none: no upper end."
+              },
+              "text": {
+                "$ref": "#/definitions/text"
+              }
+            }
+          }
+        }
+      }
+    },
+    "action": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "on",
+            "kind",
+            "config"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/id"
+            },
+            "on": {
+              "enum": [
+                "submit",
+                "paid"
+              ],
+              "description": "submit: when the entry is sent; paid: once its payment went through (settings.payment)."
+            },
+            "kind": {
+              "const": "email"
+            },
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "to",
+                "cc",
+                "bcc",
+                "from",
+                "fromName",
+                "replyTo",
+                "subject",
+                "body",
+                "nl2br",
+                "transport"
+              ],
+              "properties": {
+                "to": {
+                  "$ref": "#/definitions/text"
+                },
+                "cc": {
+                  "$ref": "#/definitions/text"
+                },
+                "bcc": {
+                  "$ref": "#/definitions/text"
+                },
+                "from": {
+                  "$ref": "#/definitions/text"
+                },
+                "fromName": {
+                  "$ref": "#/definitions/text"
+                },
+                "replyTo": {
+                  "$ref": "#/definitions/text"
+                },
+                "subject": {
+                  "$ref": "#/definitions/text"
+                },
+                "body": {
+                  "$ref": "#/definitions/text"
+                },
+                "nl2br": {
+                  "type": "boolean"
+                },
+                "transport": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "type"
+                      ],
+                      "properties": {
+                        "type": {
+                          "const": "wp_mail"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "type",
+                        "connectionRef"
+                      ],
+                      "properties": {
+                        "type": {
+                          "const": "smtp"
+                        },
+                        "connectionRef": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                "recipientField": {
+                  "$ref": "#/definitions/id"
+                },
+                "attachmentUrl": {
+                  "type": "string"
+                },
+                "attachPdf": {
+                  "type": "boolean",
+                  "description": "Attach the PDF of the entry (see pdf)."
+                },
+                "layout": {
+                  "enum": [
+                    "branded",
+                    "plain"
+                  ],
+                  "description": "branded: the text inside a mail layout with the colour and logo of the form, answers as a table; plain or missing: the text as written (3.x)."
+                }
+              }
+            },
+            "node": {
+              "$ref": "#/definitions/id",
+              "description": "Only when the entry is submitted through this contact node; all submits when missing."
+            },
+            "when": {
+              "$ref": "#/definitions/condition",
+              "description": "Runs only when this condition holds for the entry (answers, calculations, A/B variants); always when missing. Funnelforms Pro."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "on",
+            "kind",
+            "config"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/id"
+            },
+            "on": {
+              "enum": [
+                "submit",
+                "paid"
+              ],
+              "description": "submit: when the entry is sent; paid: once its payment went through (settings.payment)."
+            },
+            "kind": {
+              "const": "autoresponder"
+            },
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "to",
+                "cc",
+                "bcc",
+                "from",
+                "fromName",
+                "replyTo",
+                "subject",
+                "body",
+                "nl2br",
+                "transport"
+              ],
+              "properties": {
+                "to": {
+                  "$ref": "#/definitions/text"
+                },
+                "cc": {
+                  "$ref": "#/definitions/text"
+                },
+                "bcc": {
+                  "$ref": "#/definitions/text"
+                },
+                "from": {
+                  "$ref": "#/definitions/text"
+                },
+                "fromName": {
+                  "$ref": "#/definitions/text"
+                },
+                "replyTo": {
+                  "$ref": "#/definitions/text"
+                },
+                "subject": {
+                  "$ref": "#/definitions/text"
+                },
+                "body": {
+                  "$ref": "#/definitions/text"
+                },
+                "nl2br": {
+                  "type": "boolean"
+                },
+                "transport": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "type"
+                      ],
+                      "properties": {
+                        "type": {
+                          "const": "wp_mail"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "type",
+                        "connectionRef"
+                      ],
+                      "properties": {
+                        "type": {
+                          "const": "smtp"
+                        },
+                        "connectionRef": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                "recipientField": {
+                  "$ref": "#/definitions/id"
+                },
+                "attachmentUrl": {
+                  "type": "string"
+                },
+                "attachPdf": {
+                  "type": "boolean",
+                  "description": "Attach the PDF of the entry (see pdf)."
+                },
+                "layout": {
+                  "enum": [
+                    "branded",
+                    "plain"
+                  ],
+                  "description": "branded: the text inside a mail layout with the colour and logo of the form, answers as a table; plain or missing: the text as written (3.x)."
+                }
+              }
+            },
+            "node": {
+              "$ref": "#/definitions/id",
+              "description": "Only when the entry is submitted through this contact node; all submits when missing."
+            },
+            "when": {
+              "$ref": "#/definitions/condition",
+              "description": "Runs only when this condition holds for the entry (answers, calculations, A/B variants); always when missing. Funnelforms Pro."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "on",
+            "kind",
+            "config"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/id"
+            },
+            "on": {
+              "enum": [
+                "submit",
+                "paid"
+              ],
+              "description": "submit: when the entry is sent; paid: once its payment went through (settings.payment)."
+            },
+            "kind": {
+              "const": "webhook"
+            },
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "url"
+              ],
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "format": {
+                  "enum": [
+                    "ff4"
+                  ],
+                  "description": "Payload of Funnelforms 4 instead of the 3.x one."
+                }
+              }
+            },
+            "node": {
+              "$ref": "#/definitions/id",
+              "description": "Only when the entry is submitted through this contact node; all submits when missing."
+            },
+            "when": {
+              "$ref": "#/definitions/condition",
+              "description": "Runs only when this condition holds for the entry (answers, calculations, A/B variants); always when missing. Funnelforms Pro."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "on",
+            "kind",
+            "config"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/id"
+            },
+            "on": {
+              "enum": [
+                "submit",
+                "paid"
+              ],
+              "description": "submit: when the entry is sent; paid: once its payment went through (settings.payment)."
+            },
+            "kind": {
+              "const": "crm"
+            },
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "provider",
+                "connectionRef",
+                "mapping"
+              ],
+              "properties": {
+                "provider": {
+                  "type": "string"
+                },
+                "connectionRef": {
+                  "type": "string"
+                },
+                "mapping": {
+                  "type": "object"
+                }
+              }
+            },
+            "node": {
+              "$ref": "#/definitions/id",
+              "description": "Only when the entry is submitted through this contact node; all submits when missing."
+            },
+            "when": {
+              "$ref": "#/definitions/condition",
+              "description": "Runs only when this condition holds for the entry (answers, calculations, A/B variants); always when missing. Funnelforms Pro."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "on",
+            "kind",
+            "config"
+          ],
+          "description": "Message about the new entry in a Slack or Microsoft Teams channel. The webhook address is a secret of the connection (Http\\ConnectionsController in the plugin), never part of the document.",
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/id"
+            },
+            "on": {
+              "enum": [
+                "submit",
+                "paid"
+              ],
+              "description": "submit: when the entry is sent; paid: once its payment went through (settings.payment)."
+            },
+            "kind": {
+              "const": "chat"
+            },
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "service",
+                "connectionRef",
+                "message",
+                "showAnswers",
+                "showContact"
+              ],
+              "properties": {
+                "service": {
+                  "enum": [
+                    "slack",
+                    "teams"
+                  ]
+                },
+                "connectionRef": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "message": {
+                  "$ref": "#/definitions/text",
+                  "description": "Plain text above the answers, with the tokens of mail templates."
+                },
+                "showAnswers": {
+                  "type": "boolean"
+                },
+                "showContact": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "node": {
+              "$ref": "#/definitions/id",
+              "description": "Only when the entry is submitted through this contact node; all submits when missing."
+            },
+            "when": {
+              "$ref": "#/definitions/condition",
+              "description": "Runs only when this condition holds for the entry (answers, calculations, A/B variants); always when missing. Funnelforms Pro."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "on",
+            "kind",
+            "config"
+          ],
+          "description": "Text message through the customer's SMS provider (connection of type twilio or bird).",
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/id"
+            },
+            "on": {
+              "enum": [
+                "submit",
+                "paid"
+              ],
+              "description": "submit: when the entry is sent; paid: once its payment went through (settings.payment)."
+            },
+            "kind": {
+              "const": "sms"
+            },
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "connectionRef",
+                "to",
+                "sender",
+                "message"
+              ],
+              "properties": {
+                "connectionRef": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "to": {
+                  "$ref": "#/definitions/text",
+                  "description": "Numbers, separated by commas; tokens such as {{field:phone}} send to the visitor."
+                },
+                "sender": {
+                  "type": "string",
+                  "maxLength": 34,
+                  "description": "Sender name or number; a Twilio messaging service SID (MG…) also works. Bird uses the sender of its channel."
+                },
+                "message": {
+                  "$ref": "#/definitions/text",
+                  "description": "Text with the tokens of mail templates; at most 1600 characters are sent."
+                },
+                "countryCode": {
+                  "type": "string",
+                  "pattern": "^[1-9][0-9]{0,2}$",
+                  "description": "Country code for numbers entered without one (0171… becomes +49171… with 49)."
+                }
+              }
+            },
+            "node": {
+              "$ref": "#/definitions/id",
+              "description": "Only when the entry is submitted through this contact node; all submits when missing."
+            },
+            "when": {
+              "$ref": "#/definitions/condition",
+              "description": "Runs only when this condition holds for the entry (answers, calculations, A/B variants); always when missing. Funnelforms Pro."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "on",
+            "kind",
+            "config"
+          ],
+          "description": "WhatsApp template message through the customer's WhatsApp Business account (Meta Cloud API, connection of type whatsapp).",
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/id"
+            },
+            "on": {
+              "enum": [
+                "submit",
+                "paid"
+              ],
+              "description": "submit: when the entry is sent; paid: once its payment went through (settings.payment)."
+            },
+            "kind": {
+              "const": "whatsapp"
+            },
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "connectionRef",
+                "to",
+                "template",
+                "language",
+                "parameters"
+              ],
+              "properties": {
+                "connectionRef": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "to": {
+                  "$ref": "#/definitions/text",
+                  "description": "Numbers, separated by commas; tokens such as {{field:phone}} send to the visitor."
+                },
+                "countryCode": {
+                  "type": "string",
+                  "pattern": "^[1-9][0-9]{0,2}$",
+                  "description": "Country code for numbers entered without one (0171… becomes +49171… with 49)."
+                },
+                "template": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9_]{1,512}$",
+                  "description": "Name of a template Meta approved."
+                },
+                "language": {
+                  "type": "string",
+                  "pattern": "^[a-z]{2,3}(_[A-Z]{2})?$",
+                  "description": "Language code of the template, e.g. de or en_US."
+                },
+                "parameters": {
+                  "type": "array",
+                  "maxItems": 20,
+                  "items": {
+                    "$ref": "#/definitions/text"
+                  },
+                  "description": "Texts for the placeholders {{1}}, {{2}} … of the template body, with the tokens of mail templates."
+                }
+              }
+            },
+            "node": {
+              "$ref": "#/definitions/id",
+              "description": "Only when the entry is submitted through this contact node; all submits when missing."
+            },
+            "when": {
+              "$ref": "#/definitions/condition",
+              "description": "Runs only when this condition holds for the entry (answers, calculations, A/B variants); always when missing. Funnelforms Pro."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "on",
+            "kind",
+            "config"
+          ],
+          "description": "Google Ads conversion, sent in the browser through the site's Google tag (gtag.js) once the entry is stored; the plugin answers the submit with the value. Click IDs (gclid, gbraid, wbraid) are kept with the UTM values for offline imports.",
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/id"
+            },
+            "on": {
+              "const": "submit"
+            },
+            "kind": {
+              "const": "googleAds"
+            },
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "sendTo",
+                "requireConsent"
+              ],
+              "properties": {
+                "sendTo": {
+                  "type": "string",
+                  "pattern": "^AW-[0-9]{5,15}/[A-Za-z0-9_-]{1,64}$",
+                  "description": "Conversion ID and label as Google Ads shows them for the event snippet (AW-123456789/AbC-D_efG)."
+                },
+                "valueCalculation": {
+                  "$ref": "#/definitions/id",
+                  "description": "Calculation whose result is the value of the conversion."
+                },
+                "currency": {
+                  "type": "string",
+                  "pattern": "^[A-Z]{3}$"
+                },
+                "requireConsent": {
+                  "type": "boolean",
+                  "description": "Send only when the visitor agreed to marketing (WP Consent API); false sends unless the visitor refused. The Google tag applies Consent Mode on top."
+                },
+                "enhanced": {
+                  "type": "boolean",
+                  "description": "Enhanced conversions: the Google tag gets the e-mail address and phone number of the contact step (it hashes them), only with marketing consent."
+                }
+              }
+            },
+            "node": {
+              "$ref": "#/definitions/id",
+              "description": "Only when the entry is submitted through this contact node; all submits when missing."
+            },
+            "when": {
+              "$ref": "#/definitions/condition",
+              "description": "Runs only when this condition holds for the entry (answers, calculations, A/B variants); always when missing. Funnelforms Pro."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "on",
+            "kind",
+            "config"
+          ],
+          "description": "Server-side conversion (Meta Conversions API, GA4 Measurement Protocol, TikTok Events API), sent only with the consent the platform needs (WP Consent API in the browser).",
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/id"
+            },
+            "on": {
+              "enum": [
+                "submit",
+                "paid"
+              ],
+              "description": "submit: when the entry is sent; paid: once its payment went through (settings.payment)."
+            },
+            "kind": {
+              "const": "conversion"
+            },
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "platform",
+                "connectionRef",
+                "eventName",
+                "requireConsent"
+              ],
+              "properties": {
+                "platform": {
+                  "enum": [
+                    "meta",
+                    "ga4",
+                    "tiktok"
+                  ]
+                },
+                "connectionRef": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "eventName": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9_]{0,40}$",
+                  "description": "Empty for the standard event: Lead (Meta), generate_lead (GA4), SubmitForm (TikTok)."
+                },
+                "valueCalculation": {
+                  "$ref": "#/definitions/id",
+                  "description": "Calculation whose result is the value of the conversion."
+                },
+                "currency": {
+                  "type": "string",
+                  "pattern": "^[A-Z]{3}$"
+                },
+                "requireConsent": {
+                  "type": "boolean",
+                  "description": "Send only with the consent of the visitor; false sends unless the visitor refused (for sites whose banner does not report consent)."
+                },
+                "testEventCode": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "description": "Test event code of Meta or TikTok; the events then show only in the test view."
+                },
+                "countryCode": {
+                  "type": "string",
+                  "pattern": "^[1-9][0-9]{0,2}$",
+                  "description": "Country code for numbers entered without one (0171… becomes +49171… with 49)."
+                }
+              }
+            },
+            "node": {
+              "$ref": "#/definitions/id",
+              "description": "Only when the entry is submitted through this contact node; all submits when missing."
+            },
+            "when": {
+              "$ref": "#/definitions/condition",
+              "description": "Runs only when this condition holds for the entry (answers, calculations, A/B variants); always when missing. Funnelforms Pro."
+            }
+          }
+        }
+      ]
+    },
+    "experimentId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,64}$"
+    },
+    "variantId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,32}$"
+    },
+    "experiment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "status",
+        "variants"
+      ],
+      "description": "A/B test: each page view gets one variant by weight while running; when stopped or paused, everyone gets the winner (or the first variant). With days set, the plugin ends the test on its own: the dates are its bookkeeping, in the site's time zone.",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/experimentId"
+        },
+        "name": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "running",
+            "paused",
+            "stopped"
+          ]
+        },
+        "winner": {
+          "$ref": "#/definitions/variantId"
+        },
+        "days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 365,
+          "description": "How long the test runs; without it, until someone stops it."
+        },
+        "onEnd": {
+          "enum": [
+            "apply",
+            "ask"
+          ],
+          "description": "At the end: show everyone the winner (apply), or pause and ask (ask). Default apply."
+        },
+        "goal": {
+          "enum": [
+            "complete",
+            "value"
+          ],
+          "description": "What a variant must bring more of: sent forms per view (complete, the default) or lead value per view (value)."
+        },
+        "startedAt": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "Day the test was first published as running."
+        },
+        "pausedAt": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "Day the test was paused; the days paused move its end."
+        },
+        "pausedDays": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Days the test was paused before."
+        },
+        "extended": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 365,
+          "description": "Days added to the run, by hand or because there were too few views."
+        },
+        "endedAt": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "Day the test ended."
+        },
+        "outcome": {
+          "enum": [
+            "winner",
+            "tie",
+            "few_views"
+          ],
+          "description": "What the figures said when the plugin ended the test."
+        },
+        "suggested": {
+          "$ref": "#/definitions/variantId"
+        },
+        "variants": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "weight"
+            ],
+            "properties": {
+              "id": {
+                "$ref": "#/definitions/variantId"
+              },
+              "label": {
+                "type": "string"
+              },
+              "weight": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "start": {
+                "$ref": "#/definitions/id"
+              },
+              "style": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "description": "A test of designs: style tokens this variant shows instead of the form's."
+              },
+              "planned": {
+                "type": "boolean",
+                "const": true,
+                "description": "Test plan (Pro): the variant waits with weight 0 and meets the variant kept when the round ends."
+              },
+              "retired": {
+                "type": "boolean",
+                "const": true,
+                "description": "Test plan (Pro): the variant lost an earlier round and gets no more views (weight 0)."
+              }
+            }
+          }
+        }
+      }
+    },
+    "contactLayout": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "columns": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "desktop": {
+              "enum": [
+                1,
+                2
+              ]
+            },
+            "mobile": {
+              "enum": [
+                1,
+                2
+              ]
+            }
+          }
+        },
+        "hideLabels": {
+          "type": "boolean"
+        },
+        "inputHeight": {
+          "type": "integer",
+          "minimum": 30,
+          "maximum": 120
+        },
+        "button": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "size": {
+              "enum": [
+                "s",
+                "l"
+              ]
+            },
+            "align": {
+              "enum": [
+                "left",
+                "center",
+                "right",
+                "full"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "contentMedia": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "url"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "image",
+            "video"
+          ]
+        },
+        "url": {
+          "type": "string",
+          "maxLength": 2000,
+          "pattern": "^(https?://.*)?$"
+        },
+        "alt": {
+          "$ref": "#/definitions/text"
+        },
+        "caption": {
+          "$ref": "#/definitions/text"
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 100
+        }
+      }
+    },
+    "autocompleteToken": {
+      "description": "HTML autocomplete token: what the browser may fill in.",
+      "enum": [
+        "off",
+        "name",
+        "given-name",
+        "family-name",
+        "organization",
+        "organization-title",
+        "street-address",
+        "address-line1",
+        "address-line2",
+        "postal-code",
+        "address-level2",
+        "country-name",
+        "email",
+        "tel",
+        "bday",
+        "url",
+        "username"
+      ]
+    },
+    "phoneCountries": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Country picker of a phone field; numbers are checked per country and stored in E.164. Countries are ISO 3166-1 alpha-2 codes.",
+      "properties": {
+        "default": {
+          "type": "string",
+          "pattern": "^[A-Z]{2}$",
+          "description": "Country shown first; without it the country of the form's language."
+        },
+        "preferred": {
+          "type": "array",
+          "maxItems": 30,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          },
+          "description": "Countries listed on top of the picker."
+        },
+        "allowed": {
+          "type": "array",
+          "maxItems": 300,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          },
+          "description": "Only numbers of these countries are accepted; all countries without."
+        }
+      }
+    }
+  }
+}

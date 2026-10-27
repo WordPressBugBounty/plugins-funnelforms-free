@@ -1,1 +1,0 @@
-<div id="af2_textarea" class="af2_builder_editable_object af2_textarea" data-editcontentid="textarea"></div>

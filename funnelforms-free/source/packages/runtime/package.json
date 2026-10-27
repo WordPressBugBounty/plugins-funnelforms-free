@@ -1,0 +1,21 @@
+{
+  "name": "@funnelforms/runtime",
+  "version": "1.0.0",
+  "description": "Public form runtime of Funnelforms: renders form documents of schema v1 in the browser.",
+  "license": "GPL-2.0-or-later",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@funnelforms/form-core": "workspace:*",
+    "@funnelforms/form-schema": "workspace:*"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.2",
+    "happy-dom": "^15.11.7"
+  }
+}

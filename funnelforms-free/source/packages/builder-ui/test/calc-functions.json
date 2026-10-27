@@ -1,0 +1,764 @@
+{
+	"today": "2026-10-21",
+	"fields": [
+		{
+			"id": "f_move",
+			"key": "move",
+			"type": "date",
+			"props": {
+				"format": "dd.mm.yy"
+			}
+		},
+		{
+			"id": "f_past",
+			"key": "past",
+			"type": "date",
+			"props": {
+				"format": "dd.mm.yy"
+			}
+		},
+		{
+			"id": "f_xmas",
+			"key": "xmas",
+			"type": "date",
+			"props": {
+				"format": "yy-mm-dd"
+			}
+		},
+		{
+			"id": "f_stay",
+			"key": "stay",
+			"type": "date",
+			"props": {
+				"format": "dd.mm.yy",
+				"range": true
+			}
+		},
+		{
+			"id": "f_in",
+			"key": "checkin",
+			"type": "date",
+			"props": {
+				"format": "dd.mm.yy"
+			}
+		},
+		{
+			"id": "f_out",
+			"key": "checkout",
+			"type": "date",
+			"props": {
+				"format": "mm/dd/yy"
+			}
+		},
+		{
+			"id": "f_birth",
+			"key": "birth",
+			"type": "date",
+			"props": {
+				"format": "dd.mm.yy"
+			}
+		},
+		{
+			"id": "f_birth2",
+			"key": "birth2",
+			"type": "date",
+			"props": {
+				"format": "dd.mm.yy"
+			}
+		},
+		{
+			"id": "f_leap",
+			"key": "leap",
+			"type": "date",
+			"props": {
+				"format": "dd.mm.yy"
+			}
+		},
+		{
+			"id": "f_missing",
+			"key": "missing",
+			"type": "date",
+			"props": {
+				"format": "dd.mm.yy"
+			}
+		},
+		{
+			"id": "f_bad",
+			"key": "bad",
+			"type": "date",
+			"props": {
+				"format": "dd.mm.yy"
+			}
+		}
+	],
+	"answers": {
+		"f_move": "15.11.2026",
+		"f_past": "01.10.2026",
+		"f_xmas": "2026-12-24",
+		"f_stay": "01.07.2026 – 08.07.2026",
+		"f_in": "03.03.2026",
+		"f_out": "03/10/2026",
+		"f_birth": "22.10.1990",
+		"f_birth2": "21.10.1990",
+		"f_leap": "29.02.2000",
+		"f_bad": "31.02.2026"
+	},
+	"values": {
+		"qty": 7,
+		"price": 50,
+		"x": 3,
+		"m2": 120
+	},
+	"cases": [
+		{
+			"formula": "clamp(15; 0; 10)",
+			"tree": {
+				"fn": "clamp",
+				"args": [
+					{
+						"num": 15
+					},
+					{
+						"num": 0
+					},
+					{
+						"num": 10
+					}
+				]
+			},
+			"result": 10
+		},
+		{
+			"formula": "clamp(-5; 0; 10)",
+			"tree": {
+				"fn": "clamp",
+				"args": [
+					{
+						"neg": {
+							"num": 5
+						}
+					},
+					{
+						"num": 0
+					},
+					{
+						"num": 10
+					}
+				]
+			},
+			"result": 0
+		},
+		{
+			"formula": "clamp([x]; 0; 10)",
+			"tree": {
+				"fn": "clamp",
+				"args": [
+					{
+						"var": "x"
+					},
+					{
+						"num": 0
+					},
+					{
+						"num": 10
+					}
+				]
+			},
+			"result": 3
+		},
+		{
+			"formula": "clamp(1; 5; 2)",
+			"tree": {
+				"fn": "clamp",
+				"args": [
+					{
+						"num": 1
+					},
+					{
+						"num": 5
+					},
+					{
+						"num": 2
+					}
+				]
+			},
+			"result": 5
+		},
+		{
+			"formula": "clamp([m2] * 2; 100; 200)",
+			"tree": {
+				"fn": "clamp",
+				"args": [
+					{
+						"op": "*",
+						"args": [
+							{
+								"var": "m2"
+							},
+							{
+								"num": 2
+							}
+						]
+					},
+					{
+						"num": 100
+					},
+					{
+						"num": 200
+					}
+				]
+			},
+			"result": 200
+		},
+		{
+			"formula": "lookup([qty]; 5; 100; 10; 90; 80)",
+			"tree": {
+				"fn": "lookup",
+				"args": [
+					{
+						"var": "qty"
+					},
+					{
+						"num": 5
+					},
+					{
+						"num": 100
+					},
+					{
+						"num": 10
+					},
+					{
+						"num": 90
+					},
+					{
+						"num": 80
+					}
+				]
+			},
+			"result": 90
+		},
+		{
+			"formula": "lookup(5; 5; 100; 10; 90; 80)",
+			"tree": {
+				"fn": "lookup",
+				"args": [
+					{
+						"num": 5
+					},
+					{
+						"num": 5
+					},
+					{
+						"num": 100
+					},
+					{
+						"num": 10
+					},
+					{
+						"num": 90
+					},
+					{
+						"num": 80
+					}
+				]
+			},
+			"result": 100
+		},
+		{
+			"formula": "lookup(10.5; 5; 100; 10; 90; 80)",
+			"tree": {
+				"fn": "lookup",
+				"args": [
+					{
+						"num": 10.5
+					},
+					{
+						"num": 5
+					},
+					{
+						"num": 100
+					},
+					{
+						"num": 10
+					},
+					{
+						"num": 90
+					},
+					{
+						"num": 80
+					}
+				]
+			},
+			"result": 80
+		},
+		{
+			"formula": "lookup(0.1 + 0.2; 0.3; 1; 2)",
+			"tree": {
+				"fn": "lookup",
+				"args": [
+					{
+						"op": "+",
+						"args": [
+							{
+								"num": 0.1
+							},
+							{
+								"num": 0.2
+							}
+						]
+					},
+					{
+						"num": 0.3
+					},
+					{
+						"num": 1
+					},
+					{
+						"num": 2
+					}
+				]
+			},
+			"result": 1
+		},
+		{
+			"formula": "lookup([qty]; 5; [price]; 10; [price] * 0.9; [price] * 0.8)",
+			"tree": {
+				"fn": "lookup",
+				"args": [
+					{
+						"var": "qty"
+					},
+					{
+						"num": 5
+					},
+					{
+						"var": "price"
+					},
+					{
+						"num": 10
+					},
+					{
+						"op": "*",
+						"args": [
+							{
+								"var": "price"
+							},
+							{
+								"num": 0.9
+							}
+						]
+					},
+					{
+						"op": "*",
+						"args": [
+							{
+								"var": "price"
+							},
+							{
+								"num": 0.8
+							}
+						]
+					}
+				]
+			},
+			"result": 45
+		},
+		{
+			"formula": "lookup([m2]; 50; 1; 100; 2; 150; 3; 200; 4; 5)",
+			"tree": {
+				"fn": "lookup",
+				"args": [
+					{
+						"var": "m2"
+					},
+					{
+						"num": 50
+					},
+					{
+						"num": 1
+					},
+					{
+						"num": 100
+					},
+					{
+						"num": 2
+					},
+					{
+						"num": 150
+					},
+					{
+						"num": 3
+					},
+					{
+						"num": 200
+					},
+					{
+						"num": 4
+					},
+					{
+						"num": 5
+					}
+				]
+			},
+			"result": 3
+		},
+		{
+			"formula": "days([move])",
+			"tree": {
+				"fn": "days",
+				"args": [
+					{
+						"date": "move"
+					}
+				]
+			},
+			"result": 25
+		},
+		{
+			"formula": "days([past])",
+			"tree": {
+				"fn": "days",
+				"args": [
+					{
+						"date": "past"
+					}
+				]
+			},
+			"result": -20
+		},
+		{
+			"formula": "days([xmas])",
+			"tree": {
+				"fn": "days",
+				"args": [
+					{
+						"date": "xmas"
+					}
+				]
+			},
+			"result": 64
+		},
+		{
+			"formula": "days([stay])",
+			"tree": {
+				"fn": "days",
+				"args": [
+					{
+						"date": "stay"
+					}
+				]
+			},
+			"result": 7
+		},
+		{
+			"formula": "days([checkin]; [checkout])",
+			"tree": {
+				"fn": "days",
+				"args": [
+					{
+						"date": "checkin"
+					},
+					{
+						"date": "checkout"
+					}
+				]
+			},
+			"result": 7
+		},
+		{
+			"formula": "days([checkout]; [checkin])",
+			"tree": {
+				"fn": "days",
+				"args": [
+					{
+						"date": "checkout"
+					},
+					{
+						"date": "checkin"
+					}
+				]
+			},
+			"result": -7
+		},
+		{
+			"formula": "days([missing])",
+			"tree": {
+				"fn": "days",
+				"args": [
+					{
+						"date": "missing"
+					}
+				]
+			},
+			"result": 0
+		},
+		{
+			"formula": "days([bad])",
+			"tree": {
+				"fn": "days",
+				"args": [
+					{
+						"date": "bad"
+					}
+				]
+			},
+			"result": 0
+		},
+		{
+			"formula": "days([move]; [missing])",
+			"tree": {
+				"fn": "days",
+				"args": [
+					{
+						"date": "move"
+					},
+					{
+						"date": "missing"
+					}
+				]
+			},
+			"result": 0
+		},
+		{
+			"formula": "days(date([move]) + 1)",
+			"tree": {
+				"fn": "days",
+				"args": [
+					{
+						"op": "+",
+						"args": [
+							{
+								"date": "move"
+							},
+							{
+								"num": 1
+							}
+						]
+					}
+				]
+			},
+			"result": 26
+		},
+		{
+			"formula": "date([move]) - date([past])",
+			"tree": {
+				"op": "-",
+				"args": [
+					{
+						"date": "move"
+					},
+					{
+						"date": "past"
+					}
+				]
+			},
+			"result": 45
+		},
+		{
+			"formula": "date([missing])",
+			"tree": {
+				"date": "missing"
+			},
+			"result": null
+		},
+		{
+			"formula": "age([birth])",
+			"tree": {
+				"fn": "age",
+				"args": [
+					{
+						"date": "birth"
+					}
+				]
+			},
+			"result": 35
+		},
+		{
+			"formula": "age([birth2])",
+			"tree": {
+				"fn": "age",
+				"args": [
+					{
+						"date": "birth2"
+					}
+				]
+			},
+			"result": 36
+		},
+		{
+			"formula": "age([leap])",
+			"tree": {
+				"fn": "age",
+				"args": [
+					{
+						"date": "leap"
+					}
+				]
+			},
+			"result": 26
+		},
+		{
+			"formula": "age([birth]; [move])",
+			"tree": {
+				"fn": "age",
+				"args": [
+					{
+						"date": "birth"
+					},
+					{
+						"date": "move"
+					}
+				]
+			},
+			"result": 36
+		},
+		{
+			"formula": "age([move]; [birth])",
+			"tree": {
+				"fn": "age",
+				"args": [
+					{
+						"date": "move"
+					},
+					{
+						"date": "birth"
+					}
+				]
+			},
+			"result": -36
+		},
+		{
+			"formula": "age([missing])",
+			"tree": {
+				"fn": "age",
+				"args": [
+					{
+						"date": "missing"
+					}
+				]
+			},
+			"result": 0
+		},
+		{
+			"formula": "round(days([move]) / 7; 1)",
+			"tree": {
+				"fn": "round",
+				"args": [
+					{
+						"op": "/",
+						"args": [
+							{
+								"fn": "days",
+								"args": [
+									{
+										"date": "move"
+									}
+								]
+							},
+							{
+								"num": 7
+							}
+						]
+					},
+					{
+						"num": 1
+					}
+				]
+			},
+			"result": 3.6
+		},
+		{
+			"formula": "if(days([move]) < 30; 150; 0)",
+			"tree": {
+				"fn": "if",
+				"args": [
+					{
+						"cmp": "<",
+						"args": [
+							{
+								"fn": "days",
+								"args": [
+									{
+										"date": "move"
+									}
+								]
+							},
+							{
+								"num": 30
+							}
+						]
+					},
+					{
+						"num": 150
+					},
+					{
+						"num": 0
+					}
+				]
+			},
+			"result": 150
+		},
+		{
+			"formula": "[price] * days([stay])",
+			"tree": {
+				"op": "*",
+				"args": [
+					{
+						"var": "price"
+					},
+					{
+						"fn": "days",
+						"args": [
+							{
+								"date": "stay"
+							}
+						]
+					}
+				]
+			},
+			"result": 350
+		},
+		{
+			"formula": null,
+			"tree": {
+				"fn": "lookup",
+				"args": [
+					{
+						"num": 7
+					},
+					{
+						"num": 5
+					},
+					{
+						"num": 100
+					},
+					{
+						"num": 10
+					},
+					{
+						"num": 90
+					}
+				]
+			},
+			"result": null
+		},
+		{
+			"formula": null,
+			"tree": {
+				"fn": "clamp",
+				"args": [
+					{
+						"date": "missing"
+					},
+					{
+						"num": 0
+					},
+					{
+						"num": 10
+					}
+				]
+			},
+			"result": null
+		}
+	]
+}

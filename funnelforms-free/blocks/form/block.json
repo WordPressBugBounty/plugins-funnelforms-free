@@ -1,0 +1,95 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "funnelforms/form",
+	"title": "Funnelforms",
+	"category": "widgets",
+	"icon": "feedback",
+	"description": "Shows one of your Funnelforms forms.",
+	"keywords": [
+		"form",
+		"funnel",
+		"lead",
+		"anfrageformular",
+		"popup"
+	],
+	"textdomain": "funnelforms-free",
+	"attributes": {
+		"formId": {
+			"type": "integer",
+			"default": 0
+		},
+		"formUid": {
+			"type": "string",
+			"default": ""
+		},
+		"editorPreview": {
+			"type": "boolean",
+			"default": false
+		},
+		"display": {
+			"type": "string",
+			"enum": [
+				"inline",
+				"delay",
+				"click",
+				"scroll",
+				"exit",
+				"widget"
+			],
+			"default": "inline"
+		},
+		"popupDelay": {
+			"type": "number",
+			"default": 5
+		},
+		"popupClickClass": {
+			"type": "string",
+			"default": ""
+		},
+		"popupScroll": {
+			"type": "integer",
+			"default": 50
+		},
+		"popupPause": {
+			"type": "integer",
+			"default": -1
+		},
+		"widgetPosition": {
+			"type": "string",
+			"enum": [
+				"bottom-right",
+				"bottom-left",
+				"top-right",
+				"top-left"
+			],
+			"default": "bottom-right"
+		},
+		"widgetText": {
+			"type": "string",
+			"default": ""
+		},
+		"widgetColor": {
+			"type": "string",
+			"default": ""
+		},
+		"widgetAnimation": {
+			"type": "string",
+			"enum": [
+				"",
+				"pulse",
+				"bounce",
+				"shake"
+			],
+			"default": ""
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": [
+			"wide",
+			"full"
+		]
+	},
+	"editorScript": "funnelforms-form-block"
+}

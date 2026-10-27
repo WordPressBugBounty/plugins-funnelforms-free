@@ -1,0 +1,885 @@
+{
+	"values": {
+		"a": 3,
+		"b": 4,
+		"n": 0,
+		"preis": 19.99,
+		"menge": 3,
+		"count:farben": 2,
+		"score:q1:abenteuer": 5,
+		"score:q1:ruhe": 2,
+		"score:q2:ruhe": 4,
+		"calc:netto": 100
+	},
+	"cases": [
+		{
+			"formula": "round(2.5)",
+			"tree": {
+				"fn": "round",
+				"args": [
+					{
+						"num": 2.5
+					}
+				]
+			},
+			"result": 3
+		},
+		{
+			"formula": "round(-2.5)",
+			"tree": {
+				"fn": "round",
+				"args": [
+					{
+						"neg": {
+							"num": 2.5
+						}
+					}
+				]
+			},
+			"result": -3
+		},
+		{
+			"formula": "round(1.005; 2)",
+			"tree": {
+				"fn": "round",
+				"args": [
+					{
+						"num": 1.005
+					},
+					{
+						"num": 2
+					}
+				]
+			},
+			"result": 1.01
+		},
+		{
+			"formula": "round(1234.5; -2)",
+			"tree": {
+				"fn": "round",
+				"args": [
+					{
+						"num": 1234.5
+					},
+					{
+						"neg": {
+							"num": 2
+						}
+					}
+				]
+			},
+			"result": 1200
+		},
+		{
+			"formula": "floor(1.1 * 100)",
+			"tree": {
+				"fn": "floor",
+				"args": [
+					{
+						"op": "*",
+						"args": [
+							{
+								"num": 1.1
+							},
+							{
+								"num": 100
+							}
+						]
+					}
+				]
+			},
+			"result": 110
+		},
+		{
+			"formula": "ceil(2.01)",
+			"tree": {
+				"fn": "ceil",
+				"args": [
+					{
+						"num": 2.01
+					}
+				]
+			},
+			"result": 3
+		},
+		{
+			"formula": "floor(-1.5)",
+			"tree": {
+				"fn": "floor",
+				"args": [
+					{
+						"neg": {
+							"num": 1.5
+						}
+					}
+				]
+			},
+			"result": -2
+		},
+		{
+			"formula": "floor([preis]; 1)",
+			"tree": {
+				"fn": "floor",
+				"args": [
+					{
+						"var": "preis"
+					},
+					{
+						"num": 1
+					}
+				]
+			},
+			"result": 19.9
+		},
+		{
+			"formula": "ceil(1234; -2)",
+			"tree": {
+				"fn": "ceil",
+				"args": [
+					{
+						"num": 1234
+					},
+					{
+						"neg": {
+							"num": 2
+						}
+					}
+				]
+			},
+			"result": 1300
+		},
+		{
+			"formula": "abs(-4)",
+			"tree": {
+				"fn": "abs",
+				"args": [
+					{
+						"neg": {
+							"num": 4
+						}
+					}
+				]
+			},
+			"result": 4
+		},
+		{
+			"formula": "sqrt(16)",
+			"tree": {
+				"fn": "sqrt",
+				"args": [
+					{
+						"num": 16
+					}
+				]
+			},
+			"result": 4
+		},
+		{
+			"formula": "sqrt(-1)",
+			"tree": {
+				"fn": "sqrt",
+				"args": [
+					{
+						"neg": {
+							"num": 1
+						}
+					}
+				]
+			},
+			"result": null
+		},
+		{
+			"formula": "min([a]; [b]; 1)",
+			"tree": {
+				"fn": "min",
+				"args": [
+					{
+						"var": "a"
+					},
+					{
+						"var": "b"
+					},
+					{
+						"num": 1
+					}
+				]
+			},
+			"result": 1
+		},
+		{
+			"formula": "max([a]; [b])",
+			"tree": {
+				"fn": "max",
+				"args": [
+					{
+						"var": "a"
+					},
+					{
+						"var": "b"
+					}
+				]
+			},
+			"result": 4
+		},
+		{
+			"formula": "sum(1; 2; 3,5)",
+			"tree": {
+				"fn": "sum",
+				"args": [
+					{
+						"num": 1
+					},
+					{
+						"num": 2
+					},
+					{
+						"num": 3.5
+					}
+				]
+			},
+			"result": 6.5
+		},
+		{
+			"formula": "avg([a]; [b])",
+			"tree": {
+				"fn": "avg",
+				"args": [
+					{
+						"var": "a"
+					},
+					{
+						"var": "b"
+					}
+				]
+			},
+			"result": 3.5
+		},
+		{
+			"formula": "if([n] = 0; 0; 100 / [n])",
+			"tree": {
+				"fn": "if",
+				"args": [
+					{
+						"cmp": "=",
+						"args": [
+							{
+								"var": "n"
+							},
+							{
+								"num": 0
+							}
+						]
+					},
+					{
+						"num": 0
+					},
+					{
+						"op": "/",
+						"args": [
+							{
+								"num": 100
+							},
+							{
+								"var": "n"
+							}
+						]
+					}
+				]
+			},
+			"result": 0
+		},
+		{
+			"formula": "if([a] > 2; 10; 20)",
+			"tree": {
+				"fn": "if",
+				"args": [
+					{
+						"cmp": ">",
+						"args": [
+							{
+								"var": "a"
+							},
+							{
+								"num": 2
+							}
+						]
+					},
+					{
+						"num": 10
+					},
+					{
+						"num": 20
+					}
+				]
+			},
+			"result": 10
+		},
+		{
+			"formula": "if([a] < 2; 10)",
+			"tree": {
+				"fn": "if",
+				"args": [
+					{
+						"cmp": "<",
+						"args": [
+							{
+								"var": "a"
+							},
+							{
+								"num": 2
+							}
+						]
+					},
+					{
+						"num": 10
+					}
+				]
+			},
+			"result": 0
+		},
+		{
+			"formula": "if(1; [a])",
+			"tree": {
+				"fn": "if",
+				"args": [
+					{
+						"num": 1
+					},
+					{
+						"var": "a"
+					}
+				]
+			},
+			"result": 3
+		},
+		{
+			"formula": "and([a]; [b])",
+			"tree": {
+				"fn": "and",
+				"args": [
+					{
+						"var": "a"
+					},
+					{
+						"var": "b"
+					}
+				]
+			},
+			"result": 1
+		},
+		{
+			"formula": "and([a]; [n])",
+			"tree": {
+				"fn": "and",
+				"args": [
+					{
+						"var": "a"
+					},
+					{
+						"var": "n"
+					}
+				]
+			},
+			"result": 0
+		},
+		{
+			"formula": "or([n]; 0)",
+			"tree": {
+				"fn": "or",
+				"args": [
+					{
+						"var": "n"
+					},
+					{
+						"num": 0
+					}
+				]
+			},
+			"result": 0
+		},
+		{
+			"formula": "or([n]; [b])",
+			"tree": {
+				"fn": "or",
+				"args": [
+					{
+						"var": "n"
+					},
+					{
+						"var": "b"
+					}
+				]
+			},
+			"result": 1
+		},
+		{
+			"formula": "not([n])",
+			"tree": {
+				"fn": "not",
+				"args": [
+					{
+						"var": "n"
+					}
+				]
+			},
+			"result": 1
+		},
+		{
+			"formula": "not(5)",
+			"tree": {
+				"fn": "not",
+				"args": [
+					{
+						"num": 5
+					}
+				]
+			},
+			"result": 0
+		},
+		{
+			"formula": "0.1 + 0.2 = 0.3",
+			"tree": {
+				"cmp": "=",
+				"args": [
+					{
+						"op": "+",
+						"args": [
+							{
+								"num": 0.1
+							},
+							{
+								"num": 0.2
+							}
+						]
+					},
+					{
+						"num": 0.3
+					}
+				]
+			},
+			"result": 1
+		},
+		{
+			"formula": "[a] != [b]",
+			"tree": {
+				"cmp": "!=",
+				"args": [
+					{
+						"var": "a"
+					},
+					{
+						"var": "b"
+					}
+				]
+			},
+			"result": 1
+		},
+		{
+			"formula": "[a] <> 3",
+			"tree": {
+				"cmp": "!=",
+				"args": [
+					{
+						"var": "a"
+					},
+					{
+						"num": 3
+					}
+				]
+			},
+			"result": 0
+		},
+		{
+			"formula": "[a] == 3",
+			"tree": {
+				"cmp": "=",
+				"args": [
+					{
+						"var": "a"
+					},
+					{
+						"num": 3
+					}
+				]
+			},
+			"result": 1
+		},
+		{
+			"formula": "[a] >= 3",
+			"tree": {
+				"cmp": ">=",
+				"args": [
+					{
+						"var": "a"
+					},
+					{
+						"num": 3
+					}
+				]
+			},
+			"result": 1
+		},
+		{
+			"formula": "[a] <= 2.9999",
+			"tree": {
+				"cmp": "<=",
+				"args": [
+					{
+						"var": "a"
+					},
+					{
+						"num": 2.9999
+					}
+				]
+			},
+			"result": 0
+		},
+		{
+			"formula": "[a] < [b]",
+			"tree": {
+				"cmp": "<",
+				"args": [
+					{
+						"var": "a"
+					},
+					{
+						"var": "b"
+					}
+				]
+			},
+			"result": 1
+		},
+		{
+			"formula": "[b] > [a] + 1",
+			"tree": {
+				"cmp": ">",
+				"args": [
+					{
+						"var": "b"
+					},
+					{
+						"op": "+",
+						"args": [
+							{
+								"var": "a"
+							},
+							{
+								"num": 1
+							}
+						]
+					}
+				]
+			},
+			"result": 0
+		},
+		{
+			"formula": "argmax(1; 5; 5; 2)",
+			"tree": {
+				"fn": "argmax",
+				"args": [
+					{
+						"num": 1
+					},
+					{
+						"num": 5
+					},
+					{
+						"num": 5
+					},
+					{
+						"num": 2
+					}
+				]
+			},
+			"result": 2
+		},
+		{
+			"formula": "argmax([q1:abenteuer] + [q2:abenteuer]; [q1:ruhe] + [q2:ruhe])",
+			"tree": {
+				"fn": "argmax",
+				"args": [
+					{
+						"op": "+",
+						"args": [
+							{
+								"score": "q1",
+								"category": "abenteuer"
+							},
+							{
+								"score": "q2",
+								"category": "abenteuer"
+							}
+						]
+					},
+					{
+						"op": "+",
+						"args": [
+							{
+								"score": "q1",
+								"category": "ruhe"
+							},
+							{
+								"score": "q2",
+								"category": "ruhe"
+							}
+						]
+					}
+				]
+			},
+			"result": 2
+		},
+		{
+			"formula": "count([farben]) * 10",
+			"tree": {
+				"op": "*",
+				"args": [
+					{
+						"count": "farben"
+					},
+					{
+						"num": 10
+					}
+				]
+			},
+			"result": 20
+		},
+		{
+			"formula": "count([leer])",
+			"tree": {
+				"count": "leer"
+			},
+			"result": 0
+		},
+		{
+			"formula": "{netto} * 1.19",
+			"tree": {
+				"op": "*",
+				"args": [
+					{
+						"ref": "netto"
+					},
+					{
+						"num": 1.19
+					}
+				]
+			},
+			"result": 119
+		},
+		{
+			"formula": "{fehlt} + 1",
+			"tree": {
+				"op": "+",
+				"args": [
+					{
+						"ref": "fehlt"
+					},
+					{
+						"num": 1
+					}
+				]
+			},
+			"result": null
+		},
+		{
+			"formula": "[menge] * [preis]",
+			"tree": {
+				"op": "*",
+				"args": [
+					{
+						"var": "menge"
+					},
+					{
+						"var": "preis"
+					}
+				]
+			},
+			"result": 59.97
+		},
+		{
+			"formula": "max(0; [menge] - 2) * 5 + 49",
+			"tree": {
+				"op": "+",
+				"args": [
+					{
+						"op": "*",
+						"args": [
+							{
+								"fn": "max",
+								"args": [
+									{
+										"num": 0
+									},
+									{
+										"op": "-",
+										"args": [
+											{
+												"var": "menge"
+											},
+											{
+												"num": 2
+											}
+										]
+									}
+								]
+							},
+							{
+								"num": 5
+							}
+						]
+					},
+					{
+						"num": 49
+					}
+				]
+			},
+			"result": 54
+		},
+		{
+			"formula": "2 * (3 + if([a] > 1; 2; 0)) ^ 2",
+			"tree": {
+				"op": "*",
+				"args": [
+					{
+						"num": 2
+					},
+					{
+						"op": "^",
+						"args": [
+							{
+								"op": "+",
+								"args": [
+									{
+										"num": 3
+									},
+									{
+										"fn": "if",
+										"args": [
+											{
+												"cmp": ">",
+												"args": [
+													{
+														"var": "a"
+													},
+													{
+														"num": 1
+													}
+												]
+											},
+											{
+												"num": 2
+											},
+											{
+												"num": 0
+											}
+										]
+									}
+								]
+							},
+							{
+								"num": 2
+							}
+						]
+					}
+				]
+			},
+			"result": 50
+		},
+		{
+			"formula": "-min(1; 2)",
+			"tree": {
+				"neg": {
+					"fn": "min",
+					"args": [
+						{
+							"num": 1
+						},
+						{
+							"num": 2
+						}
+					]
+				}
+			},
+			"result": -1
+		},
+		{
+			"formula": "10 % 3 + 2 ^ 3",
+			"tree": {
+				"op": "+",
+				"args": [
+					{
+						"op": "%",
+						"args": [
+							{
+								"num": 10
+							},
+							{
+								"num": 3
+							}
+						]
+					},
+					{
+						"op": "^",
+						"args": [
+							{
+								"num": 2
+							},
+							{
+								"num": 3
+							}
+						]
+					}
+				]
+			},
+			"result": 9
+		},
+		{
+			"formula": "1 / [n]",
+			"tree": {
+				"op": "/",
+				"args": [
+					{
+						"num": 1
+					},
+					{
+						"var": "n"
+					}
+				]
+			},
+			"result": null
+		},
+		{
+			"formula": "if([a] > 1; 1 / [n]; 0)",
+			"tree": {
+				"fn": "if",
+				"args": [
+					{
+						"cmp": ">",
+						"args": [
+							{
+								"var": "a"
+							},
+							{
+								"num": 1
+							}
+						]
+					},
+					{
+						"op": "/",
+						"args": [
+							{
+								"num": 1
+							},
+							{
+								"var": "n"
+							}
+						]
+					},
+					{
+						"num": 0
+					}
+				]
+			},
+			"result": null
+		}
+	]
+}

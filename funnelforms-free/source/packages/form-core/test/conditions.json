@@ -1,0 +1,709 @@
+{
+ "note": "Shared by packages/form-core/test/core.test.ts and plugin/tests/Unit/Domain/ConditionsTest.php; today is 2026-10-16, f is dd.mm.yy and g is mm/dd/yy.",
+ "today": "2026-10-16",
+ "formats": {
+  "f": "dd.mm.yy",
+  "g": "mm/dd/yy"
+ },
+ "cases": [
+  {
+   "note": "contains ignores case",
+   "condition": {
+    "field": "f",
+    "op": "contains",
+    "value": "BERLIN"
+   },
+   "answers": {
+    "f": "Wir sind in Berlin-Mitte"
+   },
+   "holds": true
+  },
+  {
+   "note": "contains",
+   "condition": {
+    "field": "f",
+    "op": "contains",
+    "value": "Hamburg"
+   },
+   "answers": {
+    "f": "Berlin"
+   },
+   "holds": false
+  },
+  {
+   "note": "notContains",
+   "condition": {
+    "field": "f",
+    "op": "notContains",
+    "value": "gmail"
+   },
+   "answers": {
+    "f": "erika@firma.de"
+   },
+   "holds": true
+  },
+  {
+   "note": "notContains ignores case",
+   "condition": {
+    "field": "f",
+    "op": "notContains",
+    "value": "gmail"
+   },
+   "answers": {
+    "f": "erika@GMail.com"
+   },
+   "holds": false
+  },
+  {
+   "note": "startsWith ignores outer spaces",
+   "condition": {
+    "field": "f",
+    "op": "startsWith",
+    "value": "ab"
+   },
+   "answers": {
+    "f": "  Abc"
+   },
+   "holds": true
+  },
+  {
+   "note": "endsWith",
+   "condition": {
+    "field": "f",
+    "op": "endsWith",
+    "value": ".de"
+   },
+   "answers": {
+    "f": "erika@firma.DE "
+   },
+   "holds": true
+  },
+  {
+   "note": "endsWith",
+   "condition": {
+    "field": "f",
+    "op": "endsWith",
+    "value": ".de"
+   },
+   "answers": {
+    "f": "erika@firma.com"
+   },
+   "holds": false
+  },
+  {
+   "note": "equalsText stays exact",
+   "condition": {
+    "field": "f",
+    "op": "equalsText",
+    "value": "Ja"
+   },
+   "answers": {
+    "f": "ja"
+   },
+   "holds": false
+  },
+  {
+   "note": "notEqualsText is exact",
+   "condition": {
+    "field": "f",
+    "op": "notEqualsText",
+    "value": "Ja"
+   },
+   "answers": {
+    "f": "ja"
+   },
+   "holds": true
+  },
+  {
+   "note": "notEqualsText",
+   "condition": {
+    "field": "f",
+    "op": "notEqualsText",
+    "value": "Ja"
+   },
+   "answers": {
+    "f": "Ja"
+   },
+   "holds": false
+  },
+  {
+   "note": "no answer contains nothing",
+   "condition": {
+    "field": "f",
+    "op": "contains",
+    "value": "x"
+   },
+   "answers": {},
+   "holds": false
+  },
+  {
+   "note": "no answer",
+   "condition": {
+    "field": "f",
+    "op": "notContains",
+    "value": "x"
+   },
+   "answers": {},
+   "holds": true
+  },
+  {
+   "note": "numbers as text",
+   "condition": {
+    "field": "f",
+    "op": "contains",
+    "value": "5"
+   },
+   "answers": {
+    "f": 15
+   },
+   "holds": true
+  },
+  {
+   "note": "case of umlauts",
+   "condition": {
+    "field": "f",
+    "op": "contains",
+    "value": "Ü"
+   },
+   "answers": {
+    "f": "Grün über alles"
+   },
+   "holds": true
+  },
+  {
+   "note": "spaces are empty",
+   "condition": {
+    "field": "f",
+    "op": "filled"
+   },
+   "answers": {
+    "f": "  "
+   },
+   "holds": false
+  },
+  {
+   "note": "zero is an answer",
+   "condition": {
+    "field": "f",
+    "op": "filled"
+   },
+   "answers": {
+    "f": 0
+   },
+   "holds": true
+  },
+  {
+   "note": "no answer",
+   "condition": {
+    "field": "f",
+    "op": "empty"
+   },
+   "answers": {},
+   "holds": true
+  },
+  {
+   "note": "no option chosen",
+   "condition": {
+    "field": "f",
+    "op": "empty"
+   },
+   "answers": {
+    "f": []
+   },
+   "holds": true
+  },
+  {
+   "note": "option chosen",
+   "condition": {
+    "field": "f",
+    "op": "filled"
+   },
+   "answers": {
+    "f": [
+     "o1"
+    ]
+   },
+   "holds": true
+  },
+  {
+   "note": "empty address",
+   "condition": {
+    "field": "f",
+    "op": "filled"
+   },
+   "answers": {
+    "f": {
+     "street": "",
+     "zip": ""
+    }
+   },
+   "holds": false
+  },
+  {
+   "note": "address",
+   "condition": {
+    "field": "f",
+    "op": "filled"
+   },
+   "answers": {
+    "f": {
+     "street": "Hauptstraße",
+     "number": "5",
+     "zip": "80331",
+     "city": "München",
+     "country": ""
+    }
+   },
+   "holds": true
+  },
+  {
+   "note": "empty part",
+   "condition": {
+    "field": "f",
+    "op": "empty",
+    "part": "country"
+   },
+   "answers": {
+    "f": {
+     "street": "Hauptstraße",
+     "number": "5",
+     "zip": "80331",
+     "city": "München",
+     "country": ""
+    }
+   },
+   "holds": true
+  },
+  {
+   "note": "filled part",
+   "condition": {
+    "field": "f",
+    "op": "filled",
+    "part": "zip"
+   },
+   "answers": {
+    "f": {
+     "street": "Hauptstraße",
+     "number": "5",
+     "zip": "80331",
+     "city": "München",
+     "country": ""
+    }
+   },
+   "holds": true
+  },
+  {
+   "note": "postcode area",
+   "condition": {
+    "field": "f",
+    "op": "startsWith",
+    "value": "8",
+    "part": "zip"
+   },
+   "answers": {
+    "f": {
+     "street": "Hauptstraße",
+     "number": "5",
+     "zip": "80331",
+     "city": "München",
+     "country": ""
+    }
+   },
+   "holds": true
+  },
+  {
+   "note": "postcode area",
+   "condition": {
+    "field": "f",
+    "op": "startsWith",
+    "value": "1",
+    "part": "zip"
+   },
+   "answers": {
+    "f": {
+     "street": "Hauptstraße",
+     "number": "5",
+     "zip": "80331",
+     "city": "München",
+     "country": ""
+    }
+   },
+   "holds": false
+  },
+  {
+   "note": "city",
+   "condition": {
+    "field": "f",
+    "op": "equalsText",
+    "value": "München",
+    "part": "city"
+   },
+   "answers": {
+    "f": {
+     "street": "Hauptstraße",
+     "number": "5",
+     "zip": "80331",
+     "city": "München",
+     "country": ""
+    }
+   },
+   "holds": true
+  },
+  {
+   "note": "whole address as text",
+   "condition": {
+    "field": "f",
+    "op": "contains",
+    "value": "münchen"
+   },
+   "answers": {
+    "f": {
+     "street": "Hauptstraße",
+     "number": "5",
+     "zip": "80331",
+     "city": "München",
+     "country": ""
+    }
+   },
+   "holds": true
+  },
+  {
+   "note": "whole address joins the filled parts",
+   "condition": {
+    "field": "f",
+    "op": "equalsText",
+    "value": "Hauptstraße, 5, 80331, München"
+   },
+   "answers": {
+    "f": {
+     "street": "Hauptstraße",
+     "number": "5",
+     "zip": "80331",
+     "city": "München",
+     "country": ""
+    }
+   },
+   "holds": true
+  },
+  {
+   "note": "a part of a text answer is empty",
+   "condition": {
+    "field": "f",
+    "op": "contains",
+    "value": "80",
+    "part": "zip"
+   },
+   "answers": {
+    "f": "80331"
+   },
+   "holds": false
+  },
+  {
+   "note": "two options",
+   "condition": {
+    "field": "f",
+    "op": "gte",
+    "value": 2,
+    "number": "count"
+   },
+   "answers": {
+    "f": [
+     "o1",
+     "o2"
+    ]
+   },
+   "holds": true
+  },
+  {
+   "note": "one option",
+   "condition": {
+    "field": "f",
+    "op": "gte",
+    "value": 2,
+    "number": "count"
+   },
+   "answers": {
+    "f": [
+     "o1"
+    ]
+   },
+   "holds": false
+  },
+  {
+   "note": "nothing chosen",
+   "condition": {
+    "field": "f",
+    "op": "eq",
+    "value": 0,
+    "number": "count"
+   },
+   "answers": {},
+   "holds": true
+  },
+  {
+   "note": "items of a repeat group",
+   "condition": {
+    "field": "f",
+    "op": "eq",
+    "value": 3,
+    "number": "count"
+   },
+   "answers": {
+    "f": [
+     {
+      "a": "1"
+     },
+     {
+      "a": "2"
+     },
+     {
+      "a": "3"
+     }
+    ]
+   },
+   "holds": true
+  },
+  {
+   "note": "a single answer",
+   "condition": {
+    "field": "f",
+    "op": "eq",
+    "value": 1,
+    "number": "count"
+   },
+   "answers": {
+    "f": "Text"
+   },
+   "holds": true
+  },
+  {
+   "note": "an empty text counts 0",
+   "condition": {
+    "field": "f",
+    "op": "lt",
+    "value": 1,
+    "number": "count"
+   },
+   "answers": {
+    "f": ""
+   },
+   "holds": true
+  },
+  {
+   "note": "before",
+   "condition": {
+    "field": "f",
+    "op": "dateBefore",
+    "value": "2026-12-24"
+   },
+   "answers": {
+    "f": "23.12.2026"
+   },
+   "holds": true
+  },
+  {
+   "note": "before excludes the day",
+   "condition": {
+    "field": "f",
+    "op": "dateBefore",
+    "value": "2026-12-24"
+   },
+   "answers": {
+    "f": "24.12.2026"
+   },
+   "holds": false
+  },
+  {
+   "note": "on",
+   "condition": {
+    "field": "f",
+    "op": "dateOn",
+    "value": "2026-12-24"
+   },
+   "answers": {
+    "f": "24.12.2026"
+   },
+   "holds": true
+  },
+  {
+   "note": "after, short day and month",
+   "condition": {
+    "field": "f",
+    "op": "dateAfter",
+    "value": "2026-12-24"
+   },
+   "answers": {
+    "f": "1.1.2027"
+   },
+   "holds": true
+  },
+  {
+   "note": "after today",
+   "condition": {
+    "field": "f",
+    "op": "dateAfter",
+    "value": "today"
+   },
+   "answers": {
+    "f": "17.10.2026"
+   },
+   "holds": true
+  },
+  {
+   "note": "today is not after today",
+   "condition": {
+    "field": "f",
+    "op": "dateAfter",
+    "value": "today"
+   },
+   "answers": {
+    "f": "16.10.2026"
+   },
+   "holds": false
+  },
+  {
+   "note": "on today",
+   "condition": {
+    "field": "f",
+    "op": "dateOn",
+    "value": "today"
+   },
+   "answers": {
+    "f": "16.10.2026"
+   },
+   "holds": true
+  },
+  {
+   "note": "within two weeks",
+   "condition": {
+    "field": "f",
+    "op": "dateBefore",
+    "value": "today",
+    "days": 14
+   },
+   "answers": {
+    "f": "29.10.2026"
+   },
+   "holds": true
+  },
+  {
+   "note": "two weeks away",
+   "condition": {
+    "field": "f",
+    "op": "dateBefore",
+    "value": "today",
+    "days": 14
+   },
+   "answers": {
+    "f": "30.10.2026"
+   },
+   "holds": false
+  },
+  {
+   "note": "within the last 30 days",
+   "condition": {
+    "field": "f",
+    "op": "dateAfter",
+    "value": "today",
+    "days": -30
+   },
+   "answers": {
+    "f": "20.09.2026"
+   },
+   "holds": true
+  },
+  {
+   "note": "days across a month",
+   "condition": {
+    "field": "f",
+    "op": "dateOn",
+    "value": "2026-03-01",
+    "days": -1
+   },
+   "answers": {
+    "f": "28.02.2026"
+   },
+   "holds": true
+  },
+  {
+   "note": "a period starts after",
+   "condition": {
+    "field": "f",
+    "op": "dateAfter",
+    "value": "2026-12-24"
+   },
+   "answers": {
+    "f": "25.12.2026 – 02.01.2027"
+   },
+   "holds": true
+  },
+  {
+   "note": "an impossible date",
+   "condition": {
+    "field": "f",
+    "op": "dateBefore",
+    "value": "2026-12-24"
+   },
+   "answers": {
+    "f": "31.02.2026"
+   },
+   "holds": false
+  },
+  {
+   "note": "no answer",
+   "condition": {
+    "field": "f",
+    "op": "dateBefore",
+    "value": "2026-12-24"
+   },
+   "answers": {},
+   "holds": false
+  },
+  {
+   "note": "the field's own format",
+   "condition": {
+    "field": "g",
+    "op": "dateBefore",
+    "value": "2026-12-24"
+   },
+   "answers": {
+    "g": "12/23/2026"
+   },
+   "holds": true
+  },
+  {
+   "note": "another format",
+   "condition": {
+    "field": "g",
+    "op": "dateBefore",
+    "value": "2026-12-24"
+   },
+   "answers": {
+    "g": "23.12.2026"
+   },
+   "holds": false
+  },
+  {
+   "note": "in a group",
+   "condition": {
+    "all": [
+     {
+      "field": "f",
+      "op": "dateAfter",
+      "value": "today"
+     },
+     {
+      "field": "h",
+      "op": "contains",
+      "value": "ja"
+     }
+    ]
+   },
+   "answers": {
+    "f": "17.10.2026",
+    "h": "JA"
+   },
+   "holds": true
+  }
+ ]
+}

@@ -1,0 +1,401 @@
+{
+ "note": "Shared by packages/form-core/test/core.test.ts and plugin/tests/Unit/Domain/ConditionsTest.php; today is 2026-10-16. Steps list their fields in order.",
+ "today": "2026-10-16",
+ "cases": [
+  {
+   "note": "fields without conditions are all shown",
+   "steps": [
+    [
+     {
+      "id": "a",
+      "type": "choice"
+     },
+     {
+      "id": "b",
+      "type": "text"
+     }
+    ]
+   ],
+   "answers": {
+    "a": [
+     "x"
+    ],
+    "b": "hi"
+   },
+   "shown": [
+    "a",
+    "b"
+   ],
+   "given": {
+    "a": [
+     "x"
+    ],
+    "b": "hi"
+   }
+  },
+  {
+   "note": "a field shown on an answer above it in its step",
+   "steps": [
+    [
+     {
+      "id": "a",
+      "type": "choice"
+     },
+     {
+      "id": "b",
+      "type": "text",
+      "showWhen": {
+       "field": "a",
+       "op": "selected",
+       "value": "x"
+      }
+     }
+    ]
+   ],
+   "answers": {
+    "a": [
+     "x"
+    ],
+    "b": "hi"
+   },
+   "shown": [
+    "a",
+    "b"
+   ],
+   "given": {
+    "a": [
+     "x"
+    ],
+    "b": "hi"
+   }
+  },
+  {
+   "note": "a hidden field drops its answer",
+   "steps": [
+    [
+     {
+      "id": "a",
+      "type": "choice"
+     },
+     {
+      "id": "b",
+      "type": "text",
+      "showWhen": {
+       "field": "a",
+       "op": "selected",
+       "value": "x"
+      }
+     }
+    ]
+   ],
+   "answers": {
+    "a": [
+     "y"
+    ],
+    "b": "hi"
+   },
+   "shown": [
+    "a"
+   ],
+   "given": {
+    "a": [
+     "y"
+    ]
+   }
+  },
+  {
+   "note": "a field shown on a hidden field is hidden too",
+   "steps": [
+    [
+     {
+      "id": "a",
+      "type": "choice"
+     },
+     {
+      "id": "b",
+      "type": "text",
+      "showWhen": {
+       "field": "a",
+       "op": "selected",
+       "value": "x"
+      }
+     },
+     {
+      "id": "c",
+      "type": "text",
+      "showWhen": {
+       "field": "b",
+       "op": "filled"
+      }
+     }
+    ]
+   ],
+   "answers": {
+    "a": [
+     "y"
+    ],
+    "b": "hi",
+    "c": "ho"
+   },
+   "shown": [
+    "a"
+   ],
+   "given": {
+    "a": [
+     "y"
+    ]
+   }
+  },
+  {
+   "note": "answers below a field count as missing",
+   "steps": [
+    [
+     {
+      "id": "a",
+      "type": "text",
+      "showWhen": {
+       "field": "b",
+       "op": "empty"
+      }
+     },
+     {
+      "id": "b",
+      "type": "text"
+     }
+    ]
+   ],
+   "answers": {
+    "a": "1",
+    "b": "2"
+   },
+   "shown": [
+    "a",
+    "b"
+   ],
+   "given": {
+    "a": "1",
+    "b": "2"
+   }
+  },
+  {
+   "note": "answers on earlier steps count",
+   "steps": [
+    [
+     {
+      "id": "a",
+      "type": "slider"
+     }
+    ],
+    [
+     {
+      "id": "b",
+      "type": "number",
+      "showWhen": {
+       "all": [
+        {
+         "field": "a",
+         "op": "gte",
+         "value": 5000
+        },
+        {
+         "field": "a",
+         "op": "lt",
+         "value": 10000
+        }
+       ]
+      }
+     },
+     {
+      "id": "c",
+      "type": "text"
+     }
+    ]
+   ],
+   "answers": {
+    "a": 7500,
+    "b": 3
+   },
+   "shown": [
+    "a",
+    "b",
+    "c"
+   ],
+   "given": {
+    "a": 7500,
+    "b": 3
+   }
+  },
+  {
+   "note": "one rule of a group of any is enough",
+   "steps": [
+    [
+     {
+      "id": "a",
+      "type": "choice"
+     },
+     {
+      "id": "b",
+      "type": "text",
+      "showWhen": {
+       "any": [
+        {
+         "field": "a",
+         "op": "selected",
+         "value": "x"
+        },
+        {
+         "field": "a",
+         "op": "selected",
+         "value": "z"
+        }
+       ]
+      }
+     }
+    ]
+   ],
+   "answers": {
+    "a": [
+     "z"
+    ],
+    "b": "hi"
+   },
+   "shown": [
+    "a",
+    "b"
+   ],
+   "given": {
+    "a": [
+     "z"
+    ],
+    "b": "hi"
+   }
+  },
+  {
+   "note": "dates are read in the format of their field",
+   "steps": [
+    [
+     {
+      "id": "d",
+      "type": "date",
+      "props": {
+       "format": "mm/dd/yy"
+      }
+     },
+     {
+      "id": "e",
+      "type": "text",
+      "showWhen": {
+       "field": "d",
+       "op": "dateAfter",
+       "value": "today",
+       "days": 7
+      }
+     }
+    ]
+   ],
+   "answers": {
+    "d": "10/30/2026",
+    "e": "soon"
+   },
+   "shown": [
+    "d",
+    "e"
+   ],
+   "given": {
+    "d": "10/30/2026",
+    "e": "soon"
+   }
+  },
+  {
+   "note": "dates before the day hide the field",
+   "steps": [
+    [
+     {
+      "id": "d",
+      "type": "date",
+      "props": {
+       "format": "mm/dd/yy"
+      }
+     },
+     {
+      "id": "e",
+      "type": "text",
+      "showWhen": {
+       "field": "d",
+       "op": "dateAfter",
+       "value": "today",
+       "days": 7
+      }
+     }
+    ]
+   ],
+   "answers": {
+    "d": "10/20/2026",
+    "e": "soon"
+   },
+   "shown": [
+    "d"
+   ],
+   "given": {
+    "d": "10/20/2026"
+   }
+  },
+  {
+   "note": "a field of an A/B variant",
+   "steps": [
+    [
+     {
+      "id": "a",
+      "type": "text"
+     },
+     {
+      "id": "b",
+      "type": "text",
+      "showWhen": {
+       "experiment": "x1",
+       "variant": "b"
+      }
+     }
+    ]
+   ],
+   "answers": {
+    "a": "1"
+   },
+   "variants": {
+    "x1": "b"
+   },
+   "shown": [
+    "a",
+    "b"
+   ],
+   "given": {
+    "a": "1"
+   }
+  },
+  {
+   "note": "unanswered shown fields give no answer",
+   "steps": [
+    [
+     {
+      "id": "a",
+      "type": "choice"
+     },
+     {
+      "id": "b",
+      "type": "text",
+      "showWhen": {
+       "field": "a",
+       "op": "empty"
+      }
+     }
+    ]
+   ],
+   "answers": {},
+   "shown": [
+    "a",
+    "b"
+   ],
+   "given": {}
+  }
+ ]
+}

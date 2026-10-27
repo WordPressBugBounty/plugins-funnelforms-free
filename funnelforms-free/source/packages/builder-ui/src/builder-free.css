@@ -1,0 +1,125 @@
+/* Funnelforms Free: the builder's styles and the look of the Pro badges (src/ui/Pro.tsx). */
+@import './builder.css';
+
+.ffxb-tile--pro {
+	position: relative;
+	cursor: default;
+	opacity: 0.7;
+}
+
+.ffxb-tile--pro .ffxb-badge {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	padding: 1px 6px;
+	font-size: 10px;
+}
+
+.ffxb-pro__list {
+	display: grid;
+	gap: 6px;
+	margin: 8px 0 12px;
+	padding: 0;
+	list-style: none;
+}
+
+.ffxb-pro__list li {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+}
+
+.ffxb-pro__list .ffxb-badge,
+.ffxb-sheet__link .ffxb-badge {
+	flex: none;
+	padding: 1px 6px;
+	font-size: 10px;
+}
+
+/* The settings of Pro as cards: icon, name, what it brings and the badge. */
+.ffxb-pro__features {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+	gap: 10px;
+	margin: 12px 0 16px;
+	padding: 0;
+	list-style: none;
+}
+
+.ffxb-pro__feature {
+	position: relative;
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	padding: 14px;
+	border: 1px solid var(--ffxb-line);
+	border-radius: 12px;
+	background: var(--ffxb-surface);
+}
+
+.ffxb-pro__feature > .ffxb-badge {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	padding: 1px 6px;
+	font-size: 10px;
+}
+
+.ffxb-pro__feature-icon {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: 36px;
+	height: 36px;
+	border-radius: 10px;
+	background: var(--ffxb-brand-soft);
+	color: var(--ffxb-brand);
+}
+
+.ffxb-pro__feature-body {
+	display: grid;
+	gap: 2px;
+	min-width: 0;
+	padding-right: 32px;
+}
+
+.ffxb-pro__feature-title {
+	font-size: 13px;
+	color: var(--ffxb-text);
+}
+
+.ffxb-pro__feature-text {
+	font-size: 12px;
+	line-height: 1.45;
+	color: var(--ffxb-muted);
+}
+
+.ffxb-pro__link {
+	color: var(--ffxb-brand);
+	font-weight: 600;
+}
+
+.ffxb-analytics__toggle--pro .ffxb-badge {
+	padding: 1px 6px;
+	font-size: 10px;
+}
+
+span.ffxb-analytics__toggle--pro {
+	cursor: default;
+}
+
+/* A template of Funnelforms Pro in the gallery: a teaser that leads to the page about Pro. */
+.ffxb-tcard--locked .ffxb-tcard__thumb {
+	opacity: 0.72;
+}
+
+.ffxb-tcard--locked .ffxb-tcard__head .ffxb-badge {
+	flex: none;
+	margin-left: auto;
+	padding: 1px 6px;
+	font-size: 10px;
+}
+
+.ffxb-tcard--locked .ffxb-tcard__actions {
+	justify-content: flex-end;
+}

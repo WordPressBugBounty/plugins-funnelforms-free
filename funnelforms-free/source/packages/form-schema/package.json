@@ -1,0 +1,20 @@
+{
+  "name": "@funnelforms/form-schema",
+  "version": "1.0.0",
+  "description": "Form document schema v1 of Funnelforms: JSON Schema, TypeScript types and validator.",
+  "license": "GPL-2.0-or-later",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema/form.v1.schema.json": "./schema/form.v1.schema.json"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1"
+  }
+}

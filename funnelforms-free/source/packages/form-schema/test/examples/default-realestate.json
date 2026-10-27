@@ -1,0 +1,2528 @@
+{
+    "schemaVersion": 1,
+    "id": "frm_910",
+    "title": "Real-Estate Agent Demo",
+    "locales": {
+        "default": "en_US",
+        "available": [
+            "en_US"
+        ]
+    },
+    "start": "n0_0",
+    "nodes": [
+        {
+            "id": "n0_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q912",
+                    "key": "q912",
+                    "label": {
+                        "en_US": "What do you want to sell?"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 912
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q912_o0",
+                            "label": {
+                                "en_US": "Land"
+                            },
+                            "value": "Land",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-object-group"
+                            }
+                        },
+                        {
+                            "id": "q912_o1",
+                            "label": {
+                                "en_US": "Apartment"
+                            },
+                            "value": "Apartment",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fab fa-buromobelexperte"
+                            }
+                        },
+                        {
+                            "id": "q912_o2",
+                            "label": {
+                                "en_US": "House"
+                            },
+                            "value": "House",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-home"
+                            }
+                        },
+                        {
+                            "id": "q912_o3",
+                            "label": {
+                                "en_US": "Commercial property"
+                            },
+                            "value": "Commercial property",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-industry"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 912
+            }
+        },
+        {
+            "id": "n1_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q913",
+                    "key": "q913",
+                    "label": {
+                        "en_US": "Size of the land?"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 913
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q913_o0",
+                            "label": {
+                                "en_US": "up to 500 m²"
+                            },
+                            "value": "up to 500 m²",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-object-group"
+                            }
+                        },
+                        {
+                            "id": "q913_o1",
+                            "label": {
+                                "en_US": "500-1000 m²"
+                            },
+                            "value": "500-1000 m²",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-object-group"
+                            }
+                        },
+                        {
+                            "id": "q913_o2",
+                            "label": {
+                                "en_US": ">1000 m²"
+                            },
+                            "value": ">1000 m²",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-object-group"
+                            }
+                        },
+                        {
+                            "id": "q913_o3",
+                            "label": {
+                                "en_US": "Don't know"
+                            },
+                            "value": "Don't know",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-question"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 913
+            }
+        },
+        {
+            "id": "n1_1",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q918",
+                    "key": "q918",
+                    "label": {
+                        "en_US": "Which property type applies?"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 918
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q918_o0",
+                            "label": {
+                                "en_US": "Single family house"
+                            },
+                            "value": "Single family house",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-home"
+                            }
+                        },
+                        {
+                            "id": "q918_o1",
+                            "label": {
+                                "en_US": "Multi-family house"
+                            },
+                            "value": "Multi-family house",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-hotel"
+                            }
+                        },
+                        {
+                            "id": "q918_o2",
+                            "label": {
+                                "en_US": "Terraced house"
+                            },
+                            "value": "Terraced house",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-building"
+                            }
+                        },
+                        {
+                            "id": "q918_o3",
+                            "label": {
+                                "en_US": "Semi-detached house"
+                            },
+                            "value": "Semi-detached house",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-adjust"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 918
+            }
+        },
+        {
+            "id": "n1_2",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q921",
+                    "key": "q921",
+                    "label": {
+                        "en_US": "Number of rooms (without bathroom and kitchen)"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 921
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q921_o0",
+                            "label": {
+                                "en_US": "less than 5"
+                            },
+                            "value": "less than 5",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-door-open"
+                            }
+                        },
+                        {
+                            "id": "q921_o1",
+                            "label": {
+                                "en_US": "between 5 and 10"
+                            },
+                            "value": "between 5 and 10",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-door-open"
+                            }
+                        },
+                        {
+                            "id": "q921_o2",
+                            "label": {
+                                "en_US": "more than 10"
+                            },
+                            "value": "more than 10",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-door-open"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 921
+            }
+        },
+        {
+            "id": "n1_3",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q926",
+                    "key": "q926",
+                    "label": {
+                        "en_US": "How is the property used?"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 926
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q926_o0",
+                            "label": {
+                                "en_US": "Office space"
+                            },
+                            "value": "Office space",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-building"
+                            }
+                        },
+                        {
+                            "id": "q926_o1",
+                            "label": {
+                                "en_US": "Residential and commercial buildings"
+                            },
+                            "value": "Residential and commercial buildings",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-home"
+                            }
+                        },
+                        {
+                            "id": "q926_o2",
+                            "label": {
+                                "en_US": "Industrial building or warehouse"
+                            },
+                            "value": "Industrial building or warehouse",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-industry"
+                            }
+                        },
+                        {
+                            "id": "q926_o3",
+                            "label": {
+                                "en_US": "None of them"
+                            },
+                            "value": "None of them",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-question"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 926
+            }
+        },
+        {
+            "id": "n2_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q914",
+                    "key": "q914",
+                    "label": {
+                        "en_US": "Is the land already fully developed?"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 914
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q914_o0",
+                            "label": {
+                                "en_US": "Yes"
+                            },
+                            "value": "Yes",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-check"
+                            }
+                        },
+                        {
+                            "id": "q914_o1",
+                            "label": {
+                                "en_US": "No"
+                            },
+                            "value": "No",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-times"
+                            }
+                        },
+                        {
+                            "id": "q914_o2",
+                            "label": {
+                                "en_US": "Partially"
+                            },
+                            "value": "Partially",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-adjust"
+                            }
+                        },
+                        {
+                            "id": "q914_o3",
+                            "label": {
+                                "en_US": "Unsure"
+                            },
+                            "value": "Unsure",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-question"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 914
+            }
+        },
+        {
+            "id": "n2_1",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q913_n2_1",
+                    "key": "q913",
+                    "label": {
+                        "en_US": "Size of the land?"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 913
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q913_n2_1_o0",
+                            "label": {
+                                "en_US": "up to 500 m²"
+                            },
+                            "value": "up to 500 m²",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-object-group"
+                            }
+                        },
+                        {
+                            "id": "q913_n2_1_o1",
+                            "label": {
+                                "en_US": "500-1000 m²"
+                            },
+                            "value": "500-1000 m²",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-object-group"
+                            }
+                        },
+                        {
+                            "id": "q913_n2_1_o2",
+                            "label": {
+                                "en_US": ">1000 m²"
+                            },
+                            "value": ">1000 m²",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-object-group"
+                            }
+                        },
+                        {
+                            "id": "q913_n2_1_o3",
+                            "label": {
+                                "en_US": "Don't know"
+                            },
+                            "value": "Don't know",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-question"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 913
+            }
+        },
+        {
+            "id": "n2_2",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q919",
+                    "key": "q919",
+                    "label": {
+                        "en_US": "What is the size of the living space?"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 919
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q919_o0",
+                            "label": {
+                                "en_US": "up to 100 m²"
+                            },
+                            "value": "up to 100 m²",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-arrows-alt"
+                            }
+                        },
+                        {
+                            "id": "q919_o1",
+                            "label": {
+                                "en_US": "100-250 m&sup2;"
+                            },
+                            "value": "100-250 m&sup2;",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-arrows-alt"
+                            }
+                        },
+                        {
+                            "id": "q919_o2",
+                            "label": {
+                                "en_US": ">250 m²"
+                            },
+                            "value": ">250 m²",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-arrows-alt"
+                            }
+                        },
+                        {
+                            "id": "q919_o3",
+                            "label": {
+                                "en_US": "Don't know"
+                            },
+                            "value": "Don't know",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-question"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 919
+            }
+        },
+        {
+            "id": "n2_3",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q913_n2_3",
+                    "key": "q913",
+                    "label": {
+                        "en_US": "Size of the land?"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 913
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q913_n2_3_o0",
+                            "label": {
+                                "en_US": "up to 500 m²"
+                            },
+                            "value": "up to 500 m²",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-object-group"
+                            }
+                        },
+                        {
+                            "id": "q913_n2_3_o1",
+                            "label": {
+                                "en_US": "500-1000 m²"
+                            },
+                            "value": "500-1000 m²",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-object-group"
+                            }
+                        },
+                        {
+                            "id": "q913_n2_3_o2",
+                            "label": {
+                                "en_US": ">1000 m²"
+                            },
+                            "value": ">1000 m²",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-object-group"
+                            }
+                        },
+                        {
+                            "id": "q913_n2_3_o3",
+                            "label": {
+                                "en_US": "Don't know"
+                            },
+                            "value": "Don't know",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-question"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 913
+            }
+        },
+        {
+            "id": "n3_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q915",
+                    "key": "q915",
+                    "label": {
+                        "en_US": "Is the land fully buildable?"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 915
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q915_o0",
+                            "label": {
+                                "en_US": "Yes"
+                            },
+                            "value": "Yes",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-check"
+                            }
+                        },
+                        {
+                            "id": "q915_o1",
+                            "label": {
+                                "en_US": "Only limited"
+                            },
+                            "value": "Only limited",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-adjust"
+                            }
+                        },
+                        {
+                            "id": "q915_o2",
+                            "label": {
+                                "en_US": "Not buildable"
+                            },
+                            "value": "Not buildable",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-times"
+                            }
+                        },
+                        {
+                            "id": "q915_o3",
+                            "label": {
+                                "en_US": "Don't know"
+                            },
+                            "value": "Don't know",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-question"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 915
+            }
+        },
+        {
+            "id": "n3_1",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q922",
+                    "key": "q922",
+                    "label": {
+                        "en_US": "Year of construction of the house? "
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 922
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q922_o0",
+                            "label": {
+                                "en_US": "before 1950"
+                            },
+                            "value": "before 1950",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-calendar-alt"
+                            }
+                        },
+                        {
+                            "id": "q922_o1",
+                            "label": {
+                                "en_US": "1950-1980"
+                            },
+                            "value": "1950-1980",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-calendar-alt"
+                            }
+                        },
+                        {
+                            "id": "q922_o2",
+                            "label": {
+                                "en_US": "1980-2000"
+                            },
+                            "value": "1980-2000",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-calendar-alt"
+                            }
+                        },
+                        {
+                            "id": "q922_o3",
+                            "label": {
+                                "en_US": "from 2000"
+                            },
+                            "value": "from 2000",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-calendar-alt"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 922
+            }
+        },
+        {
+            "id": "n3_2",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q924",
+                    "key": "q924",
+                    "label": {
+                        "en_US": "Is a fitted kitchen available?"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 924
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q924_o0",
+                            "label": {
+                                "en_US": "As good as new"
+                            },
+                            "value": "As good as new",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-check"
+                            }
+                        },
+                        {
+                            "id": "q924_o1",
+                            "label": {
+                                "en_US": "Outdated"
+                            },
+                            "value": "Outdated",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-recycle"
+                            }
+                        },
+                        {
+                            "id": "q924_o2",
+                            "label": {
+                                "en_US": "No"
+                            },
+                            "value": "No",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-times"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 924
+            }
+        },
+        {
+            "id": "n3_3",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q927",
+                    "key": "q927",
+                    "label": {
+                        "en_US": "Useful area of the commercial property?"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 927
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q927_o0",
+                            "label": {
+                                "en_US": "<100 m²"
+                            },
+                            "value": "<100 m²",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-arrows-alt"
+                            }
+                        },
+                        {
+                            "id": "q927_o1",
+                            "label": {
+                                "en_US": "100-250 m&sup2;"
+                            },
+                            "value": "100-250 m&sup2;",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-arrows-alt"
+                            }
+                        },
+                        {
+                            "id": "q927_o2",
+                            "label": {
+                                "en_US": "250-500 m²"
+                            },
+                            "value": "250-500 m²",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-arrows-alt"
+                            }
+                        },
+                        {
+                            "id": "q927_o3",
+                            "label": {
+                                "en_US": ">500m²"
+                            },
+                            "value": ">500m²",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-arrows-alt"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 927
+            }
+        },
+        {
+            "id": "n4_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q916",
+                    "key": "q916",
+                    "label": {
+                        "en_US": "How is the land cut?"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 916
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q916_o0",
+                            "label": {
+                                "en_US": "Rectangular"
+                            },
+                            "value": "Rectangular",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-arrows-alt"
+                            }
+                        },
+                        {
+                            "id": "q916_o1",
+                            "label": {
+                                "en_US": "Corner land"
+                            },
+                            "value": "Corner land",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-location-arrow"
+                            }
+                        },
+                        {
+                            "id": "q916_o2",
+                            "label": {
+                                "en_US": "Neither"
+                            },
+                            "value": "Neither",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-braille"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 916
+            }
+        },
+        {
+            "id": "n4_1",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q920",
+                    "key": "q920",
+                    "label": {
+                        "en_US": "How many floors does the house have?"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 920
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q920_o0",
+                            "label": {
+                                "en_US": "Ground level"
+                            },
+                            "value": "Ground level",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-arrows-alt-h"
+                            }
+                        },
+                        {
+                            "id": "q920_o1",
+                            "label": {
+                                "en_US": "One and a half stories"
+                            },
+                            "value": "One and a half stories",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-home"
+                            }
+                        },
+                        {
+                            "id": "q920_o2",
+                            "label": {
+                                "en_US": "Two floors"
+                            },
+                            "value": "Two floors",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-angle-double-up"
+                            }
+                        },
+                        {
+                            "id": "q920_o3",
+                            "label": {
+                                "en_US": "More than two"
+                            },
+                            "value": "More than two",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-signal"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 920
+            }
+        },
+        {
+            "id": "n4_2",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q925",
+                    "key": "q925",
+                    "label": {
+                        "en_US": "Is there an elevator in the house?"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 925
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q925_o0",
+                            "label": {
+                                "en_US": "Yes"
+                            },
+                            "value": "Yes",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-check"
+                            }
+                        },
+                        {
+                            "id": "q925_o1",
+                            "label": {
+                                "en_US": "No"
+                            },
+                            "value": "No",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-times"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 925
+            }
+        },
+        {
+            "id": "n4_3",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q922_n4_3",
+                    "key": "q922",
+                    "label": {
+                        "en_US": "Year of construction of the house? "
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 922
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q922_n4_3_o0",
+                            "label": {
+                                "en_US": "before 1950"
+                            },
+                            "value": "before 1950",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-calendar-alt"
+                            }
+                        },
+                        {
+                            "id": "q922_n4_3_o1",
+                            "label": {
+                                "en_US": "1950-1980"
+                            },
+                            "value": "1950-1980",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-calendar-alt"
+                            }
+                        },
+                        {
+                            "id": "q922_n4_3_o2",
+                            "label": {
+                                "en_US": "1980-2000"
+                            },
+                            "value": "1980-2000",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-calendar-alt"
+                            }
+                        },
+                        {
+                            "id": "q922_n4_3_o3",
+                            "label": {
+                                "en_US": "from 2000"
+                            },
+                            "value": "from 2000",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-calendar-alt"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 922
+            }
+        },
+        {
+            "id": "n5_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q921_n5_0",
+                    "key": "q921",
+                    "label": {
+                        "en_US": "Number of rooms (without bathroom and kitchen)"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 921
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q921_n5_0_o0",
+                            "label": {
+                                "en_US": "less than 5"
+                            },
+                            "value": "less than 5",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-door-open"
+                            }
+                        },
+                        {
+                            "id": "q921_n5_0_o1",
+                            "label": {
+                                "en_US": "between 5 and 10"
+                            },
+                            "value": "between 5 and 10",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-door-open"
+                            }
+                        },
+                        {
+                            "id": "q921_n5_0_o2",
+                            "label": {
+                                "en_US": "more than 10"
+                            },
+                            "value": "more than 10",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-door-open"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 921
+            }
+        },
+        {
+            "id": "n5_1",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q923",
+                    "key": "q923",
+                    "label": {
+                        "en_US": "Are parking facilities available?"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 923
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q923_o0",
+                            "label": {
+                                "en_US": "Garage"
+                            },
+                            "value": "Garage",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-warehouse"
+                            }
+                        },
+                        {
+                            "id": "q923_o1",
+                            "label": {
+                                "en_US": "Carport"
+                            },
+                            "value": "Carport",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-caret-up"
+                            }
+                        },
+                        {
+                            "id": "q923_o2",
+                            "label": {
+                                "en_US": "Outside"
+                            },
+                            "value": "Outside",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fab fa-pagelines"
+                            }
+                        },
+                        {
+                            "id": "q923_o3",
+                            "label": {
+                                "en_US": "No parking possibility"
+                            },
+                            "value": "No parking possibility",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-times"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 923
+            }
+        },
+        {
+            "id": "n5_2",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q923_n5_2",
+                    "key": "q923",
+                    "label": {
+                        "en_US": "Are parking facilities available?"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 923
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q923_n5_2_o0",
+                            "label": {
+                                "en_US": "Garage"
+                            },
+                            "value": "Garage",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-warehouse"
+                            }
+                        },
+                        {
+                            "id": "q923_n5_2_o1",
+                            "label": {
+                                "en_US": "Carport"
+                            },
+                            "value": "Carport",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-caret-up"
+                            }
+                        },
+                        {
+                            "id": "q923_n5_2_o2",
+                            "label": {
+                                "en_US": "Outside"
+                            },
+                            "value": "Outside",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fab fa-pagelines"
+                            }
+                        },
+                        {
+                            "id": "q923_n5_2_o3",
+                            "label": {
+                                "en_US": "No parking possibility"
+                            },
+                            "value": "No parking possibility",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-times"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 923
+            }
+        },
+        {
+            "id": "n6_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q919_n6_0",
+                    "key": "q919",
+                    "label": {
+                        "en_US": "What is the size of the living space?"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 919
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q919_n6_0_o0",
+                            "label": {
+                                "en_US": "up to 100 m²"
+                            },
+                            "value": "up to 100 m²",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-arrows-alt"
+                            }
+                        },
+                        {
+                            "id": "q919_n6_0_o1",
+                            "label": {
+                                "en_US": "100-250 m&sup2;"
+                            },
+                            "value": "100-250 m&sup2;",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-arrows-alt"
+                            }
+                        },
+                        {
+                            "id": "q919_n6_0_o2",
+                            "label": {
+                                "en_US": ">250 m²"
+                            },
+                            "value": ">250 m²",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-arrows-alt"
+                            }
+                        },
+                        {
+                            "id": "q919_n6_0_o3",
+                            "label": {
+                                "en_US": "Don't know"
+                            },
+                            "value": "Don't know",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-question"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 919
+            }
+        },
+        {
+            "id": "n6_1",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q922_n6_1",
+                    "key": "q922",
+                    "label": {
+                        "en_US": "Year of construction of the house? "
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 922
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q922_n6_1_o0",
+                            "label": {
+                                "en_US": "before 1950"
+                            },
+                            "value": "before 1950",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-calendar-alt"
+                            }
+                        },
+                        {
+                            "id": "q922_n6_1_o1",
+                            "label": {
+                                "en_US": "1950-1980"
+                            },
+                            "value": "1950-1980",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-calendar-alt"
+                            }
+                        },
+                        {
+                            "id": "q922_n6_1_o2",
+                            "label": {
+                                "en_US": "1980-2000"
+                            },
+                            "value": "1980-2000",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-calendar-alt"
+                            }
+                        },
+                        {
+                            "id": "q922_n6_1_o3",
+                            "label": {
+                                "en_US": "from 2000"
+                            },
+                            "value": "from 2000",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-calendar-alt"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 922
+            }
+        },
+        {
+            "id": "n6_2",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q917",
+                    "key": "q917",
+                    "label": {
+                        "en_US": "When would you like to sell?"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 917
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q917_o0",
+                            "label": {
+                                "en_US": "As soon as possible"
+                            },
+                            "value": "As soon as possible",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-calendar-alt"
+                            }
+                        },
+                        {
+                            "id": "q917_o1",
+                            "label": {
+                                "en_US": "In 1-3 months"
+                            },
+                            "value": "In 1-3 months",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-calendar-alt"
+                            }
+                        },
+                        {
+                            "id": "q917_o2",
+                            "label": {
+                                "en_US": "<6 months"
+                            },
+                            "value": "<6 months",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-calendar-alt"
+                            }
+                        },
+                        {
+                            "id": "q917_o3",
+                            "label": {
+                                "en_US": "I just want to inform myself"
+                            },
+                            "value": "I just want to inform myself",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-info-circle"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 917
+            }
+        },
+        {
+            "id": "n7_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q923_n7_0",
+                    "key": "q923",
+                    "label": {
+                        "en_US": "Are parking facilities available?"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 923
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q923_n7_0_o0",
+                            "label": {
+                                "en_US": "Garage"
+                            },
+                            "value": "Garage",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-warehouse"
+                            }
+                        },
+                        {
+                            "id": "q923_n7_0_o1",
+                            "label": {
+                                "en_US": "Carport"
+                            },
+                            "value": "Carport",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-caret-up"
+                            }
+                        },
+                        {
+                            "id": "q923_n7_0_o2",
+                            "label": {
+                                "en_US": "Outside"
+                            },
+                            "value": "Outside",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fab fa-pagelines"
+                            }
+                        },
+                        {
+                            "id": "q923_n7_0_o3",
+                            "label": {
+                                "en_US": "No parking possibility"
+                            },
+                            "value": "No parking possibility",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-times"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 923
+            }
+        },
+        {
+            "id": "n7_1",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q917_n7_1",
+                    "key": "q917",
+                    "label": {
+                        "en_US": "When would you like to sell?"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 917
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q917_n7_1_o0",
+                            "label": {
+                                "en_US": "As soon as possible"
+                            },
+                            "value": "As soon as possible",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-calendar-alt"
+                            }
+                        },
+                        {
+                            "id": "q917_n7_1_o1",
+                            "label": {
+                                "en_US": "In 1-3 months"
+                            },
+                            "value": "In 1-3 months",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-calendar-alt"
+                            }
+                        },
+                        {
+                            "id": "q917_n7_1_o2",
+                            "label": {
+                                "en_US": "<6 months"
+                            },
+                            "value": "<6 months",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-calendar-alt"
+                            }
+                        },
+                        {
+                            "id": "q917_n7_1_o3",
+                            "label": {
+                                "en_US": "I just want to inform myself"
+                            },
+                            "value": "I just want to inform myself",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-info-circle"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 917
+            }
+        },
+        {
+            "id": "n8_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q917_n8_0",
+                    "key": "q917",
+                    "label": {
+                        "en_US": "When would you like to sell?"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 917
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q917_n8_0_o0",
+                            "label": {
+                                "en_US": "As soon as possible"
+                            },
+                            "value": "As soon as possible",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-calendar-alt"
+                            }
+                        },
+                        {
+                            "id": "q917_n8_0_o1",
+                            "label": {
+                                "en_US": "In 1-3 months"
+                            },
+                            "value": "In 1-3 months",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-calendar-alt"
+                            }
+                        },
+                        {
+                            "id": "q917_n8_0_o2",
+                            "label": {
+                                "en_US": "<6 months"
+                            },
+                            "value": "<6 months",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-calendar-alt"
+                            }
+                        },
+                        {
+                            "id": "q917_n8_0_o3",
+                            "label": {
+                                "en_US": "I just want to inform myself"
+                            },
+                            "value": "I just want to inform myself",
+                            "media": {
+                                "kind": "icon",
+                                "value": "fas fa-info-circle"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 917
+            }
+        },
+        {
+            "id": "n9_0",
+            "type": "contact",
+            "title": {
+                "en_US": "Now enter your contact details:"
+            },
+            "description": {
+                "en_US": ""
+            },
+            "submitLabel": {
+                "en_US": "Send Message!"
+            },
+            "fields": [
+                {
+                    "id": "c_name",
+                    "type": "name",
+                    "key": "name",
+                    "label": {
+                        "en_US": "Your name:"
+                    },
+                    "required": true,
+                    "props": {
+                        "placeholder": {
+                            "en_US": "Your name..."
+                        },
+                        "icon": "fas fa-user",
+                        "prefillFromQuery": "name"
+                    }
+                },
+                {
+                    "id": "c_email",
+                    "type": "email",
+                    "key": "email",
+                    "label": {
+                        "en_US": "Your email address:"
+                    },
+                    "required": true,
+                    "props": {
+                        "b2bOnly": false,
+                        "placeholder": {
+                            "en_US": "Your email address..."
+                        },
+                        "icon": "fas fa-envelope",
+                        "prefillFromQuery": "email"
+                    }
+                },
+                {
+                    "id": "c_tel",
+                    "type": "phone",
+                    "key": "tel",
+                    "label": {
+                        "en_US": "Your phone number:"
+                    },
+                    "required": true,
+                    "props": {
+                        "placeholder": {
+                            "en_US": "Your phone number..."
+                        },
+                        "icon": "fas fa-phone",
+                        "prefillFromQuery": "tel"
+                    }
+                },
+                {
+                    "id": "c_checkbox",
+                    "type": "consent",
+                    "key": "checkbox",
+                    "label": {
+                        "en_US": ""
+                    },
+                    "required": true,
+                    "props": {
+                        "html": {
+                            "en_US": "I hereby accept the <a href=\"https://demo.com/privacy\">Privacy Policy</a>"
+                        },
+                        "prefillFromQuery": "checkbox"
+                    }
+                }
+            ],
+            "showBottomBar": false,
+            "legacy": {
+                "contactFormId": 911
+            }
+        },
+        {
+            "id": "n9_0_end",
+            "type": "end",
+            "success": {
+                "show": true,
+                "text": {
+                    "en_US": "Thanks! The form was sent successfully!"
+                },
+                "image": "https://example.test/wp-content/plugins/Funnelforms-pro/res/images/success_standard.png"
+            },
+            "redirect": null
+        }
+    ],
+    "edges": [
+        {
+            "id": "e_n0_0_0",
+            "from": "n0_0",
+            "to": "n1_0",
+            "when": {
+                "field": "q912",
+                "op": "selected",
+                "value": "q912_o0"
+            }
+        },
+        {
+            "id": "e_n0_0_1",
+            "from": "n0_0",
+            "to": "n1_1",
+            "when": {
+                "field": "q912",
+                "op": "selected",
+                "value": "q912_o2"
+            }
+        },
+        {
+            "id": "e_n0_0_2",
+            "from": "n0_0",
+            "to": "n1_2",
+            "when": {
+                "field": "q912",
+                "op": "selected",
+                "value": "q912_o1"
+            }
+        },
+        {
+            "id": "e_n0_0_3",
+            "from": "n0_0",
+            "to": "n1_3",
+            "when": {
+                "field": "q912",
+                "op": "selected",
+                "value": "q912_o3"
+            }
+        },
+        {
+            "id": "e_n1_0_0",
+            "from": "n1_0",
+            "to": "n2_0",
+            "default": true
+        },
+        {
+            "id": "e_n1_1_0",
+            "from": "n1_1",
+            "to": "n2_1",
+            "default": true
+        },
+        {
+            "id": "e_n1_2_0",
+            "from": "n1_2",
+            "to": "n2_2",
+            "default": true
+        },
+        {
+            "id": "e_n1_3_0",
+            "from": "n1_3",
+            "to": "n2_3",
+            "default": true
+        },
+        {
+            "id": "e_n2_0_0",
+            "from": "n2_0",
+            "to": "n3_0",
+            "default": true
+        },
+        {
+            "id": "e_n2_1_0",
+            "from": "n2_1",
+            "to": "n3_1",
+            "default": true
+        },
+        {
+            "id": "e_n2_2_0",
+            "from": "n2_2",
+            "to": "n3_2",
+            "default": true
+        },
+        {
+            "id": "e_n2_3_0",
+            "from": "n2_3",
+            "to": "n3_3",
+            "default": true
+        },
+        {
+            "id": "e_n3_0_0",
+            "from": "n3_0",
+            "to": "n4_0",
+            "default": true
+        },
+        {
+            "id": "e_n3_1_0",
+            "from": "n3_1",
+            "to": "n4_1",
+            "default": true
+        },
+        {
+            "id": "e_n3_2_0",
+            "from": "n3_2",
+            "to": "n4_2",
+            "default": true
+        },
+        {
+            "id": "e_n3_3_0",
+            "from": "n3_3",
+            "to": "n4_3",
+            "default": true
+        },
+        {
+            "id": "e_n4_0_0",
+            "from": "n4_0",
+            "to": "n8_0",
+            "default": true
+        },
+        {
+            "id": "e_n4_1_0",
+            "from": "n4_1",
+            "to": "n5_0",
+            "default": true
+        },
+        {
+            "id": "e_n4_2_0",
+            "from": "n4_2",
+            "to": "n5_1",
+            "default": true
+        },
+        {
+            "id": "e_n4_3_0",
+            "from": "n4_3",
+            "to": "n5_2",
+            "default": true
+        },
+        {
+            "id": "e_n5_0_0",
+            "from": "n5_0",
+            "to": "n6_0",
+            "default": true
+        },
+        {
+            "id": "e_n5_1_0",
+            "from": "n5_1",
+            "to": "n6_1",
+            "default": true
+        },
+        {
+            "id": "e_n5_2_0",
+            "from": "n5_2",
+            "to": "n6_2",
+            "default": true
+        },
+        {
+            "id": "e_n6_0_0",
+            "from": "n6_0",
+            "to": "n7_0",
+            "default": true
+        },
+        {
+            "id": "e_n6_1_0",
+            "from": "n6_1",
+            "to": "n7_1",
+            "default": true
+        },
+        {
+            "id": "e_n6_2_0",
+            "from": "n6_2",
+            "to": "n9_0",
+            "default": true
+        },
+        {
+            "id": "e_n7_0_0",
+            "from": "n7_0",
+            "to": "n8_0",
+            "default": true
+        },
+        {
+            "id": "e_n7_1_0",
+            "from": "n7_1",
+            "to": "n9_0",
+            "default": true
+        },
+        {
+            "id": "e_n8_0_0",
+            "from": "n8_0",
+            "to": "n9_0",
+            "default": true
+        },
+        {
+            "id": "e_n9_0_end",
+            "from": "n9_0",
+            "to": "n9_0_end",
+            "default": true
+        }
+    ],
+    "calculations": [],
+    "actions": [
+        {
+            "id": "a_n9_0_mail",
+            "on": "submit",
+            "node": "n9_0",
+            "kind": "email",
+            "config": {
+                "from": {
+                    "en_US": "wordpress@demo.de"
+                },
+                "fromName": {
+                    "en_US": "Demo"
+                },
+                "to": {
+                    "en_US": "receiver@demo.de"
+                },
+                "cc": {
+                    "en_US": ""
+                },
+                "bcc": {
+                    "en_US": ""
+                },
+                "replyTo": {
+                    "en_US": ""
+                },
+                "subject": {
+                    "en_US": "NEW LEAD"
+                },
+                "body": {
+                    "en_US": "First and last name: {{field:name}}\nEmail address: {{field:email}}\nTelephone: {{field:tel}}\nData protection: {{field:checkbox}}\n__\n\n{{answers_with_hidden}}"
+                },
+                "nl2br": true,
+                "transport": {
+                    "type": "wp_mail"
+                }
+            }
+        }
+    ],
+    "style": {
+        "preset": "classic",
+        "tokens": {
+            "color.primary": "rgba(157,65,221,1)",
+            "color.background": "rgba(255,255,255,1)",
+            "color.text": "rgba(51,51,51,1)",
+            "color.border": "rgba(157,65,221,1)",
+            "font.family": "Montserrat",
+            "radius.card": "10",
+            "radius.input": "10"
+        },
+        "legacy": {
+            "fe_title": "",
+            "global_main_color": "rgba(157,65,221,1)",
+            "global_main_background_color": "rgba(255,255,255,1)",
+            "global_prev_text": "",
+            "global_next_text": "",
+            "global_font": "Montserrat",
+            "form_heading_color": "rgba(157,65,221,1)",
+            "form_question_heading_color": "rgba(51,51,51,1)",
+            "form_question_description_color": "rgba(51,51,51,1)",
+            "form_answer_card_text_color": "rgba(51,51,51,1)",
+            "form_answer_card_icon_color": "rgba(157,65,221,1)",
+            "form_loader_color": "rgba(0,0,0,1)",
+            "form_background_color": "rgba(255,255,255,1)",
+            "form_answer_card_background_color": "rgba(255,255,255,1)",
+            "form_button_background_color": "rgba(157,65,221,1)",
+            "form_button_disabled_background_color": "rgba(225,225,225,1)",
+            "form_box_shadow_color": "rgba(157,65,221,1)",
+            "form_border_color": "rgba(157,65,221,1)",
+            "form_progress_bar_color": "rgba(157,65,221,1)",
+            "form_progress_bar_unfilled_background_color": "rgba(225,225,225,1)",
+            "form_slider_frage_bullet_color": "rgba(157,65,221,1)",
+            "form_slider_frage_thumb_background_color": "rgba(157,65,221,1)",
+            "form_slider_frage_background_color": "rgba(225,225,225,1)",
+            "form_input_background_color": "rgba(253,253,253,1)",
+            "form_datepicker_background_color": "rgba(157,65,221,1)",
+            "form_datepicker_color": "rgba(255,255,255,1)",
+            "form_heading_size_desktop": "32",
+            "form_heading_size_mobile": "20",
+            "form_heading_weight": "300",
+            "form_heading_line_height_desktop": "42",
+            "form_heading_line_height_mobile": "30",
+            "form_question_heading_size_desktop": "32",
+            "form_question_heading_size_mobile": "20",
+            "form_question_heading_weight": "600",
+            "form_question_heading_line_height_desktop": "42",
+            "form_question_heading_line_height_mobile": "30",
+            "form_answer_card_text_size_desktop": "17",
+            "form_answer_card_text_size_mobile": "15",
+            "form_answer_card_text_weight": "500",
+            "form_answer_card_text_line_height_desktop": "27",
+            "form_answer_card_text_line_height_mobile": "20",
+            "form_text_input_size_desktop": "17",
+            "form_text_input_size_mobile": "15",
+            "form_text_input_text_weight": "500",
+            "form_text_input_line_height_desktop": "27",
+            "form_text_input_line_height_mobile": "25",
+            "form_question_description_size_desktop": "20",
+            "form_question_description_size_mobile": "16",
+            "form_question_description_weight": "300",
+            "form_question_description_line_height_desktop": "30",
+            "form_question_description_line_height_mobile": "26",
+            "form_button_label_size_desktop": "17",
+            "form_button_label_size_mobile": "15",
+            "form_answer_card_border_radius": "10",
+            "form_text_input_border_radius": "10",
+            "form_contact_form_button_background_color": "rgba(157,65,221,1)",
+            "form_contact_form_button_color": "rgba(255,255,255,1)",
+            "form_contact_form_font_color": "rgba(51,51,51,1)",
+            "form_contact_form_button_size": "17",
+            "form_contact_form_button_weight": "500",
+            "form_contact_form_button_padding_top_bottom": "12",
+            "form_contact_form_button_padding_left_right": "12",
+            "form_contact_form_button_border_radius": "10",
+            "form_contact_form_label_size": "17",
+            "form_contact_form_label_weight": "500",
+            "form_contact_form_input_size": "15",
+            "form_contact_form_input_weight": "400",
+            "form_contact_form_cb_size": "15",
+            "form_contact_form_cb_weight": "400",
+            "form_contact_form_input_height": "50",
+            "form_contact_form_input_border_radius": "10",
+            "form_contact_form_input_padding_left_right": "10"
+        }
+    },
+    "settings": {
+        "uiLocale": "",
+        "progressBar": {
+            "show": true
+        },
+        "loadingAnimation": false,
+        "scrollToTop": {
+            "desktop": false,
+            "mobile": true
+        },
+        "rtl": false,
+        "autoHeight": false,
+        "iconFont": true,
+        "savePartialEntries": false
+    },
+    "layout": {
+        "nodes": {
+            "n0_0": {
+                "x": 150,
+                "y": 0
+            },
+            "n1_0": {
+                "x": 450,
+                "y": 0
+            },
+            "n2_0": {
+                "x": 750,
+                "y": 0
+            },
+            "n3_0": {
+                "x": 1050,
+                "y": 0
+            },
+            "n4_0": {
+                "x": 1350,
+                "y": 0
+            },
+            "n1_1": {
+                "x": 450,
+                "y": 269
+            },
+            "n2_1": {
+                "x": 750,
+                "y": 293
+            },
+            "n3_1": {
+                "x": 1050,
+                "y": 269
+            },
+            "n4_1": {
+                "x": 1350,
+                "y": 234
+            },
+            "n5_0": {
+                "x": 1650,
+                "y": 0
+            },
+            "n6_0": {
+                "x": 1950,
+                "y": 0
+            },
+            "n7_0": {
+                "x": 2250,
+                "y": 0
+            },
+            "n8_0": {
+                "x": 2550,
+                "y": 0
+            },
+            "n9_0": {
+                "x": 2850,
+                "y": 0
+            },
+            "n1_2": {
+                "x": 450,
+                "y": 562
+            },
+            "n2_2": {
+                "x": 750,
+                "y": 562
+            },
+            "n3_2": {
+                "x": 1050,
+                "y": 562
+            },
+            "n4_2": {
+                "x": 1350,
+                "y": 527
+            },
+            "n5_1": {
+                "x": 1650,
+                "y": 258
+            },
+            "n6_1": {
+                "x": 1950,
+                "y": 293
+            },
+            "n7_1": {
+                "x": 2250,
+                "y": 293
+            },
+            "n1_3": {
+                "x": 450,
+                "y": 820
+            },
+            "n2_3": {
+                "x": 750,
+                "y": 855
+            },
+            "n3_3": {
+                "x": 1050,
+                "y": 820
+            },
+            "n4_3": {
+                "x": 1350,
+                "y": 750
+            },
+            "n5_2": {
+                "x": 1650,
+                "y": 551
+            },
+            "n6_2": {
+                "x": 1950,
+                "y": 586
+            }
+        }
+    },
+    "meta": {
+        "legacy": {
+            "formId": 910,
+            "migratorVersion": 1,
+            "notes": []
+        }
+    }
+}

@@ -1,0 +1,376 @@
+{
+    "schemaVersion": 1,
+    "id": "frm_1000",
+    "title": "Test form",
+    "locales": {
+        "default": "en_US",
+        "available": [
+            "en_US"
+        ]
+    },
+    "start": "n0_0",
+    "nodes": [
+        {
+            "id": "n0_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q1",
+                    "key": "q1",
+                    "label": {
+                        "en_US": "Question 1"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 1
+                    },
+                    "type": "slider",
+                    "required": true,
+                    "props": {
+                        "min": 0,
+                        "max": 100,
+                        "step": 1,
+                        "start": 0,
+                        "unit": {
+                            "text": {
+                                "en_US": ""
+                            },
+                            "position": "after"
+                        },
+                        "thousandsSeparator": true,
+                        "manualInput": {
+                            "enabled": false,
+                            "label": {
+                                "en_US": ""
+                            }
+                        }
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 1
+            }
+        },
+        {
+            "id": "n1_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q2",
+                    "key": "q2",
+                    "label": {
+                        "en_US": "Question 2"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 2
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q2_o0",
+                            "label": {
+                                "en_US": "A"
+                            },
+                            "value": "A",
+                            "calcValue": 10,
+                            "hiddenValue": "tag-a"
+                        },
+                        {
+                            "id": "q2_o1",
+                            "label": {
+                                "en_US": "B"
+                            },
+                            "value": "B"
+                        }
+                    ],
+                    "props": {
+                        "multiple": true,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 2
+            }
+        },
+        {
+            "id": "n1_1",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q3",
+                    "key": "q3",
+                    "label": {
+                        "en_US": "Question 3"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 3
+                    },
+                    "type": "content",
+                    "required": false,
+                    "props": {
+                        "html": {
+                            "en_US": "<p>{{calc:calc50}}</p>"
+                        },
+                        "button": {
+                            "show": false,
+                            "label": {
+                                "en_US": ""
+                            }
+                        }
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 3
+            }
+        },
+        {
+            "id": "n2_0",
+            "type": "contact",
+            "title": {
+                "en_US": "Contact"
+            },
+            "description": {
+                "en_US": ""
+            },
+            "submitLabel": {
+                "en_US": "Send"
+            },
+            "fields": [
+                {
+                    "id": "c_email",
+                    "type": "email",
+                    "key": "email",
+                    "label": {
+                        "en_US": "E-mail"
+                    },
+                    "required": true,
+                    "props": {
+                        "b2bOnly": false,
+                        "placeholder": {
+                            "en_US": ""
+                        },
+                        "prefillFromQuery": "email"
+                    }
+                }
+            ],
+            "showBottomBar": true,
+            "legacy": {
+                "contactFormId": 9
+            }
+        },
+        {
+            "id": "n1_2",
+            "type": "end",
+            "success": null,
+            "redirect": {
+                "url": {
+                    "en_US": "https://seven.test/?a={{answers:base64json}}"
+                },
+                "newTab": false,
+                "delayMs": 0,
+                "params": []
+            }
+        },
+        {
+            "id": "n2_0_end",
+            "type": "end",
+            "success": {
+                "show": true,
+                "text": {
+                    "en_US": ""
+                }
+            },
+            "redirect": {
+                "url": {
+                    "en_US": "https://thanks.test"
+                },
+                "newTab": false,
+                "delayMs": 2000,
+                "params": []
+            }
+        }
+    ],
+    "edges": [
+        {
+            "id": "e_n0_0_0",
+            "from": "n0_0",
+            "to": "n1_2",
+            "when": {
+                "field": "q1",
+                "op": "eq",
+                "value": 7,
+                "number": "int"
+            }
+        },
+        {
+            "id": "e_n0_0_1",
+            "from": "n0_0",
+            "to": "n1_1",
+            "when": {
+                "field": "q1",
+                "op": "gt",
+                "value": 50,
+                "number": "int"
+            }
+        },
+        {
+            "id": "e_n0_0_2",
+            "from": "n0_0",
+            "to": "n1_0",
+            "default": true
+        },
+        {
+            "id": "e_n1_0_0",
+            "from": "n1_0",
+            "to": "n2_0",
+            "when": {
+                "field": "q2",
+                "op": "selectedOnly",
+                "value": "q2_o0"
+            }
+        },
+        {
+            "id": "e_n1_0_1",
+            "from": "n1_0",
+            "to": "n1_1",
+            "default": true
+        },
+        {
+            "id": "e_n1_1_0",
+            "from": "n1_1",
+            "to": "n2_0",
+            "default": true
+        },
+        {
+            "id": "e_n2_0_end",
+            "from": "n2_0",
+            "to": "n2_0_end",
+            "default": true
+        }
+    ],
+    "calculations": [
+        {
+            "id": "calc50",
+            "label": "Calc 50",
+            "expression": {
+                "op": "+",
+                "args": [
+                    {
+                        "op": "*",
+                        "args": [
+                            {
+                                "var": "q1"
+                            },
+                            {
+                                "num": 2
+                            }
+                        ]
+                    },
+                    {
+                        "num": 1
+                    }
+                ]
+            },
+            "format": {
+                "decimals": 2,
+                "decimalSeparator": ".",
+                "thousandsSeparator": ","
+            },
+            "legacy": {
+                "calculationId": 50,
+                "formula": "[1] * 2 + 1"
+            }
+        }
+    ],
+    "actions": [
+        {
+            "id": "a_n2_0_webhook",
+            "on": "submit",
+            "node": "n2_0",
+            "kind": "webhook",
+            "config": {
+                "url": "https://hook.test"
+            }
+        },
+        {
+            "id": "a_n2_0_mail",
+            "on": "submit",
+            "node": "n2_0",
+            "kind": "email",
+            "config": {
+                "from": {
+                    "en_US": ""
+                },
+                "fromName": {
+                    "en_US": ""
+                },
+                "to": {
+                    "en_US": "owner@example.test"
+                },
+                "cc": {
+                    "en_US": ""
+                },
+                "bcc": {
+                    "en_US": ""
+                },
+                "replyTo": {
+                    "en_US": ""
+                },
+                "subject": {
+                    "en_US": "New lead"
+                },
+                "body": {
+                    "en_US": "{{answers_with_hidden}}"
+                },
+                "nl2br": true,
+                "transport": {
+                    "type": "wp_mail"
+                }
+            }
+        }
+    ],
+    "style": {
+        "preset": "classic",
+        "tokens": {}
+    },
+    "settings": {
+        "uiLocale": "en_US",
+        "progressBar": {
+            "show": true
+        },
+        "loadingAnimation": false,
+        "scrollToTop": {
+            "desktop": false,
+            "mobile": true
+        },
+        "rtl": false,
+        "autoHeight": false,
+        "iconFont": false,
+        "savePartialEntries": false
+    },
+    "layout": {
+        "nodes": {}
+    },
+    "meta": {
+        "legacy": {
+            "formId": 1000,
+            "migratorVersion": 1,
+            "notes": []
+        }
+    }
+}
