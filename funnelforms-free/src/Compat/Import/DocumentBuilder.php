@@ -263,7 +263,7 @@ final class DocumentBuilder {
 					'mobile'  => true,
 				),
 				'rtl'                => false,
-				'autoHeight'         => false,
+				'autoHeight'         => true,
 				'iconFont'           => false,
 				'savePartialEntries' => false,
 			),

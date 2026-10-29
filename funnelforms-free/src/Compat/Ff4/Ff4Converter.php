@@ -489,7 +489,7 @@ final class Ff4Converter {
 				'mobile'  => true,
 			),
 			'rtl'                => false,
-			'autoHeight'         => false,
+			'autoHeight'         => true,
 			'iconFont'           => false,
 			'savePartialEntries' => false,
 		);

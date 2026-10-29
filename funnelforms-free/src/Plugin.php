@@ -23,6 +23,7 @@ use Funnelforms\Admin\ImportPage;
 use Funnelforms\Admin\EntryPdfDownload;
 use Funnelforms\Admin\Menu;
 use Funnelforms\Admin\AppointmentsPage;
+use Funnelforms\Admin\PredictionPage;
 use Funnelforms\Admin\IntegrationsPage;
 use Funnelforms\Admin\MigrationPage;
 use Funnelforms\Admin\SettingsPage;
@@ -183,6 +184,7 @@ final class Plugin {
 			\Funnelforms\Application\ExperimentSchedule::class,
 			SupportAccess::class,
 			License::class,
+			\Funnelforms\Application\Notices\Notices::class,
 			Sender::class,
 			AdminUsage::class,
 			Privacy::class,
@@ -218,12 +220,14 @@ final class Plugin {
 			AppointmentsPage::class,
 			IntegrationsPage::class,
 			StatsPage::class,
+			PredictionPage::class,
 			ImportPage::class,
 			SiteHealth::class,
 			AccountPage::class,
 			AppPage::class,
 			ReferPage::class,
 			SupportPage::class,
+			\Funnelforms\Admin\NoticesView::class,
 			SetupPage::class,
 		);
 	}
@@ -239,6 +243,7 @@ final class Plugin {
 			FileCleanup::class                       => 'HOOK',
 			SupportAccess::class                     => 'HOOK',
 			License::class                           => 'HOOK',
+			\Funnelforms\Application\Notices\Notices::class => 'HOOK',
 			\Funnelforms\Application\Payments::class => 'RECONCILE_HOOK',
 			\Funnelforms\Application\ExperimentSchedule::class => 'HOOK',
 		);

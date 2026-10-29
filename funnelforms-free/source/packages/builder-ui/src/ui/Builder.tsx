@@ -4,7 +4,7 @@
  * design, the settings, the actions or the ways to embed the form. The figures of a form are on
  * the statistics page; from there the editor can open with them on the canvas (figures).
  */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import type { AiConfig, FormsApi, Revision } from '../api';
 import { AiBar } from './AiForm';
@@ -23,6 +23,8 @@ import { EmbedWorkspace } from './Embed';
 import type { EmbedConfig } from '../embed';
 import { DraftPreview } from './Preview';
 import { AnalyticsContext, useAnalyticsState, type Analytics } from './Analytics';
+import { PredictionContext, predictionBadge, usePredictionState, type PredictionMode } from './Prediction';
+import { PredictionWorkspace } from './PredictionWorkspace';
 import { canvasFigures, FiguresContext } from './Stats';
 import type { StepFigures } from '../stats';
 import { StatusBadge } from './FormsList';
@@ -73,9 +75,42 @@ export function Builder( { api, formId, onBack, labelsFor, store: given, rights 
 	// The edition is a constant of the build, so the order of the hooks stays the same.
 	const analyticsState = 'free' === process.env.FUNNELFORMS_EDITION ? null : useAnalyticsState( api, formId, store );
 	// The figures need the right to see entries, so the mode is off without it.
-	const analytics = rights.entries ? analyticsState : null;
+	const analyticsMode = rights.entries ? analyticsState : null;
+	const [ chosen, showView ] = useState<View>( first );
+	// The prediction (Predictive AI) needs the AI form builder; one of the two modes at a time.
+	// Its tab and the canvas mode share it, so a new analysis in the tab shows on the canvas.
+	const predictionState = 'free' === process.env.FUNNELFORMS_EDITION ? null : usePredictionState( api, formId, store, ai, 'predict' === chosen, locked );
+	const prediction = useMemo<PredictionMode | null>(
+		() =>
+			predictionState && {
+				...predictionState,
+				setOn: ( on: boolean ) => {
+					if ( on ) {
+						analyticsMode?.setOn( false );
+					}
+					predictionState.setOn( on );
+				},
+			},
+		[ predictionState, analyticsMode ]
+	);
+	const analytics = useMemo<Analytics | null>(
+		() =>
+			analyticsMode && {
+				...analyticsMode,
+				setOn: ( on: boolean ) => {
+					if ( on ) {
+						predictionState?.setOn( false );
+					}
+					analyticsMode.setOn( on );
+				},
+			},
+		[ analyticsMode, predictionState ]
+	);
 	const [ touring, setTouring ] = useState( false );
-	const [ view, showView ] = useState<View>( first );
+	// Publishing, with the note it starts with (e.g. from the Predictive AI); null: closed.
+	const [ publishNote, setPublishNote ] = useState<string | null>( null );
+	// Without the prediction (Funnelforms Free, no AI) its tab is not there: the canvas instead.
+	const view: View = 'predict' === chosen && ! prediction ? 'build' : chosen;
 	const doc = useStore( store, ( s ) => s.doc );
 	/**
 	 * What happens after sending is edited at the contact step whose entries it handles; the
@@ -99,13 +134,17 @@ export function Builder( { api, formId, onBack, labelsFor, store: given, rights 
 		}
 	}, [ status, view, setView ] );
 	useFoldedMenu();
-	// From the statistics page: the figures on the steps, once the form is loaded.
+	// From the statistics page: the figures on the steps, once the form is loaded. Only once: the
+	// switch of the mode changes with every state of both modes, and turning the figures on again
+	// then would keep them from being turned off and the prediction from being turned on.
 	const setAnalyticsOn = analytics?.setOn;
+	const figuresOpened = useRef( false );
 	useEffect( () => {
-		if ( ! withFigures || ! rights.entries || 'ready' !== status ) {
+		if ( ! withFigures || ! rights.entries || 'ready' !== status || figuresOpened.current ) {
 			return;
 		}
 		if ( setAnalyticsOn ) {
+			figuresOpened.current = true;
 			setAnalyticsOn( true );
 			return;
 		}
@@ -163,7 +202,7 @@ export function Builder( { api, formId, onBack, labelsFor, store: given, rights 
 	return (
 		<BuilderContext.Provider value={ env }>
 			<div className="ffxb-builder">
-				<TopBar api={ api } formId={ formId } onBack={ onBack } view={ view } onView={ setView } onTour={ tour ? startTour : undefined } />
+				<TopBar api={ api } formId={ formId } onBack={ onBack } view={ view } onView={ setView } onTour={ tour ? startTour : undefined } prediction={ prediction } publishNote={ publishNote } onPublish={ setPublishNote } />
 				<LockedBanner />
 				{ figures && 'build' === view ? (
 					<div className="ffxb-figures-bar" role="status">
@@ -177,22 +216,40 @@ export function Builder( { api, formId, onBack, labelsFor, store: given, rights 
 					<AiWorkspaces api={ api } ai={ 'free' === process.env.FUNNELFORMS_EDITION ? null : ai } formId={ formId } show={ 'build' === view || 'design' === view || 'settings' === view }>
 						{ 'build' === view ? (
 							<AnalyticsContext.Provider value={ analytics }>
-								<div className="ffxb-builder__body">
-									<Palette />
-									<FiguresContext.Provider value={ figures?.figures ?? null }>
-										<Canvas />
-									</FiguresContext.Provider>
-									<Inspector />
-								</div>
+								<PredictionContext.Provider value={ prediction }>
+									<div className="ffxb-builder__body">
+										<Palette />
+										<FiguresContext.Provider value={ figures?.figures ?? null }>
+											<Canvas />
+										</FiguresContext.Provider>
+										<Inspector />
+									</div>
+								</PredictionContext.Provider>
 							</AnalyticsContext.Provider>
 						) : null }
 						{ 'design' === view ? <DesignWorkspace api={ api } formId={ formId } /> : null }
 						{ 'settings' === view && doc ? <SettingsWorkspace doc={ doc } /> : null }
 						{ 'actions' === view && doc ? <ActionsWorkspace doc={ doc } /> : null }
+						{ 'predict' === view && prediction ? (
+							<PredictionWorkspace
+								api={ api }
+								formId={ formId }
+								mode={ prediction }
+								locale={ locale }
+								onCanvas={ ( node ) => {
+									prediction.setOn( true );
+									if ( node ) {
+										store.getState().select( { node } );
+									}
+									setView( 'build' );
+								} }
+								onPublish={ locked ? undefined : setPublishNote }
+							/>
+						) : null }
 						{ 'embed' === view ? <EmbedWorkspace config={ embed } /> : null }
 					</AiWorkspaces>
 				</ViewContext.Provider>
-				<Shortcuts analytics={ 'build' === view ? analytics : null } />
+				<Shortcuts analytics={ 'build' === view ? analytics : null } prediction={ 'build' === view ? prediction : null } />
 				<ChangeNotice />
 				<LeaveGuard />
 				{ touring ? <Tour onClose={ () => setTouring( false ) } /> : null }
@@ -229,25 +286,33 @@ function SaveState() {
  * The workspaces in the top bar. The figures of a form are no workspace of the editor: they live
  * under Funnelforms → Statistics, in both editions.
  */
-function Views( { view, onView }: { view: View; onView: ( view: View ) => void } ) {
+function Views( { view, onView, prediction }: { view: View; onView: ( view: View ) => void; prediction: PredictionMode | null } ) {
 	const views: Array<[ View, string ]> = [
 		[ 'build', __( 'Structure', 'funnelforms-pro' ) ],
 		[ 'design', __( 'Design', 'funnelforms-pro' ) ],
 		[ 'settings', __( 'Settings', 'funnelforms-pro' ) ],
+		...( prediction ? [ [ 'predict', __( 'Predictive AI', 'funnelforms-pro' ) ] as [ View, string ] ] : [] ),
 		[ 'embed', __( 'Embed', 'funnelforms-pro' ) ],
 	];
+	const badge = predictionBadge( prediction );
 	return (
 		<nav className="ffxb-views" aria-label={ __( 'Workspaces', 'funnelforms-pro' ) }>
 			{ views.map( ( [ id, label ] ) => (
 				<button key={ id } type="button" className={ 'ffxb-views__item' + ( view === id ? ' is-active' : '' ) } aria-current={ view === id ? 'page' : undefined } data-view={ id } onClick={ () => onView( id ) }>
 					{ label }
+					{ 'predict' === id && badge?.busy ? <span className="ffxb-views__busy" aria-hidden="true" /> : null }
+					{ 'predict' === id && badge && ! badge.busy && badge.open > 0 ? (
+						<span className="ffxb-views__badge" aria-hidden="true">
+							{ badge.open }
+						</span>
+					) : null }
 				</button>
 			) ) }
 		</nav>
 	);
 }
 
-function TopBar( { api, formId, onBack, view, onView, onTour }: { api: FormsApi; formId: number; onBack: () => void; view: View; onView: ( view: View ) => void; onTour?: () => void } ) {
+function TopBar( { api, formId, onBack, view, onView, onTour, prediction, publishNote, onPublish }: { api: FormsApi; formId: number; onBack: () => void; view: View; onView: ( view: View ) => void; onTour?: () => void; prediction: PredictionMode | null; publishNote: string | null; onPublish: ( note: string | null ) => void } ) {
 	const { store, readOnly } = useEnv();
 	const form = useBuilder( ( s ) => s.form );
 	const title = useBuilder( ( s ) => s.doc?.title ?? '' );
@@ -255,7 +320,6 @@ function TopBar( { api, formId, onBack, view, onView, onTour }: { api: FormsApi;
 	const canRedo = useBuilder( ( s ) => s.canRedo );
 	const problems = useBuilder( ( s ) => problemTexts( s.problems ).length + s.missingRights.length );
 	const { undo, redo } = store.getState();
-	const [ publishing, setPublishing ] = useState( false );
 	const [ revisions, setRevisions ] = useState( false );
 	const [ previewing, setPreviewing ] = useState( false );
 	return (
@@ -270,7 +334,7 @@ function TopBar( { api, formId, onBack, view, onView, onTour }: { api: FormsApi;
 					</span>
 				</div>
 			</div>
-			<Views view={ view } onView={ onView } />
+			<Views view={ view } onView={ onView } prediction={ prediction } />
 			<div className="ffxb-topbar__actions">
 				<LanguagePicker />
 				{ onTour ? <Button variant="ghost" icon={ <TourIcon /> } aria-label={ __( 'Tour through the builder', 'funnelforms-pro' ) } title={ __( 'Tour through the builder', 'funnelforms-pro' ) } onClick={ onTour } /> : null }
@@ -281,16 +345,17 @@ function TopBar( { api, formId, onBack, view, onView, onTour }: { api: FormsApi;
 				<Button icon={ icons.eye } data-tour="preview" onClick={ () => setPreviewing( true ) }>
 					{ __( 'Preview', 'funnelforms-pro' ) }
 				</Button>
-				<Button variant="primary" icon={ icons.check } data-tour="publish" disabled={ readOnly } onClick={ () => setPublishing( true ) }>
+				<Button variant="primary" icon={ icons.check } data-tour="publish" disabled={ readOnly } onClick={ () => onPublish( '' ) }>
 					{ __( 'Publish', 'funnelforms-pro' ) }
 					{ problems > 0 ? <span className="ffxb-count">{ problems }</span> : null }
 				</Button>
 			</div>
-			{ publishing ? (
+			{ null !== publishNote ? (
 				<PublishDialog
-					onClose={ () => setPublishing( false ) }
+					note={ publishNote }
+					onClose={ () => onPublish( null ) }
 					onEmbed={ () => {
-						setPublishing( false );
+						onPublish( null );
 						onView( 'embed' );
 					} }
 				/>
@@ -359,7 +424,7 @@ function LockedBanner() {
 	);
 }
 
-function PublishDialog( { onClose, onEmbed }: { onClose: () => void; onEmbed: () => void } ) {
+function PublishDialog( { note: initialNote = '', onClose, onEmbed }: { note?: string; onClose: () => void; onEmbed: () => void } ) {
 	const { store } = useEnv();
 	const publishing = useBuilder( ( s ) => s.publishing );
 	const problems = useBuilder( ( s ) => s.problems );
@@ -367,7 +432,7 @@ function PublishDialog( { onClose, onEmbed }: { onClose: () => void; onEmbed: ()
 	const form = useBuilder( ( s ) => s.form );
 	const doc = useBuilder( ( s ) => s.doc );
 	const delivery = useMemo( () => ( doc ? deliveryWarnings( doc ) : [] ), [ doc ] );
-	const [ note, setNote ] = useState( '' );
+	const [ note, setNote ] = useState( initialNote );
 	const busy = 'publishing' === publishing.state;
 	const done = 'published' === publishing.state;
 	const blocked = problems.length > 0 || missingRights.length > 0;
@@ -596,7 +661,7 @@ function paste( state: ReturnType<BuilderStore[ 'getState' ]>, clip: Clip ): voi
 }
 
 /** Keyboard shortcuts while no input has the focus (undo and save also inside inputs). */
-function Shortcuts( { analytics }: { analytics: Analytics | null } ) {
+function Shortcuts( { analytics, prediction }: { analytics: Analytics | null; prediction: PredictionMode | null } ) {
 	const { store, readOnly, rights } = useEnv();
 	const [ help, setHelp ] = useState( false );
 	useEffect( () => {
@@ -627,6 +692,11 @@ function Shortcuts( { analytics }: { analytics: Analytics | null } ) {
 			if ( 'a' === key && ! mod && ! event.altKey && analytics ) {
 				event.preventDefault();
 				analytics.setOn( ! analytics.on );
+				return;
+			}
+			if ( 'p' === key && ! mod && ! event.altKey && prediction ) {
+				event.preventDefault();
+				prediction.setOn( ! prediction.on );
 				return;
 			}
 			const { node: selected } = state.selection;
@@ -703,7 +773,7 @@ function Shortcuts( { analytics }: { analytics: Analytics | null } ) {
 		};
 		window.addEventListener( 'keydown', onKey );
 		return () => window.removeEventListener( 'keydown', onKey );
-	}, [ store, readOnly, analytics ] );
+	}, [ store, readOnly, analytics, prediction ] );
 	if ( ! help ) {
 		return null;
 	}
@@ -718,6 +788,7 @@ function Shortcuts( { analytics }: { analytics: Analytics | null } ) {
 		[ [ __( 'Delete', 'funnelforms-pro' ) ], __( 'Delete the selected step, field or path', 'funnelforms-pro' ) ],
 		[ [ 'L' ], __( 'Switch between the content and the logic of the selected step', 'funnelforms-pro' ) ],
 		...( 'free' === process.env.FUNNELFORMS_EDITION || ! rights.entries ? [] : [ [ [ 'A' ], __( 'Turn the analytics on the canvas on or off', 'funnelforms-pro' ) ] as [ string[], string ] ] ),
+		...( prediction ? [ [ [ 'P' ], __( 'Turn the prediction on the canvas on or off', 'funnelforms-pro' ) ] as [ string[], string ] ] : [] ),
 		[ [ 'Esc' ], __( 'Deselect', 'funnelforms-pro' ) ],
 		[ [ '?' ], __( 'Show these shortcuts', 'funnelforms-pro' ) ],
 	];

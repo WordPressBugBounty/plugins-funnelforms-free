@@ -27,13 +27,18 @@ remove_role( 'funnelforms_support' );
 delete_option( 'funnelforms_license' );
 delete_option( 'funnelforms_license_legacy' );
 delete_option( 'funnelforms_license_account_last' );
+// What the Brain last said about the analyses of the Predictive AI.
+delete_transient( 'funnelforms_prediction_quota' );
 delete_site_transient( 'funnelforms_update' );
 delete_site_transient( 'funnelforms_update_renewed' );
 delete_site_option( 'funnelforms_update_channel' );
 delete_option( 'funnelforms_support_login_used' );
 delete_option( 'funnelforms_support_pending_ends' );
+// The notices of Funnelforms and which of them each user hid.
+delete_option( 'funnelforms_notices' );
+delete_metadata( 'user', 0, 'funnelforms_notices_dismissed', '', true );
 // Jobs only Pro runs.
-foreach ( array( 'funnelforms_support_cleanup', 'funnelforms_license_renew', 'funnelforms_license_legacy', 'funnelforms_payments_reconcile' ) as $funnelforms_hook ) {
+foreach ( array( 'funnelforms_support_cleanup', 'funnelforms_license_renew', 'funnelforms_license_legacy', 'funnelforms_payments_reconcile', 'funnelforms_notices_fetch' ) as $funnelforms_hook ) {
 	wp_unschedule_hook( $funnelforms_hook );
 }
 
@@ -114,3 +119,5 @@ if ( is_dir( $funnelforms_backups ) ) {
 foreach ( array( 'ffx_db_version', 'ffx_migration_state', 'ffx_migration_lock', 'ffx_delete_data_on_uninstall', 'funnelforms_google_maps_key', 'funnelforms_allow_tracking_code', 'funnelforms_retention_days', 'funnelforms_embed_domains', 'funnelforms_webhook_secret', 'funnelforms_watch', 'funnelforms_watch_state', 'funnelforms_page_watch', 'funnelforms_page_watch_pages', 'funnelforms_page_watch_sms', 'funnelforms_page_watch_texts', 'funnelforms_page_watch_state', 'funnelforms_styles', 'funnelforms_lead_stages', 'funnelforms_google_fonts', 'funnelforms_mode', 'funnelforms_rollback', 'funnelforms_setup', 'funnelforms_migration_held', 'funnelforms_auto_renderer', 'funnelforms_auto_renderer_forms', 'funnelforms_renderer_pinned', 'funnelforms_backups', 'funnelforms_backups_retired' ) as $funnelforms_option ) {
 	delete_option( $funnelforms_option );
 }
+// The last prediction of each form (Predictive AI, Pro).
+$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like( 'funnelforms_prediction_' ) . '%' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- once, on uninstall.

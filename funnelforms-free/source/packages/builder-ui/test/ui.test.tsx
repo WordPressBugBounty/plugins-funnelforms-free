@@ -730,6 +730,11 @@ describe( 'builder', () => {
 		await settle();
 		expect( icons ).toHaveBeenCalledTimes( 1 );
 		const dialog = [ ...container.querySelectorAll( 'dialog' ) ].find( ( d ) => 'Icon of answer 1' === d.getAttribute( 'aria-label' ) ) as HTMLDialogElement;
+		// Without a search: the groups, the first with the icons of the set it names
+		expect( [ ...dialog.querySelectorAll( '.ffxb-icon-picker__group' ) ].map( ( b ) => b.textContent ) ).toContain( 'Home and building' );
+		expect( dialog.querySelector( '.ffxb-icon-picker__group.is-selected' )?.textContent ).toBe( 'Popular' );
+		expect( [ ...dialog.querySelectorAll( '.ffxb-icon-picker__icon' ) ].map( ( b ) => b.getAttribute( 'aria-label' ) ) ).toEqual( [ 'house', 'car', 'mail' ] );
+		await act( async () => ( [ ...dialog.querySelectorAll( '.ffxb-icon-picker__group' ) ].find( ( b ) => 'All icons' === b.textContent ) as HTMLButtonElement ).click() );
 		expect( dialog.textContent ).toContain( 'Icons found: 3' );
 		expect( dialog.textContent ).toContain( 'Lucide 1.58.0' );
 		const search = dialog.querySelector( 'input[type="search"]' ) as HTMLInputElement;
@@ -2291,6 +2296,53 @@ describe( 'appointments', () => {
 		await settle();
 		expect( api.saveBookingType ).toHaveBeenLastCalledWith( null, 'Beratung', expect.objectContaining( { calendars: { write: 'google:g1', conflicts: [ 'google:g1' ] } } ) );
 		open.mockRestore();
+	} );
+
+	it( 'lists the calendars of a checked account in the type and saves which of them count', async () => {
+		const config = { ...bookingDefaults(), calendars: { write: 'caldav:c1', conflicts: [ 'caldav:c1' ] } };
+		const work = 'https://p52-caldav.icloud.com:443/1/calendars/work/';
+		const home = 'https://p52-caldav.icloud.com:443/1/calendars/home/';
+		const account = { ref: 'caldav:c1', type: 'caldav', label: 'Apple', error: null, busy: [ work ] };
+		const api = fakeApi( {
+			bookingTypes: vi.fn( async () => ( {
+				types: [ { ref: 'bt:1', id: 1, title: 'Beratung', config, legacy: false, cronofy: false } ],
+				staff: [ { id: 1, name: 'Ada' } ],
+				calendars: [ account ],
+				timezone: 'Europe/Berlin',
+				defaults: bookingDefaults(),
+			} ) ),
+			accountCalendars: vi.fn( async () => [
+				{ id: work, name: 'Arbeit', writable: true, primary: false },
+				{ id: home, name: 'Privat', writable: true, primary: false },
+			] ),
+			arrangeCalendar: vi.fn( async ( _ref: string, changes: { busy?: string[] } ) => ( {
+				connections: [ { ref: 'caldav:c1', type: 'caldav' as const, label: 'Apple', account: 'ada@icloud.com', calendar: work, busy: changes.busy ?? [], owner: 0, ownerName: '', error: null, usedBy: [], removable: true, createdAt: '2026-10-01T00:00:00Z' } ],
+				people: [],
+				website: { connected: false, accountUrl: '' },
+				types: [],
+				timezone: 'Europe/Berlin',
+			} ) ),
+		} );
+		const store = createBuilderStore( api, 7, { autosaveMs: 60000 } );
+		await act( async () => root.render( <Builder api={ api } formId={ 7 } onBack={ () => undefined } store={ store } rights={ { entries: true, code: false, settings: true } } /> ) );
+		await settle();
+		await act( async () => button( 'Appointment' ).click() );
+		await settle();
+		await fill( 'Appointment type', 'bt:1' );
+		await act( async () => button( 'Edit appointment type' ).click() );
+		await settle();
+		const editor = container.querySelector( 'dialog[aria-label="Edit appointment type"]' ) as HTMLDialogElement;
+		expect( api.accountCalendars ).toHaveBeenCalledWith( 'caldav:c1' );
+		const box = ( name: string ): HTMLInputElement => [ ...editor.querySelectorAll( '.ffxb-account-calendars label' ) ].find( ( l ) => l.textContent === name )?.querySelector( 'input' ) as HTMLInputElement;
+		expect( [ box( 'Arbeit' ).checked, box( 'Privat' ).checked ] ).toEqual( [ true, false ] );
+		await act( async () => box( 'Privat' ).click() );
+		await settle();
+		expect( api.arrangeCalendar ).toHaveBeenLastCalledWith( 'caldav:c1', { busy: [ work, home ] } );
+		expect( box( 'Privat' ).checked ).toBe( true );
+		await act( async () => box( 'Arbeit' ).click() );
+		await act( async () => box( 'Privat' ).click() );
+		await settle();
+		expect( editor.textContent ).toContain( 'No calendar of this account is checked, so it blocks no times.' );
 	} );
 
 	it( 'offers to connect a calendar again whose access ran out', async () => {

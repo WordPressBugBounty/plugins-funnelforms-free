@@ -6,7 +6,8 @@ import { ApiError } from './api';
 import { createConnectApi, type ConnectApi } from './connect';
 import { createHubApi, type HubApi } from './hub';
 import { __ } from './ui/i18n';
-import type { AiChange, AiCreated, Appointment, BookingConfig, BookingType, BookingTypes, Branding, BulkChanges, CalendarChoice, CalendarSignIn, CalendarsOverview, Connection, ConnectionTest, EntriesApi, EntryChanges, EntryDetail, EntryFigures, EntryFiguresQuery, EntryFilter, EntryList, EntryNote, EntryPayment, EntrySummary, ExperimentStats, LeadStage, LeadStageInput, FontFile, FormDetail, FormFigures, FormList, FormsApi, FormStatsReport, FormStatus, GoogleFont, IconLibrary, ImportedForm, ListQuery, MediaFile, MediaImage, NewWhatsAppTemplate, PublishResult, Revision, SavedStyle, SaveResult, SiteDesign, SitePage, TemplateCatalog, UserRef, WhatsAppTemplate } from './api';
+import type { PredictionFigures, PredictionParameters, StoredPrediction } from './predict';
+import type { AiChange, AiCreated, PredictionHistory, PredictionQuota, PredictionRun, Appointment, BookingConfig, BookingType, BookingTypes, Branding, BulkChanges, CalendarChoice, CalendarSignIn, CalendarsOverview, Connection, ConnectionTest, ConnectionTestResult, EntriesApi, EntryChanges, EntryDetail, EntryFigures, EntryFiguresQuery, EntryFilter, EntryList, EntryNote, EntryPayment, EntrySummary, ExperimentStats, LeadStage, LeadStageInput, FontFile, FormDetail, FormFigures, FormList, FormsApi, FormStatsReport, FormStatus, GoogleFont, IconLibrary, ImportedForm, ListQuery, MediaFile, MediaImage, NewWhatsAppTemplate, PublishResult, Revision, SavedStyle, SaveResult, SiteDesign, SitePage, TemplateCatalog, UserRef, WhatsAppTemplate } from './api';
 
 export interface WpRestOptions {
 	/** REST root as WordPress prints it (wpApiSettings.root): …/wp-json/ or …/?rest_route=/ */
@@ -21,6 +22,14 @@ export interface WpRestOptions {
 }
 
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+/** A prediction the Funnelforms server works on is asked for every 3 seconds, for up to 150 seconds (the AI stops after 90). */
+const PREDICTION_POLL_MS = 3000;
+const PREDICTION_POLLS = 50;
+/** Answers in a row without the plugin (a web server or the connection failed) before polling gives up. */
+const PREDICTION_MISSES = 3;
+
+const pause = ( ms: number ): Promise<void> => new Promise( ( resolve ) => setTimeout( resolve, ms ) );
 
 /** The part of wp.media (wp_enqueue_media) the builder uses. */
 interface WpMediaAttachment {
@@ -90,9 +99,11 @@ export class WpRestAdapter implements FormsApi, EntriesApi {
 	/** A request, with the headers of the answer (paging of lists). */
 	private async send<T>( method: Method, path: string, body?: unknown, query: Record<string, string | number | boolean | undefined> = {} ): Promise<{ data: T; headers: Headers | undefined }> {
 		const headers: Record<string, string> = { 'X-WP-Nonce': this.nonce, Accept: 'application/json' };
-		// Some hosts block PUT, PATCH and DELETE; WordPress takes the method from this header.
+		// Some hosts block PUT, PATCH and DELETE; WordPress takes the method from this header, or from
+		// _method in the address where a host strips the header.
 		if ( 'GET' !== method && 'POST' !== method ) {
 			headers[ 'X-HTTP-Method-Override' ] = method;
+			query = { ...query, _method: method };
 		}
 		let payload: BodyInit | undefined;
 		if ( body instanceof FormData ) {
@@ -126,7 +137,9 @@ export class WpRestAdapter implements FormsApi, EntriesApi {
 		}
 		if ( ! response.ok ) {
 			const error = ( data && 'object' === typeof data ? data : {} ) as Record<string, unknown>;
-			throw new ApiError( String( error.code ?? 'http_' + response.status ), String( error.message ?? response.statusText ), response.status, error );
+			// Without an answer of WordPress a web server or proxy stopped the request ("502 Bad Gateway").
+			const fallback = response.status >= 500 ? __( 'The server of your website did not answer in time. Try again in a moment.', 'funnelforms-pro' ) : response.statusText;
+			throw new ApiError( String( error.code ?? 'http_' + response.status ), String( error.message ?? fallback ), response.status, error );
 		}
 		return { data: data as T, headers: response.headers };
 	}
@@ -207,12 +220,59 @@ export class WpRestAdapter implements FormsApi, EntriesApi {
 		return this.request( 'POST', '/templates/' + encodeURIComponent( id ), locale ? { locale } : undefined );
 	}
 
-	aiCreate( prompt: string ): Promise<AiCreated> {
-		return this.request( 'POST', '/ai', { prompt } );
+	aiCreate( prompt: string, locale?: string ): Promise<AiCreated> {
+		return this.request( 'POST', '/ai', locale ? { prompt, locale } : { prompt } );
 	}
 
 	aiEdit( id: number, prompt: string, document: FormDocument ): Promise<AiChange> {
 		return this.request( 'POST', '/' + id + '/ai', { prompt, document } );
+	}
+
+	/**
+	 * The plugin answers 202 {pending} while the Funnelforms server works on the prediction in the
+	 * background; then it is asked for every few seconds, so no request waits long enough for a web
+	 * server to cut it off.
+	 */
+	async predict( id: number, document: FormDocument, parameters: PredictionParameters, visitors: number ): Promise<PredictionRun> {
+		let answer = await this.request<PredictionRun | { pending: true }>( 'POST', '/' + id + '/prediction', { document, parameters, visitors } );
+		let misses = 0;
+		for ( let poll = 0; 'pending' in answer; poll++ ) {
+			if ( poll >= PREDICTION_POLLS ) {
+				throw new ApiError( 'ai_timeout', __( 'The AI took too long. Try again.', 'funnelforms-pro' ), 504 );
+			}
+			await pause( PREDICTION_POLL_MS );
+			try {
+				answer = await this.request<PredictionRun | { pending: true }>( 'GET', '/' + id + '/prediction/pending' );
+				misses = 0;
+			} catch ( e ) {
+				const stopped = e instanceof ApiError && ( 'offline' === e.code || e.code.startsWith( 'http_' ) );
+				if ( ! stopped || ++misses >= PREDICTION_MISSES ) {
+					throw e;
+				}
+			}
+		}
+		return answer;
+	}
+
+	async lastPrediction( id: number ): Promise<StoredPrediction | null> {
+		return ( await this.request<{ prediction: StoredPrediction | null }>( 'GET', '/' + id + '/prediction' ) ).prediction;
+	}
+
+	async markApplied( id: number, suggestions: string[], applied: boolean, summary = '' ): Promise<StoredPrediction> {
+		return ( await this.request<{ prediction: StoredPrediction }>( 'POST', '/' + id + '/prediction/applied', { suggestions, applied, summary } ) ).prediction;
+	}
+
+	async saveFigures( id: number, figures: PredictionFigures ): Promise<StoredPrediction> {
+		return ( await this.request<{ prediction: StoredPrediction }>( 'POST', '/' + id + '/prediction/figures', figures ) ).prediction;
+	}
+
+	async predictionHistory( id: number ): Promise<PredictionHistory> {
+		const answer = await this.request<{ real?: PredictionHistory['real']; history?: PredictionHistory['history'] }>( 'GET', '/' + id + '/prediction' );
+		return { real: answer.real ?? null, history: answer.history ?? [] };
+	}
+
+	async predictionQuota(): Promise<PredictionQuota | null> {
+		return ( await this.request<{ quota: PredictionQuota | null }>( 'GET', '/prediction-quota' ) ).quota;
 	}
 
 	async styles(): Promise<SavedStyle[]> {
@@ -243,8 +303,8 @@ export class WpRestAdapter implements FormsApi, EntriesApi {
 		await this.request( 'DELETE', '~/connections/' + ref );
 	}
 
-	async testConnection( ref: string, test: ConnectionTest ): Promise<void> {
-		await this.request( 'POST', '~/connections/' + ref + '/test', test );
+	testConnection( ref: string, test: ConnectionTest ): Promise<ConnectionTestResult> {
+		return this.request<ConnectionTestResult>( 'POST', '~/connections/' + ref + '/test', test );
 	}
 
 	async pages( search: string ): Promise<SitePage[]> {

@@ -24,10 +24,11 @@ defined( 'ABSPATH' ) || exit;
  * compared with the period before. With ?form=<id> the page shows the analytics of that form
  * (FormStatsPage); the table here leads there. The figures can be downloaded as CSV (StatsExport).
  *
- * The analytics of one form, sources and channels (StatsSources) and the export are Funnelforms
- * Pro. Funnelforms Free names them in their place (FreeSite::hint()); with ?form=<id> it shows the
- * figures of that form (views, starts, entries, where visitors leave) on this page, not in the
- * editor, through the figures screen of the admin app.
+ * The analytics of one form, sources and channels (StatsSources), what became of the leads
+ * (StatsLeads) and the export are Funnelforms Pro. Funnelforms Free names them in their place
+ * (FreeSite::hint()); with ?form=<id> it shows the figures of that form (views, starts, entries,
+ * where visitors leave) on this page, not in the editor, through the figures screen of the admin
+ * app.
  */
 final class StatsPage {
 
@@ -244,6 +245,8 @@ final class StatsPage {
 			</section>
 		</div>
 
+		<?php self::leads( $period ); ?>
+
 		<section class="ffx-card ffx-card--flush ffx-section">
 			<div class="ffx-card__head ffx-stats-head">
 				<h2><?php esc_html_e( 'Forms compared', 'funnelforms-free' ); ?></h2>
@@ -305,8 +308,10 @@ final class StatsPage {
 		$title = null === $form ? '' : ( '' !== (string) $form['title'] ? (string) $form['title'] : __( '(no title)', 'funnelforms-free' ) );
 		Ui::open(
 			array(
-				'title' => __( 'Statistics', 'funnelforms-free' ),
-				'head'  => false,
+				'title'   => __( 'Statistics', 'funnelforms-free' ),
+				'head'    => false,
+				// The head below holds the marker of the notices.
+				'notices' => false,
 			)
 		);
 		?>
@@ -329,6 +334,23 @@ final class StatsPage {
 		<?php endif; ?>
 		<?php
 		Ui::close();
+	}
+
+	/**
+	 * What became of the leads (StatsLeads); Funnelforms Free names it.
+	 *
+	 * @param StatsPeriod $period  Period.
+	 * @param int|null    $form_id One form, or null for all.
+	 */
+	public static function leads( StatsPeriod $period, ?int $form_id = null ): void {
+		$leads = Edition::pro( StatsLeads::class );
+		if ( null !== $leads ) {
+			$leads::render( $period, $form_id );
+			return;
+		}
+		echo '<section class="ffx-card ffx-section"><div class="ffx-card__head"><h2>' . esc_html__( 'Leads and deals', 'funnelforms-free' ) . '</h2></div>';
+		echo FreeSite::hint( __( 'Which leads you won, what they are worth and which sources and campaigns bring them come with Funnelforms Pro. Every entry keeps its source already, so Pro shows them at once.', 'funnelforms-free' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in hint().
+		echo '</section>';
 	}
 
 	/**

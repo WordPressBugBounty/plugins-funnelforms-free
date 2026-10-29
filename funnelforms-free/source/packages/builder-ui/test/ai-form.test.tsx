@@ -113,7 +113,7 @@ describe( 'create with AI', () => {
 		await write( '  Heat pumps for houses, qualify by budget  ' );
 		await act( async () => button( 'Create draft' ).click() );
 
-		expect( api.aiCreate ).toHaveBeenCalledWith( 'Heat pumps for houses, qualify by budget' );
+		expect( api.aiCreate ).toHaveBeenCalledWith( 'Heat pumps for houses, qualify by budget', 'de_DE' );
 		expect( container.querySelector( '.ffxb-ai__progress' )?.getAttribute( 'role' ) ).toBe( 'status' );
 		expect( ( container.querySelector( '.ffxb-ai__prompt' ) as HTMLTextAreaElement ).disabled ).toBe( true );
 		expect( button( 'Back to the templates' ).disabled ).toBe( true );

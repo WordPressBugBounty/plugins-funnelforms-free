@@ -447,8 +447,12 @@ export class FormApp {
 		this.rendering = true;
 		const content = node.type === 'step' ? this.renderStep( node ) : this.renderContact( node );
 		this.rendering = false;
+		const before = this.doc.settings.autoHeight ? this.card.offsetHeight : 0;
 		this.card.replaceChildren( content );
 		this.fillCalcs( content );
+		if ( before > 0 ) {
+			this.easeHeight( before );
+		}
 		// Without "adjust height", the card keeps the height of its tallest step so buttons stay put. A step
 		// with a button of its own (a result with "Get your quote", the contact step) takes its own height,
 		// so no gap opens between its button and the bottom bar.
@@ -1187,6 +1191,25 @@ export class FormApp {
 				this.barLabel.textContent = `${ percent } %`;
 			}
 		}
+	}
+
+	/**
+	 * With "adjust height", the card grows or shrinks to the new step in a short glide instead of a
+	 * jump, so the page below does not leap. Not for visitors who turned off animations.
+	 */
+	private easeHeight( before: number ): void {
+		const after = this.card.offsetHeight;
+		const still = window.matchMedia?.( '(prefers-reduced-motion: reduce)' ).matches ?? false;
+		if ( still || Math.abs( after - before ) < 4 || typeof this.card.animate !== 'function' ) {
+			return;
+		}
+		this.card.animate(
+			[
+				{ height: `${ before }px`, overflow: 'hidden' },
+				{ height: `${ after }px`, overflow: 'hidden' },
+			],
+			{ duration: Math.min( 360, 180 + Math.abs( after - before ) / 4 ), easing: 'cubic-bezier(0.2, 0.7, 0.2, 1)' }
+		);
 	}
 
 	private scrollIntoView(): void {

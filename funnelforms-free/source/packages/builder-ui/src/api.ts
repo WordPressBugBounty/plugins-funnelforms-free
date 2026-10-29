@@ -5,6 +5,7 @@
 import type { Experiment, FormDocument } from '@funnelforms/form-schema';
 import type { TEMPLATE_CATEGORIES, TEMPLATE_GOALS } from './templateTaxonomy';
 import type { ConnectApi } from './connect';
+import type { EarlierPrediction, PredictionFigures, PredictionParameters, RealFigures, StoredPrediction } from './predict';
 
 export interface UserRef {
 	id: number;
@@ -282,6 +283,8 @@ export interface CalendarConnection {
 	type: string;
 	label: string;
 	error: string | null;
+	/** IDs of the calendars of the account checked for busy times (missing: not known yet). */
+	busy?: string[];
 }
 
 /** A calendar of a connected Google or Microsoft account. */
@@ -422,6 +425,12 @@ export interface ConnectionTest {
 	language?: string;
 }
 
+/** What a test found: for calendars, per checked calendar the events of the next two weeks that block times and those marked free. */
+export interface ConnectionTestResult {
+	sent: boolean;
+	calendars?: Array<{ id: string; name: string; busy: number; free: number }>;
+}
+
 /** A page of the site. */
 export interface SitePage {
 	id: number;
@@ -497,6 +506,37 @@ export interface AiChange {
 	summary: string;
 }
 
+/** The real figures around the last prediction (null without one) and the earlier ones (GET …/prediction). */
+export interface PredictionHistory {
+	real: RealFigures | null;
+	history: EarlierPrediction[];
+}
+
+/** A new prediction of the Predictive AI, kept as the form's last one, with the analyses left (UTC). */
+export interface PredictionRun {
+	prediction: StoredPrediction;
+	/** Of this website today. */
+	remainingToday: number;
+	/** Of the license this month. */
+	remainingMonth: number;
+}
+
+/** The behaviour analyses of the license this month, as the Funnelforms server counts them (UTC). */
+export interface PredictionQuota {
+	/** A license is connected. */
+	connected: boolean;
+	/** The license includes the Predictive AI. */
+	included: boolean;
+	plan: string;
+	limit: number;
+	used: number;
+	remaining: number;
+	/** Of this website today; never more than remaining. */
+	remainingToday: number;
+	/** When the month starts again, ISO 8601; empty without the AI. */
+	resetsAt: string;
+}
+
 export interface FormsApi {
 	list( query?: ListQuery ): Promise<FormList>;
 	get( id: number ): Promise<FormDetail>;
@@ -531,9 +571,29 @@ export interface FormsApi {
 	 * none. Fails with not_connected, ai_not_included, too_many, ai_quota, ai_busy, ai_refused,
 	 * ai_invalid, ai_timeout, ai_unavailable or unreachable.
 	 */
-	aiCreate?( prompt: string ): Promise<AiCreated>;
+	aiCreate?( prompt: string, locale?: string ): Promise<AiCreated>;
 	/** The document changed by an instruction (AI form builder); nothing is saved. Fails like aiCreate. */
 	aiEdit?( id: number, prompt: string, document: FormDocument ): Promise<AiChange>;
+	/**
+	 * A behaviour model of the form's visitors (Predictive AI, Funnelforms Pro) for the document as
+	 * the builder has it; the builder simulates the visitors with it. The plugin keeps it as the
+	 * form's last prediction. Fails like aiEdit, and with ai_quota_month and invalid_parameters.
+	 */
+	predict?( id: number, document: FormDocument, parameters: PredictionParameters, visitors: number ): Promise<PredictionRun>;
+	/** The last prediction of a form; null without one. */
+	lastPrediction?( id: number ): Promise<StoredPrediction | null>;
+	/**
+	 * Notes suggestions of the last prediction as put into the form (with the AI's summary of the
+	 * change) or as open again; answers the prediction with them. Fails with not_found without a
+	 * prediction and with unknown_suggestion.
+	 */
+	markApplied?( id: number, suggestions: string[], applied: boolean, summary?: string ): Promise<StoredPrediction>;
+	/** Keeps the figures simulated with the last prediction, for the statistics; answers the prediction with them. */
+	saveFigures?( id: number, figures: PredictionFigures ): Promise<StoredPrediction>;
+	/** The real figures around the last prediction and the earlier predictions, the newest first. */
+	predictionHistory?( id: number ): Promise<PredictionHistory>;
+	/** The analyses left this month; null when the Funnelforms server could not be reached. Counts nothing. */
+	predictionQuota?(): Promise<PredictionQuota | null>;
 	/** Styles saved on the site, newest first. */
 	styles(): Promise<SavedStyle[]>;
 	saveStyle( name: string, tokens: Record<string, string> ): Promise<SavedStyle>;
@@ -576,7 +636,7 @@ export interface FormsApi {
 	/** Deletes a connection; actions that use it stop sending. Needs the right to change settings. */
 	deleteConnection?( ref: string ): Promise<void>;
 	/** Sends a test message through a connection (SMS and WhatsApp to the number given), or reads its calendar; fails with not_testable, invalid_number or delivery_failed. */
-	testConnection?( ref: string, test: ConnectionTest ): Promise<void>;
+	testConnection?( ref: string, test: ConnectionTest ): Promise<ConnectionTestResult | undefined>;
 	/** Published pages of the site whose title holds the search, for redirects. */
 	pages?( search: string ): Promise<SitePage[]>;
 	/** Templates of a WhatsApp connection; fails with connection_incomplete without the business account ID. */

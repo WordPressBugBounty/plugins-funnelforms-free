@@ -44,6 +44,7 @@ import { fieldsOf, removeWithNotice } from './Removal';
 import { describeCondition, edgeLabel, fieldIndex } from './describe';
 import { ActionsSection, kindName } from './Actions';
 import { NodeAnalyticsSection, PathsSection } from './Analytics';
+import { PredictionNodeSection, PredictionOverview } from './Prediction';
 import { HintList, useHints } from './Hints';
 import { EdgeInspector, FieldVisibility, NodeLogic } from './Logic';
 import { StepVariants } from './Experiments';
@@ -83,6 +84,7 @@ export function Inspector() {
 		<aside className="ffxb-inspector" aria-label={ __( 'Properties', 'funnelforms-pro' ) }>
 			<Translating />
 			{ 'free' === process.env.FUNNELFORMS_EDITION ? null : node && ! selection.edge ? <NodeAnalyticsSection nodeId={ node.id } /> : selection.node || selection.edge ? null : <PathsSection /> }
+			{ 'free' === process.env.FUNNELFORMS_EDITION ? null : node && ! selection.edge ? <PredictionNodeSection nodeId={ node.id } /> : selection.node || selection.edge ? null : <PredictionOverview /> }
 			{ body }
 		</aside>
 	);

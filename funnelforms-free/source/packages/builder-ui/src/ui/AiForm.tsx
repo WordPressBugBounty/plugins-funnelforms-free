@@ -143,7 +143,7 @@ export function AiCreateStep( { api, ai, locale, onCreated, onBack }: { api: For
 		setBusy( true );
 		setError( null );
 		try {
-			onCreated( ( await api.aiCreate( prompt.trim() ) ).id );
+			onCreated( ( await api.aiCreate( prompt.trim(), locale || undefined ) ).id );
 		} catch ( e ) {
 			setError( message( e ) );
 			setBusy( false );

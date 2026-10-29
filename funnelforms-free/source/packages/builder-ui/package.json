@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@funnelforms/form-core": "workspace:*",
     "@funnelforms/form-schema": "workspace:*",
     "@xyflow/react": "12.8.6",
     "immer": "10.1.3",

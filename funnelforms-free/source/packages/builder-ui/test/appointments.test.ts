@@ -174,6 +174,7 @@ describe( 'client', () => {
 		expect( JSON.parse( String( init.body ) ) ).toEqual( { start: '2026-10-20T08:00:00Z', message: 'Bis dann' } );
 		const [ url2, init2 ] = fetcher.mock.calls[ 1 ] as unknown as [ string, RequestInit ];
 		expect( url2 ).toContain( '/funnelforms/v1/appointments/mails/2' );
+		expect( url2 ).toContain( '_method=PUT' );
 		expect( ( init2.headers as Record<string, string> )[ 'X-HTTP-Method-Override' ] ).toBe( 'PUT' );
 		expect( ( init2.headers as Record<string, string> )[ 'X-WP-Nonce' ] ).toBe( 'fresh' );
 	} );

@@ -4679,6 +4679,38 @@ body.ffx-screen {
 	margin: 0;
 }
 
+/* News from Funnelforms (overview) */
+
+.ffx-news .ffx-rows > li {
+	align-items: flex-start;
+}
+
+.ffx-news__image {
+	flex: 0 0 auto;
+	width: 96px;
+	max-height: 72px;
+	object-fit: cover;
+	border-radius: 8px;
+}
+
+.ffx-news__title {
+	display: block;
+	margin: 2px 0 4px;
+	color: var(--ffb-text);
+}
+
+.ffx-news__text {
+	display: block;
+	color: var(--ffb-text-muted);
+	overflow-wrap: anywhere;
+}
+
+.ffx-news__link {
+	display: inline-block;
+	margin-top: 6px;
+	font-weight: 600;
+}
+
 /* Support: help center */
 
 .ffx-hero.ffx-help {
@@ -4731,15 +4763,16 @@ body.ffx-screen {
 	box-shadow: var(--ffb-shadow-sm);
 }
 
-.ffx-answers {
+/* The answers of the help center; the statistics use .ffx-answers for their own grid. */
+#ffx-help-results {
 	max-width: 720px;
 }
 
-.ffx-answers:not(:empty) {
+#ffx-help-results:not(:empty) {
 	margin-top: 16px;
 }
 
-.ffx-answers[aria-busy='true'] {
+#ffx-help-results[aria-busy='true'] {
 	opacity: 0.7;
 }
 
@@ -5696,6 +5729,180 @@ body.ffx-screen {
 	font-weight: 700;
 	font-variant-numeric: tabular-nums;
 	overflow-wrap: anywhere;
+}
+
+/* Leads and deals */
+
+.ffx-stats-leads .ffx-card__head p {
+	margin: 4px 0 0;
+}
+
+.ffx-stats-leads .ffx-kpi {
+	background: var(--ffb-surface-2);
+	border-color: transparent;
+	box-shadow: none;
+}
+
+.ffx-stats-leads .ffx-stats-kpis,
+.ffx-stats-leads__parts {
+	margin-bottom: 20px;
+}
+
+.ffx-app .ffx-stats-leads__title {
+	margin: 0 0 10px;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+@media (max-width: 600px) {
+	.ffx-stats-leads .ffx-stats-kpis {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.ffx-stats-leads .ffx-sources th[scope='row'] {
+		min-width: 140px;
+	}
+}
+
+/* Conversion rate and changes (Predictive AI) */
+
+.ffx-pai-log .ffx-card__head p {
+	margin: 4px 0 0;
+	color: var(--ffb-text-muted);
+}
+
+.ffx-pai-log__compare {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 12px;
+	margin-bottom: 20px;
+}
+
+.ffx-pai-log__figure {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 14px 16px;
+	border: 1px solid var(--ffb-border);
+	border-radius: var(--ffb-radius-card);
+	background: var(--ffb-surface);
+}
+
+.ffx-pai-log__figure > span {
+	color: var(--ffb-text-muted);
+	font-size: 12px;
+}
+
+.ffx-pai-log__figure strong {
+	font-family: var(--ffb-heading);
+	font-size: 24px;
+	font-variant-numeric: tabular-nums;
+}
+
+.ffx-pai-log__figure small {
+	color: var(--ffb-text-muted);
+	font-size: 12px;
+}
+
+.ffx-pai-log__figure.is-forecast {
+	border-color: transparent;
+	background: #110c26;
+	color: #f4f2ff;
+}
+
+.ffx-pai-log__figure.is-forecast > span,
+.ffx-pai-log__figure.is-forecast small {
+	color: #c9c2ea;
+}
+
+.ffx-pai-chart {
+	margin-bottom: 20px;
+}
+
+.ffx-pai-chart__head {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 16px;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 4px;
+}
+
+.ffx-pai-chart__head h3,
+.ffx-pai-log__title {
+	margin: 0;
+	font-size: 14px;
+}
+
+.ffx-pai-log__title {
+	margin-bottom: 8px;
+}
+
+.ffx-pai-chart .ffx-chart svg {
+	height: 180px;
+}
+
+.ffx-pai-chart__rate {
+	fill: none;
+	stroke: var(--ffb-accent);
+	stroke-width: 2;
+	stroke-linejoin: round;
+	vector-effect: non-scaling-stroke;
+}
+
+.ffx-pai-chart__forecast {
+	fill: none;
+	stroke: #b45309;
+	stroke-width: 2;
+	stroke-dasharray: 6 4;
+	vector-effect: non-scaling-stroke;
+}
+
+.ffx-pai-chart__mark {
+	stroke: var(--ffb-text);
+	stroke-width: 2;
+	vector-effect: non-scaling-stroke;
+}
+
+.ffx-legend__item--rate::before {
+	background: var(--ffb-accent);
+}
+
+.ffx-legend__item--forecast::before {
+	height: 0;
+	border-top: 2px dashed #b45309;
+	border-radius: 0;
+	vertical-align: 3px;
+}
+
+.ffx-legend__item--mark::before {
+	width: 2px;
+	height: 12px;
+	border-radius: 0;
+	background: var(--ffb-text);
+	vertical-align: -1px;
+}
+
+.ffx-pai-log__table td {
+	vertical-align: top;
+}
+
+.ffx-pai-log__table td strong,
+.ffx-pai-log__table td .ffx-small {
+	display: block;
+}
+
+.ffx-pai-log__date {
+	white-space: nowrap;
+}
+
+.ffx-pai-log__draft {
+	margin-top: 12px;
+	padding: 10px 14px;
+	border-radius: var(--ffb-radius-control);
+	background: var(--ffb-warning-bg);
+	color: var(--ffb-warning-fg);
+	font-size: 13px;
 }
 
 /* Answers */
@@ -7954,6 +8161,14 @@ span.ffx-abline--3,
 	color: var(--ffb-danger-fg);
 }
 
+.ffx-cal-row__found {
+	margin: 0;
+	padding: 0 16px 12px;
+	list-style: none;
+	color: var(--ffb-text-muted);
+	font-size: 13px;
+}
+
 .ffx-cal-field {
 	display: grid;
 	gap: 6px;
@@ -8709,5 +8924,40 @@ span.ffx-abline--3,
 @media (max-width: 900px) {
 	.ffx-pair__code {
 		width: auto;
+	}
+}
+
+/* Predictive AI on the overview (Pro): the page and the analyses left this month */
+.ffx-predict-card {
+	display: grid;
+	grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr);
+	gap: 24px;
+	align-items: center;
+	border-color: var(--ffb-brand-100);
+	background: var(--ffb-hero);
+}
+
+.ffx-predict-card h2 {
+	margin: 8px 0 4px;
+}
+
+.ffx-predict-card__quota {
+	display: grid;
+	gap: 6px;
+}
+
+.ffx-predict-card__quota .ffx-kpi__value {
+	margin-top: 0;
+}
+
+.ffx-predict-card__of {
+	font-size: 18px;
+	font-weight: 600;
+	color: var(--ffb-text-muted);
+}
+
+@media (max-width: 782px) {
+	.ffx-predict-card {
+		grid-template-columns: minmax(0, 1fr);
 	}
 }

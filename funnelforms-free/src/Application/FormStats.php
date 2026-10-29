@@ -244,10 +244,11 @@ final class FormStats {
 	 * @param int    $now     Time.
 	 * @param string $contact Contact step that sent the form ('' when unknown).
 	 * @param string $end     End node it led to ('' when it has none).
+	 * @return array{source:string,medium:string}|null The source of the page view, for the entry (LeadSources).
 	 */
-	public static function completed( int $form_id, string $sid, int $now, string $contact = '', string $end = '' ): void {
+	public static function completed( int $form_id, string $sid, int $now, string $contact = '', string $end = '' ): ?array {
 		if ( ! self::valid_sid( $sid ) ) {
-			return;
+			return null;
 		}
 		$events  = new EventRepository();
 		$session = self::session( $form_id, $sid );
@@ -269,6 +270,7 @@ final class FormStats {
 			);
 		}
 		$events->add( $form_id, $session, $rows, gmdate( 'Y-m-d H:i:s', $now ) );
+		return $source;
 	}
 
 	/**

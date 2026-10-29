@@ -18,7 +18,8 @@ describe( 'WpRestAdapter', () => {
 		const api = new WpRestAdapter( { root: '/wp-json/', nonce: 'abc', fetch } );
 		await api.saveDraft( 7, { title: 'x' } as never );
 		const [ url, init ] = fetch.mock.calls[ 0 ] as unknown as [ string, RequestInit ];
-		expect( url ).toBe( '/wp-json/funnelforms/v1/admin/forms/7/draft' );
+		// The method also in the address, for hosts that strip the header.
+		expect( url ).toBe( '/wp-json/funnelforms/v1/admin/forms/7/draft?_method=PUT' );
 		expect( init.method ).toBe( 'POST' );
 		expect( init.headers ).toMatchObject( { 'X-WP-Nonce': 'abc', 'X-HTTP-Method-Override': 'PUT', 'Content-Type': 'application/json' } );
 		expect( JSON.parse( String( init.body ) ) ).toEqual( { document: { title: 'x' } } );
@@ -49,8 +50,8 @@ describe( 'WpRestAdapter', () => {
 		const calls = fetch.mock.calls as unknown as Array<[ string, RequestInit ]>;
 		expect( calls.map( ( [ url, init ] ) => [ url, ( init.headers as Record<string, string> )[ 'X-HTTP-Method-Override' ] ?? init.method ] ) ).toEqual( [
 			[ '/wp-json/funnelforms/v1/admin/forms/booking-types', 'POST' ],
-			[ '/wp-json/funnelforms/v1/admin/forms/booking-types/2', 'PUT' ],
-			[ '/wp-json/funnelforms/v1/admin/forms/booking-types/2', 'DELETE' ],
+			[ '/wp-json/funnelforms/v1/admin/forms/booking-types/2?_method=PUT', 'PUT' ],
+			[ '/wp-json/funnelforms/v1/admin/forms/booking-types/2?_method=DELETE', 'DELETE' ],
 		] );
 		expect( ( error as ApiError ).data.problems ).toEqual( [ 'no_hours' ] );
 	} );
@@ -88,15 +89,95 @@ describe( 'WpRestAdapter', () => {
 		const fetch = vi.fn( async () => respond( 200, { id: 9, summary: 'Done.' } ) );
 		const api = new WpRestAdapter( { root: '/wp-json/', nonce: 'n', fetch } );
 		await api.aiCreate( 'A quote form' );
+		await api.aiCreate( 'A quote form', 'en_US' );
 		await api.aiEdit( 9, 'Shorter', { title: 'x', settings: {} } as never );
 		const calls = fetch.mock.calls as unknown as Array<[ string, RequestInit ]>;
 		expect( calls.map( ( [ url, init ] ) => [ init.method, url ] ) ).toEqual( [
 			[ 'POST', '/wp-json/funnelforms/v1/admin/forms/ai' ],
+			[ 'POST', '/wp-json/funnelforms/v1/admin/forms/ai' ],
 			[ 'POST', '/wp-json/funnelforms/v1/admin/forms/9/ai' ],
 		] );
 		expect( JSON.parse( String( calls[ 0 ]?.[ 1 ].body ) ) ).toEqual( { prompt: 'A quote form' } );
+		expect( JSON.parse( String( calls[ 1 ]?.[ 1 ].body ) ) ).toEqual( { prompt: 'A quote form', locale: 'en_US' } );
 		// Empty objects stay objects on the way to the plugin.
-		expect( String( calls[ 1 ]?.[ 1 ].body ) ).toBe( '{"prompt":"Shorter","document":{"title":"x","settings":{}}}' );
+		expect( String( calls[ 2 ]?.[ 1 ].body ) ).toBe( '{"prompt":"Shorter","document":{"title":"x","settings":{}}}' );
+	} );
+
+	it( 'asks for a prediction, reads the last one and the analyses left', async () => {
+		const fetch = vi.fn( async () => respond( 200, { prediction: null } ) );
+		const api = new WpRestAdapter( { root: '/wp-json/', nonce: 'n', fetch } );
+		const parameters = { industry: 'solar', industry_label: '', lead_value: 80, currency: 'EUR', audience: 'b2c', ages: [], intent: 'compare', traffic: 'social_ads', mobile_share: null, notes: '' } as const;
+		await api.predict( 9, { title: 'x', settings: {} } as never, { ...parameters, ages: [] }, 10000 );
+		expect( await api.lastPrediction( 9 ) ).toBeNull();
+		fetch.mockImplementationOnce( async () => respond( 200, { quota: null } ) );
+		expect( await api.predictionQuota() ).toBeNull();
+		const calls = fetch.mock.calls as unknown as Array<[ string, RequestInit ]>;
+		expect( calls.map( ( [ url, init ] ) => [ init.method, url ] ) ).toEqual( [
+			[ 'POST', '/wp-json/funnelforms/v1/admin/forms/9/prediction' ],
+			[ 'GET', '/wp-json/funnelforms/v1/admin/forms/9/prediction' ],
+			[ 'GET', '/wp-json/funnelforms/v1/admin/forms/prediction-quota' ],
+		] );
+		expect( String( calls[ 0 ]?.[ 1 ].body ) ).toContain( '"document":{"title":"x","settings":{}},"parameters":{"industry":"solar"' );
+		expect( JSON.parse( String( calls[ 0 ]?.[ 1 ].body ) ).visitors ).toBe( 10000 );
+	} );
+
+	it( 'collects a prediction the server works on in the background, through a hiccup of the web server', async () => {
+		vi.useFakeTimers();
+		try {
+			const run = { prediction: { created: '2026-10-28T08:00:00+00:00' }, remainingToday: 8, remainingMonth: 2 };
+			const fetch = vi
+				.fn()
+				.mockResolvedValueOnce( respond( 202, { pending: true } ) )
+				.mockResolvedValueOnce( respond( 202, { pending: true } ) )
+				.mockResolvedValueOnce( new Response( '<html>Bad Gateway</html>', { status: 502, statusText: 'Bad Gateway' } ) )
+				.mockResolvedValueOnce( respond( 200, run ) );
+			const api = new WpRestAdapter( { root: '/wp-json/', nonce: 'n', fetch } );
+			const answer = api.predict( 9, { title: 'x', settings: {} } as never, {} as never, 10000 );
+			await vi.advanceTimersByTimeAsync( 9000 );
+			expect( await answer ).toEqual( run );
+			const calls = fetch.mock.calls as unknown as Array<[ string, RequestInit ]>;
+			expect( calls.map( ( [ url, init ] ) => [ init.method, url ] ) ).toEqual( [
+				[ 'POST', '/wp-json/funnelforms/v1/admin/forms/9/prediction' ],
+				[ 'GET', '/wp-json/funnelforms/v1/admin/forms/9/prediction/pending' ],
+				[ 'GET', '/wp-json/funnelforms/v1/admin/forms/9/prediction/pending' ],
+				[ 'GET', '/wp-json/funnelforms/v1/admin/forms/9/prediction/pending' ],
+			] );
+
+			// An error of the plugin ends it at once; a server that never finishes ends after 150 seconds.
+			fetch.mockReset();
+			fetch.mockResolvedValueOnce( respond( 202, { pending: true } ) ).mockResolvedValueOnce( respond( 502, { code: 'ai_failed', message: 'The AI could not finish the prediction.' } ) );
+			const failed = expect( api.predict( 9, { title: 'x', settings: {} } as never, {} as never, 10000 ) ).rejects.toMatchObject( { code: 'ai_failed', message: 'The AI could not finish the prediction.' } );
+			await vi.advanceTimersByTimeAsync( 3000 );
+			await failed;
+			fetch.mockReset();
+			fetch.mockImplementation( async () => respond( 202, { pending: true } ) );
+			const slow = expect( api.predict( 9, { title: 'x', settings: {} } as never, {} as never, 10000 ) ).rejects.toMatchObject( { code: 'ai_timeout' } );
+			await vi.advanceTimersByTimeAsync( 151000 );
+			await slow;
+			expect( fetch ).toHaveBeenCalledTimes( 51 );
+		} finally {
+			vi.useRealTimers();
+		}
+	} );
+
+	it( 'says the web server stopped a request instead of showing its bare status', async () => {
+		const fetch = vi.fn( async () => new Response( '<html>Bad Gateway</html>', { status: 502, statusText: 'Bad Gateway' } ) );
+		const api = new WpRestAdapter( { root: '/wp-json/', nonce: 'n', fetch } );
+		await expect( api.lastPrediction( 9 ) ).rejects.toMatchObject( { code: 'http_502', message: 'The server of your website did not answer in time. Try again in a moment.' } );
+	} );
+
+	it( 'notes suggestions applied to the form', async () => {
+		const fetch = vi.fn( async () => respond( 200, { prediction: { applied: [ { suggestion: 's1', summary: 'Done.', at: '2026-10-24T15:00:00+00:00' } ] } } ) );
+		const api = new WpRestAdapter( { root: '/wp-json/', nonce: 'n', fetch } );
+		expect( ( await api.markApplied( 9, [ 's1' ], true, 'Done.' ) ).applied?.[ 0 ]?.suggestion ).toBe( 's1' );
+		await api.markApplied( 9, [ 's1' ], false );
+		const calls = fetch.mock.calls as unknown as Array<[ string, RequestInit ]>;
+		expect( calls.map( ( [ url, init ] ) => [ init.method, url ] ) ).toEqual( [
+			[ 'POST', '/wp-json/funnelforms/v1/admin/forms/9/prediction/applied' ],
+			[ 'POST', '/wp-json/funnelforms/v1/admin/forms/9/prediction/applied' ],
+		] );
+		expect( JSON.parse( String( calls[ 0 ]?.[ 1 ].body ) ) ).toEqual( { suggestions: [ 's1' ], applied: true, summary: 'Done.' } );
+		expect( JSON.parse( String( calls[ 1 ]?.[ 1 ].body ) ) ).toEqual( { suggestions: [ 's1' ], applied: false, summary: '' } );
 	} );
 
 	it( 'uses the fresh nonce WordPress sends back', async () => {
@@ -185,10 +266,18 @@ describe( 'WpRestAdapter', () => {
 		const calls = fetch.mock.calls as unknown as Array<[ string, RequestInit ]>;
 		expect( calls.map( ( [ url, init ] ) => [ url, ( init.headers as Record<string, string> )[ 'X-HTTP-Method-Override' ] ?? init.method ] ) ).toEqual( [
 			[ '/wp-json/funnelforms/v1/connections/twilio:a1/test', 'POST' ],
-			[ '/wp-json/funnelforms/v1/connections/twilio:a1', 'DELETE' ],
+			[ '/wp-json/funnelforms/v1/connections/twilio:a1?_method=DELETE', 'DELETE' ],
 			[ '/wp-json/wp/v2/pages?search=danke&per_page=20&status=publish&_fields=id%2Ctitle%2Clink&orderby=relevance&order=asc', 'GET' ],
 		] );
 		expect( JSON.parse( String( calls[ 0 ]?.[ 1 ].body ) ) ).toEqual( { to: '+491701234567' } );
 		expect( new WpRestAdapter( { root: 'https://site.test/?rest_route=/', nonce: 'n' } ).url( '^wp/v2/pages', { search: 'a' } ) ).toBe( 'https://site.test/?rest_route=%2Fwp%2Fv2%2Fpages&search=a' );
+	} );
+
+	it( 'puts the method into the address also without pretty permalinks', async () => {
+		const fetch = vi.fn( async () => respond( 200, { deleted: true } ) );
+		await new WpRestAdapter( { root: 'https://site.test/?rest_route=/', nonce: 'n', fetch } ).deleteConnection( 'twilio:a1' );
+		const [ url, init ] = fetch.mock.calls[ 0 ] as unknown as [ string, RequestInit ];
+		expect( url ).toBe( 'https://site.test/?rest_route=%2Ffunnelforms%2Fv1%2Fconnections%2Ftwilio%3Aa1&_method=DELETE' );
+		expect( init.method ).toBe( 'POST' );
 	} );
 } );

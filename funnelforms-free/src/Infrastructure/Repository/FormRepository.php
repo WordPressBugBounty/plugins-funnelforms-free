@@ -493,7 +493,7 @@ final class FormRepository {
 	}
 
 	/**
-	 * Deletes a form, its revisions and the results of its A/B tests.
+	 * Deletes a form, its revisions, the results of its A/B tests and its last prediction (Predictions in Pro).
 	 *
 	 * @param int $form_id Form ID.
 	 */
@@ -502,6 +502,8 @@ final class FormRepository {
 		$wpdb->delete( Schema::table( 'form_revisions' ), array( 'form_id' => $form_id ) );
 		$wpdb->delete( Schema::table( 'experiment_results' ), array( 'form_id' => $form_id ) );
 		$wpdb->delete( Schema::table( 'forms' ), array( 'id' => $form_id ) );
+		delete_option( 'funnelforms_prediction_' . $form_id );
+		delete_option( 'funnelforms_prediction_history_' . $form_id );
 		unset( self::$rows[ $form_id ] );
 	}
 

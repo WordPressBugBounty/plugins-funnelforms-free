@@ -1,16 +1,20 @@
 /**
  * Icons of answers and contact fields: the Lucide set (ISC license) the plugin ships, loaded when
- * the choice opens, with a search over names and tags. The document stores only the name.
+ * the choice opens, with a search over names and tags, icons that fit the answer and groups to
+ * browse (iconGroups.ts). The document stores only the name.
  */
 import React, { createElement, useEffect, useMemo, useState } from 'react';
 import type { FormsApi, IconElements, IconLibrary } from '../api';
 import { useEnv } from './context';
 import { __, sprintf } from './i18n';
+import { iconGroups } from './iconGroups';
 import { GERMAN_ICON_WORDS } from './iconWords';
 import { Button, Dialog } from './ui';
 
-/** Icons shown at once; a search narrows them down. */
+/** Icons shown at once; a search narrows them down, "Show more icons" adds as many again. */
 const SHOWN = 120;
+/** Icons suggested for the text of an answer. */
+const SUGGESTED = 24;
 const ELEMENTS = new Set( [ 'path', 'circle', 'rect', 'line', 'polyline', 'polygon', 'ellipse' ] );
 const ATTRIBUTES = new Set( [ 'd', 'cx', 'cy', 'r', 'rx', 'ry', 'x', 'y', 'width', 'height', 'x1', 'y1', 'x2', 'y2', 'points', 'fill' ] );
 
@@ -78,6 +82,31 @@ export function searchIcons( library: IconLibrary, query: string ): string[] {
 		.map( ( [ name ] ) => name );
 }
 
+/**
+ * Icons that fit a text such as the label of an answer ("Satteldach", "Ich wohne zur Miete"):
+ * the best for each of its words, the longest words first; a German compound also by its last
+ * part ("Satteldach" by "dach").
+ */
+export function suggestIcons( library: IconLibrary, text: string ): string[] {
+	const words = [ ...new Set( text.toLowerCase().match( /[\p{L}\p{N}]{4,}/gu ) ?? [] ) ].sort( ( a, b ) => b.length - a.length );
+	const out = new Set<string>();
+	const add = ( word: string ): void => {
+		for ( const name of searchIcons( library, word ).slice( 0, 8 ) ) {
+			out.add( name );
+		}
+	};
+	for ( const word of words.slice( 0, 6 ) ) {
+		add( word );
+		const part = Object.keys( GERMAN_ICON_WORDS )
+			.filter( ( german ) => german.length >= 4 && german !== word && word.endsWith( german ) )
+			.sort( ( a, b ) => b.length - a.length )[ 0 ];
+		if ( part ) {
+			add( part );
+		}
+	}
+	return [ ...out ].slice( 0, SUGGESTED );
+}
+
 function useLibrary( load: boolean ): { library: IconLibrary | null; failed: boolean } {
 	const { api } = useEnv();
 	const [ library, setLibrary ] = useState<IconLibrary | null>( () => loaded.get( api ) ?? null );
@@ -108,10 +137,26 @@ function useLibrary( load: boolean ): { library: IconLibrary | null; failed: boo
 	return { library, failed };
 }
 
-function IconGrid( { library, value, onPick }: { library: IconLibrary; value: string | null; onPick: ( name: string ) => void } ) {
+function IconGrid( { library, value, hint, onPick }: { library: IconLibrary; value: string | null; hint: string; onPick: ( name: string ) => void } ) {
+	const groups = useMemo( () => iconGroups().map( ( g ) => ( { ...g, icons: g.icons.filter( ( name ) => name in library.icons ) } ) ), [ library ] );
+	const suggested = useMemo( () => suggestIcons( library, hint ), [ library, hint ] );
 	const [ query, setQuery ] = useState( '' );
+	const [ group, setGroup ] = useState( () => ( suggested.length ? 'suggested' : groups[ 0 ]?.id ?? 'all' ) );
+	const [ limit, setLimit ] = useState( SHOWN );
+	const searching = '' !== query.trim();
 	const found = useMemo( () => searchIcons( library, query ), [ library, query ] );
-	const shown = found.slice( 0, SHOWN );
+	const list = searching || 'all' === group ? found : 'suggested' === group ? suggested : groups.find( ( g ) => g.id === group )?.icons ?? [];
+	const listed = searching || 'all' === group;
+	const shown = list.slice( 0, limit );
+	const choose = ( id: string ): void => {
+		setGroup( id );
+		setLimit( SHOWN );
+	};
+	const chip = ( id: string, title: string ) => (
+		<button key={ id } type="button" className={ `ffxb-icon-picker__group${ id === group ? ' is-selected' : '' }` } aria-pressed={ id === group } onClick={ () => choose( id ) }>
+			{ title }
+		</button>
+	);
 	return (
 		<div className="ffxb-icon-picker">
 			<input
@@ -120,16 +165,28 @@ function IconGrid( { library, value, onPick }: { library: IconLibrary; value: st
 				aria-label={ __( 'Search icons', 'funnelforms-pro' ) }
 				placeholder={ __( 'Search, e.g. house, car, heart', 'funnelforms-pro' ) }
 				value={ query }
-				onChange={ ( e ) => setQuery( e.target.value ) }
+				onChange={ ( e ) => {
+					setQuery( e.target.value );
+					setLimit( SHOWN );
+				} }
 				autoFocus
 			/>
-			<p className="ffxb-hint" aria-live="polite">
-				{ 0 === found.length
-					? __( 'No icon fits the search.', 'funnelforms-pro' )
-					: found.length > SHOWN
-					? sprintf( __( 'Showing %1$d of %2$d icons. Search to find more.', 'funnelforms-pro' ), SHOWN, found.length )
-					: sprintf( __( 'Icons found: %d', 'funnelforms-pro' ), found.length ) }
-			</p>
+			{ searching ? null : (
+				<div className="ffxb-icon-picker__groups" role="group" aria-label={ __( 'Groups of icons', 'funnelforms-pro' ) }>
+					{ suggested.length ? chip( 'suggested', __( 'Fits the answer', 'funnelforms-pro' ) ) : null }
+					{ groups.map( ( g ) => chip( g.id, g.title ) ) }
+					{ chip( 'all', __( 'All icons', 'funnelforms-pro' ) ) }
+				</div>
+			) }
+			{ listed ? (
+				<p className="ffxb-hint" aria-live="polite">
+					{ 0 === found.length
+						? __( 'No icon fits the search.', 'funnelforms-pro' )
+						: found.length > shown.length
+						? sprintf( __( 'Showing %1$d of %2$d icons. Search to find more.', 'funnelforms-pro' ), shown.length, found.length )
+						: sprintf( __( 'Icons found: %d', 'funnelforms-pro' ), found.length ) }
+				</p>
+			) : null }
 			<ul className="ffxb-icon-picker__grid">
 				{ shown.map( ( name ) => (
 					<li key={ name }>
@@ -139,6 +196,9 @@ function IconGrid( { library, value, onPick }: { library: IconLibrary; value: st
 					</li>
 				) ) }
 			</ul>
+			{ list.length > shown.length ? (
+				<Button onClick={ () => setLimit( ( n ) => n + SHOWN ) }>{ __( 'Show more icons', 'funnelforms-pro' ) }</Button>
+			) : null }
 			<p className="ffxb-hint">{ sprintf( __( 'Icons: Lucide %s (ISC license)', 'funnelforms-pro' ), library.version ) }</p>
 		</div>
 	);
@@ -146,9 +206,9 @@ function IconGrid( { library, value, onPick }: { library: IconLibrary; value: st
 
 /**
  * A button showing the chosen icon that opens the choice. `label` names the button for screen
- * readers, `title` the dialog.
+ * readers, `title` the dialog; `hint` is the text the icon goes with (the answer), for suggestions.
  */
-export function IconChoice( { value, label, title, onChange, disabled }: { value: string | null; label: string; title: string; onChange: ( name: string | null ) => void; disabled?: boolean } ) {
+export function IconChoice( { value, label, title, hint = '', onChange, disabled }: { value: string | null; label: string; title: string; hint?: string; onChange: ( name: string | null ) => void; disabled?: boolean } ) {
 	const [ open, setOpen ] = useState( false );
 	const { library, failed } = useLibrary( open || null !== value );
 	const current = value && library ? library.icons[ value ] : undefined;
@@ -182,6 +242,7 @@ export function IconChoice( { value, label, title, onChange, disabled }: { value
 					<IconGrid
 						library={ library }
 						value={ value }
+						hint={ hint }
 						onPick={ ( name ) => {
 							onChange( name );
 							setOpen( false );

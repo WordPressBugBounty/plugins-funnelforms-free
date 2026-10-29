@@ -33,7 +33,7 @@ export interface BuilderEnv {
 export const BuilderContext = createContext<BuilderEnv | null>( null );
 
 /** The workspaces of the editor: the steps on the canvas, the design, settings, actions, embedding. */
-export type View = 'build' | 'design' | 'settings' | 'actions' | 'embed';
+export type View = 'build' | 'design' | 'settings' | 'predict' | 'actions' | 'embed';
 
 /** Opens a workspace; outside the editor nothing happens. */
 export const ViewContext = createContext<( view: View ) => void>( () => undefined );

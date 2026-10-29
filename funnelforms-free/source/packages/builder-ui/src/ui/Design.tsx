@@ -340,6 +340,7 @@ export function DesignInspector( { doc }: { doc: FormDocument } ) {
 					}, 'style:radius' )
 				}
 			/>
+			<FormWidth doc={ doc } token={ token } />
 			<MoreColors doc={ doc } token={ token } />
 			<Typography doc={ doc } token={ token } fonts={ fonts } />
 			<Spacing doc={ doc } token={ token } />
@@ -418,6 +419,35 @@ function Typography( { doc, token, fonts }: { doc: FormDocument; token: SetToken
 			<Range label={ __( 'Line height of questions', 'funnelforms-pro' ) } min={ 1 } max={ 2.5 } step={ 0.1 } value={ num( doc, 'line.heading', 1.3 ) } onChange={ ( v ) => token( 'line.heading', v.toFixed( 1 ) ) } />
 			<Range label={ __( 'Line height of text', 'funnelforms-pro' ) } min={ 1 } max={ 2.5 } step={ 0.1 } value={ num( doc, 'line.body', 1.5 ) } onChange={ ( v ) => token( 'line.body', v.toFixed( 1 ) ) } />
 		</details>
+	);
+}
+
+/**
+ * How wide the whole form gets (token form.width): a slider for the widest it gets, or the full
+ * width of the place it sits in. Narrow screens make it narrower either way.
+ */
+function FormWidth( { doc, token }: { doc: FormDocument; token: SetToken } ) {
+	const raw = doc.style.tokens[ 'form.width' ] ?? '';
+	const full = 'full' === raw;
+	const width = Math.max( 360, Math.min( 1400, num( doc, 'form.width', 960 ) ) );
+	return (
+		<>
+			<ChoiceTiles
+				label={ __( 'Width of the form', 'funnelforms-pro' ) }
+				value={ full ? 'full' : 'fixed' }
+				columns={ 2 }
+				options={ [
+					{ value: 'fixed', label: __( 'Fixed width', 'funnelforms-pro' ), icon: <Sketch><rect x="2" y="6" width="44" height="20" rx="3" strokeDasharray="3 3" /><rect x="13" y="9" width="22" height="14" rx="2" fill="currentColor" /></Sketch> },
+					{ value: 'full', label: __( 'Full width', 'funnelforms-pro' ), icon: <Sketch><rect x="2" y="6" width="44" height="20" rx="3" strokeDasharray="3 3" /><rect x="5" y="9" width="38" height="14" rx="2" fill="currentColor" /></Sketch> },
+				] }
+				onChange={ ( v ) => token( 'form.width', 'full' === v ? 'full' : null ) }
+			/>
+			{ full ? (
+				<p className="ffxb-hint">{ __( 'The form fills the space it is placed in, for example the content area of your page.', 'funnelforms-pro' ) }</p>
+			) : (
+				<Range label={ __( 'Maximum width', 'funnelforms-pro' ) } min={ 360 } max={ 1400 } step={ 10 } unit=" px" value={ width } onChange={ ( v ) => token( 'form.width', 960 === v ? null : String( v ) ) } />
+			) }
+		</>
 	);
 }
 

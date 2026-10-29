@@ -1,0 +1,15 @@
+{
+  "name": "@funnelforms/e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Browser tests of a built Funnelforms plugin in a real WordPress (tools/e2e.sh).",
+  "license": "GPL-2.0-or-later",
+  "type": "module",
+  "scripts": {
+    "e2e": "playwright test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
+  }
+}

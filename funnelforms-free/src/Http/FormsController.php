@@ -13,6 +13,7 @@ use Funnelforms\Application\Abandonment;
 use Funnelforms\Application\Bookings;
 use Funnelforms\Application\FormAccess;
 use Funnelforms\Application\FormStats;
+use Funnelforms\Application\LeadSources;
 use Funnelforms\Application\PhoneVerification;
 use Funnelforms\Application\SpamCheck;
 use Funnelforms\Application\SaveProgress;
@@ -598,7 +599,8 @@ final class FormsController {
 		}
 		$path = (array) ( $result['path'] ?? array() );
 		unset( $result['path'] );
-		FormStats::completed( (int) $form['id'], (string) $request['sid'], time(), (string) ( $path['contact'] ?? '' ), (string) ( $path['end'] ?? '' ) );
+		$source = FormStats::completed( (int) $form['id'], (string) $request['sid'], time(), (string) ( $path['contact'] ?? '' ), (string) ( $path['end'] ?? '' ) );
+		LeadSources::note( (int) ( $result['entry'] ?? 0 ), $source, (string) ( ( (array) $request['page'] )['query'] ?? '' ) );
 		self::progress()?->forget( $form, (string) $request['progress'] );
 		return self::response( $result, 201 );
 	}

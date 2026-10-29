@@ -190,6 +190,24 @@ final class EntryFigures {
 	}
 
 	/**
+	 * Sent entries grouped by form, lead stage and source, with the sum and count of their lead
+	 * values and scores, for the lead figures (Application\LeadOutcomes).
+	 *
+	 * @param int|null $form_id Form ID, null for every form.
+	 * @param string   $from    Start (UTC, inclusive).
+	 * @param string   $to      End (UTC, exclusive).
+	 * @return list<array{form_id:string|null,lead_status:string,source:string,medium:string,campaign:string,n:string,value:string|null,valued:string,score:string|null,scored:string}>
+	 */
+	public function outcomes( ?int $form_id, string $from, string $to ): array {
+		global $wpdb;
+		$where = $this->where( $form_id, $from, $to, false );
+		return (array) $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- figures of this plugin's table, fresh on purpose.
+			$wpdb->prepare( 'SELECT form_id, lead_status, source, medium, campaign, COUNT(*) AS n, SUM(lead_value) AS value, COUNT(lead_value) AS valued, SUM(score) AS score, COUNT(score) AS scored FROM %i WHERE ' . self::WHERE . ' GROUP BY form_id, lead_status, source, medium, campaign', array_merge( array( Schema::table( 'entries' ) ), $where ) ),
+			ARRAY_A
+		);
+	}
+
+	/**
 	 * The values of WHERE for sent entries of a period.
 	 *
 	 * @param int|null $form_id Form ID, null for every form.

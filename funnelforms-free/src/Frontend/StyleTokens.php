@@ -172,6 +172,7 @@ final class StyleTokens {
 				$out .= $variable . ':' . $value . ';';
 			}
 		}
+		$out  .= self::width( $tokens );
 		$align = $tokens['button.align'] ?? '';
 		if ( in_array( $align, array( 'center', 'end', 'full' ), true ) ) {
 			$out .= '--ffx-next-margin:0;' . ( 'full' === $align ? '--ffx-button-flex:1 1 0;' : '' );
@@ -181,6 +182,21 @@ final class StyleTokens {
 		}
 		$line = self::field_border( $tokens );
 		return $out . ( '' !== $line ? '--ffx-color-field-border:' . $line . ';' : '' );
+	}
+
+	/**
+	 * The width of the whole form (token form.width): full fills the space the form is placed in,
+	 * a number of pixels (320 to 1600) is the widest it gets; without it the stylesheet's 960 px.
+	 * Narrower screens always make the form narrower.
+	 *
+	 * @param array<string,mixed> $tokens Tokens.
+	 */
+	private static function width( array $tokens ): string {
+		$raw = is_scalar( $tokens['form.width'] ?? null ) ? trim( (string) $tokens['form.width'] ) : '';
+		if ( 'full' === $raw ) {
+			return '--ffx-max-width:none;';
+		}
+		return 1 === preg_match( '/^\d{1,5}$/', $raw ) ? '--ffx-max-width:' . max( 320, min( 1600, (int) $raw ) ) . 'px;' : '';
 	}
 
 	/**

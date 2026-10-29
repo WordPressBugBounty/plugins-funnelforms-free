@@ -119,9 +119,21 @@ export function AnalyticsPanel() {
 }
 
 /** What the lines, bands and marks of the mode mean, at the bottom of the canvas. */
-export function AnalyticsLegend() {
+export function AnalyticsLegend( { dots = false }: { dots?: boolean } ) {
 	return (
 		<div className="ffxb-analytics-legend" aria-label={ __( 'Legend of the analytics', 'funnelforms-pro' ) } role="group">
+			{ dots ? (
+				<>
+					<span className="ffxb-analytics-legend__item">
+						<span className="ffxb-analytics-legend__dot ffxb-analytics-legend__dot--left" aria-hidden="true" />
+						{ __( 'Leaves', 'funnelforms-pro' ) }
+					</span>
+					<span className="ffxb-analytics-legend__item">
+						<span className="ffxb-analytics-legend__dot ffxb-analytics-legend__dot--lead" aria-hidden="true" />
+						{ __( 'Becomes a lead', 'funnelforms-pro' ) }
+					</span>
+				</>
+			) : null }
 			<span className="ffxb-analytics-legend__item">
 				<span className="ffxb-analytics-legend__line" aria-hidden="true" />
 				{ __( 'Thicker path: more of the step took it', 'funnelforms-pro' ) }
@@ -146,10 +158,12 @@ export function AnalyticsLegend() {
 	);
 }
 
-/** The figures of a node on the canvas. */
-export function NodeAnalyticsView( { type, figures }: { type: 'step' | 'contact' | 'end'; figures: NodeAnalytics } ) {
-	if ( 0 === figures.reached ) {
-		return <div className="ffxb-node__analytics ffxb-node__analytics--none">{ __( 'Nobody reached this in the period.', 'funnelforms-pro' ) }</div>;
+/** The figures of a node on the canvas; forecast: of the prediction (virtual visitors). */
+export function NodeAnalyticsView( { type, figures: all, forecast = false, played = null }: { type: 'step' | 'contact' | 'end'; figures: NodeAnalytics; forecast?: boolean; played?: { reached: number; left: number } | null } ) {
+	// While the visitors of a prediction play, the counts so far.
+	const figures = played ? { ...all, reached: Math.round( all.reached * played.reached ), left: Math.round( all.left * played.left ), sent: Math.round( all.sent * played.reached ) } : all;
+	if ( 0 === all.reached ) {
+		return <div className="ffxb-node__analytics ffxb-node__analytics--none">{ forecast ? __( 'No virtual visitor reaches this.', 'funnelforms-pro' ) : __( 'Nobody reached this in the period.', 'funnelforms-pro' ) }</div>;
 	}
 	if ( 'end' === type ) {
 		return (

@@ -7,7 +7,7 @@
  * page leads there.
  */
 import React, { useCallback, useEffect, useState } from 'react';
-import { ApiError, fixUrl, type CalendarAccount, type CalendarChoice, type CalendarsOverview, type FormsApi } from '../api';
+import { ApiError, fixUrl, type CalendarAccount, type CalendarChoice, type CalendarsOverview, type ConnectionTestResult, type FormsApi } from '../api';
 import type { ConnectApi } from '../connect';
 import type { HubApi } from '../hub';
 import { CalendarDialog, type CalendarApi, type CalendarService } from './BookingTypes';
@@ -76,7 +76,7 @@ function Mark( { service }: { service: CalendarService } ) {
 	);
 }
 
-type TestState = { state: 'testing' } | { state: 'ok' } | { state: 'failed'; text: string };
+type TestState = { state: 'testing' } | { state: 'ok'; calendars: NonNullable<ConnectionTestResult[ 'calendars' ]> } | { state: 'failed'; text: string };
 
 export function IntegrationsScreen( { api, config }: { api: IntegrationsApi; config: IntegrationsConfig } ) {
 	const [ data, setData ] = useState<CalendarsOverview | null>( null );
@@ -103,8 +103,8 @@ export function IntegrationsScreen( { api, config }: { api: IntegrationsApi; con
 	const test = async ( ref: string ): Promise<void> => {
 		setTests( ( t ) => ( { ...t, [ ref ]: { state: 'testing' } } ) );
 		try {
-			await api.testConnection( ref, {} );
-			setTests( ( t ) => ( { ...t, [ ref ]: { state: 'ok' } } ) );
+			const result = await api.testConnection( ref, {} );
+			setTests( ( t ) => ( { ...t, [ ref ]: { state: 'ok', calendars: result?.calendars ?? [] } } ) );
 		} catch ( e ) {
 			setTests( ( t ) => ( { ...t, [ ref ]: { state: 'failed', text: message( e ) } } ) );
 		}
@@ -456,6 +456,16 @@ function CalendarRow( {
 				<p className="ffx-cal-row__problem" role="alert">
 					{ test.text }
 				</p>
+			) : null }
+			{ 'ok' === test?.state && test.calendars.length ? (
+				<ul className="ffx-cal-row__found">
+					{ test.calendars.map( ( c ) => (
+						<li key={ c.id }>
+							{ sprintf( __( '%1$s: %2$d busy in the next two weeks', 'funnelforms-pro' ), c.name, c.busy ) }
+							{ c.free ? ' · ' + sprintf( __( '%d marked free, they do not block', 'funnelforms-pro' ), c.free ) : '' }
+						</li>
+					) ) }
+				</ul>
 			) : null }
 
 			<div className="ffx-cal-row__body">

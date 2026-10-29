@@ -126,8 +126,10 @@ export class AppointmentsClient {
 	private async request<T>( method: 'GET' | 'POST' | 'PUT', route: string, body?: unknown, query: Record<string, string> = {} ): Promise<T> {
 		const headers: Record<string, string> = { 'X-WP-Nonce': this.nonce, Accept: 'application/json' };
 		if ( 'PUT' === method ) {
-			// Some hosts block PUT; WordPress takes the method from this header.
+			// Some hosts block PUT; WordPress takes the method from this header, or from _method in the
+			// address where a host strips the header.
 			headers[ 'X-HTTP-Method-Override' ] = 'PUT';
+			query = { ...query, _method: 'PUT' };
 		}
 		if ( undefined !== body ) {
 			headers[ 'Content-Type' ] = 'application/json';

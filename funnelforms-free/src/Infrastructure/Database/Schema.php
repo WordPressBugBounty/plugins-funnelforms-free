@@ -21,12 +21,15 @@ defined( 'ABSPATH' ) || exit;
  * The statistics count by time over all forms: events by event and time (with form and session,
  * so the counts come from the index alone), complete entries by the time they were sent.
  *
+ * Entries keep the source, medium and campaign they came from (schema version 23), so the lead
+ * figures (LeadOutcomes) count won leads and their value per source with one grouped query.
+ *
  * experiment_results keeps the figures of each A/B test as they were when it ended, so the history
  * stays right when variants or steps are deleted later.
  */
 final class Schema {
 
-	public const VERSION        = 22;
+	public const VERSION        = 23;
 	public const VERSION_OPTION = 'ffx_db_version';
 
 	/**
@@ -85,6 +88,9 @@ final class Schema {
 		}
 		if ( $from > 0 && $from < 20 ) {
 			self::retire();
+		}
+		if ( $from > 0 && $from < 23 ) {
+			\Funnelforms\Application\LeadSources::backfill();
 		}
 	}
 
@@ -202,6 +208,9 @@ final class Schema {
   is_public tinyint(1) NOT NULL DEFAULT 0,
   payment_status varchar(10) NOT NULL DEFAULT '',
   device varchar(10) NOT NULL DEFAULT '',
+  source varchar(80) NOT NULL DEFAULT '',
+  medium varchar(80) NOT NULL DEFAULT '',
+  campaign varchar(80) NOT NULL DEFAULT '',
   PRIMARY KEY  (id),
   UNIQUE KEY uid (uid),
   UNIQUE KEY legacy_post_id (legacy_post_id),

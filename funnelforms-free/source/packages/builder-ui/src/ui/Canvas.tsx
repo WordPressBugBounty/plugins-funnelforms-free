@@ -5,6 +5,7 @@
  * field in it). The analytics mode (Analytics.tsx) draws the figures of the published form over it.
  */
 import React, { memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useStore } from 'zustand';
 import {
 	Background,
 	BaseEdge,
@@ -24,6 +25,7 @@ import {
 	type Connection,
 	type Edge as FlowEdge,
 	type EdgeProps,
+	type InternalNode,
 	type Node as FlowNode,
 	type NodeChange,
 	type NodeProps,
@@ -37,6 +39,8 @@ import type { LogicHint } from '../logic';
 import type { Selection } from '../store';
 import { kindName } from './Actions';
 import { AnalyticsLegend, AnalyticsPanel, edgeFigures, NodeAnalyticsView, useAnalytics } from './Analytics';
+import { PredictionPanel, usePrediction } from './Prediction';
+import { createPlayback, planPlayback, PlaybackContext, PlaybackControl, PlaybackLayer, usePlayedShare, type PlaybackBox } from './PredictionPlayback';
 import { contactFieldName, stepFieldName } from './catalog';
 import { SHORTCUTS_EVENT, useBuilder, useEnv } from './context';
 import { describeCondition, edgeLabel, fieldIndex } from './describe';
@@ -84,7 +88,12 @@ const NodeView = memo( function NodeView( { data, selected }: NodeProps<CanvasNo
 	const problems = hints.filter( ( h ) => 'info' !== h.level );
 	const worst = problems.some( ( h ) => 'error' === h.level ) ? 'error' : 'warn';
 	const figures = useContext( FiguresContext )?.get( node.id );
-	const analytics = 'free' === process.env.FUNNELFORMS_EDITION ? undefined : useAnalytics()?.figures?.nodes.get( node.id );
+	// The figures of the prediction or of the analytics; one of the two modes is on at a time.
+	const forecast = 'free' === process.env.FUNNELFORMS_EDITION ? undefined : usePrediction()?.figures?.nodes.get( node.id );
+	const measured = 'free' === process.env.FUNNELFORMS_EDITION ? undefined : useAnalytics()?.figures?.nodes.get( node.id );
+	const analytics = forecast ?? measured;
+	// While the visitors of the prediction play, its figures count up with the dots.
+	const played = 'free' === process.env.FUNNELFORMS_EDITION ? null : usePlayedShare( node.id );
 	const name = nodeName( node, locale );
 	const fields = 'fields' in node ? ( node.fields as Array<{ id: string; type: string; label: Record<string, string>; showWhen?: unknown }> ) : [];
 	return (
@@ -168,7 +177,7 @@ const NodeView = memo( function NodeView( { data, selected }: NodeProps<CanvasNo
 					) }
 				</button>
 			) : null }
-			{ 'free' !== process.env.FUNNELFORMS_EDITION && analytics ? <NodeAnalyticsView type={ node.type } figures={ analytics } /> : figures ? <NodeFigures figures={ figures } /> : null }
+			{ 'free' !== process.env.FUNNELFORMS_EDITION && analytics ? <NodeAnalyticsView type={ node.type } figures={ analytics } forecast={ !! forecast } played={ forecast ? played : null } /> : figures ? <NodeFigures figures={ figures } /> : null }
 			{ 'end' !== node.type ? <Handle type="source" position={ Position.Right } className="ffxb-handle" /> : null }
 		</div>
 	);
@@ -213,6 +222,40 @@ export function pointOn( path: string, t: number ): [ number, number ] | null {
 	const u = 1 - t;
 	const at = ( a: number, b: number, c: number, d: number ): number => u * u * u * a + 3 * u * u * t * b + 3 * u * t * t * c + t * t * t * d;
 	return [ at( x0, x1, x2, x3 ), at( y0, y1, y2, y3 ) ];
+}
+
+/** Where a node is for the playback of the visitors: its box and where its paths start and end. */
+function boxOfNode( node: InternalNode | undefined ): PlaybackBox | null {
+	const width = node?.measured.width;
+	const height = node?.measured.height;
+	if ( ! node || ! width || ! height ) {
+		return null;
+	}
+	const { x, y } = node.internals.positionAbsolute;
+	// As the paths are drawn: from the middle of the right handle to the middle of the left one.
+	const target = node.internals.handleBounds?.target?.[ 0 ];
+	const source = node.internals.handleBounds?.source?.[ 0 ];
+	return {
+		x,
+		y,
+		width,
+		height,
+		in: target ? [ x + target.x, y + target.y + target.height / 2 ] : [ x, y + height / 2 ],
+		out: source ? [ x + source.x + source.width, y + source.y + source.height / 2 ] : [ x + width, y + height / 2 ],
+	};
+}
+
+/** Points along the path between two nodes, as PathView draws it. */
+function wayPoints( from: PlaybackBox, to: PlaybackBox ): Array<[ number, number ]> {
+	const [ path ] = getBezierPath( { sourceX: from.out[ 0 ], sourceY: from.out[ 1 ], sourcePosition: Position.Right, targetX: to.in[ 0 ], targetY: to.in[ 1 ], targetPosition: Position.Left } );
+	const points: Array<[ number, number ]> = [];
+	for ( let i = 0; i <= 24; i++ ) {
+		const point = pointOn( path, i / 24 );
+		if ( point ) {
+			points.push( point );
+		}
+	}
+	return points.length ? points : [ from.out, to.in ];
 }
 
 /** Space kept between a path's pill and the steps beside it, and the narrowest and widest pill, in px. */
@@ -396,9 +439,28 @@ function Flow() {
 	const [ focus ] = useState( () => ( doc && doc.nodes.length > 6 ? opening( doc, 3 ) : undefined ) );
 
 	const hints = useHints();
-	const shown = 'free' === process.env.FUNNELFORMS_EDITION ? null : useAnalytics()?.figures ?? null;
+	const prediction = 'free' === process.env.FUNNELFORMS_EDITION ? null : usePrediction();
+	const predicted = prediction?.figures ?? null;
+	const measured = 'free' === process.env.FUNNELFORMS_EDITION ? null : useAnalytics()?.figures ?? null;
+	const shown = predicted ?? measured;
 	// Off until turned on: over the canvas it hides steps.
 	const [ map, setMap ] = useState( () => readMapChoice() ?? false );
+
+	// The visitors of the prediction played on the canvas; gone with the prediction mode.
+	const [ playback ] = useState( createPlayback );
+	const playing = useStore( playback.store, ( s ) => s.playing );
+	useEffect( () => {
+		if ( ! predicted ) {
+			playback.reset();
+		}
+	}, [ predicted, playback ] );
+	const boxOf = useCallback( ( id: string ) => boxOfNode( flow.getInternalNode( id ) ), [ flow ] );
+	const traces = prediction?.result?.simulation.traces;
+	const play = useCallback( () => {
+		if ( traces?.length ) {
+			playback.start( planPlayback( traces, boxOf, wayPoints, prediction?.resultOf?.model.personas.map( ( p ) => p.id ), flow.getNodes().map( ( n ) => n.id ) ) );
+		}
+	}, [ traces, boxOf, playback, prediction?.resultOf, flow ] );
 
 	const onSelectField = useCallback( ( node: string, field: string ) => select( { node, field } ), [ select ] );
 	const onAfterSending = useCallback( ( node: string ) => select( { node }, 'logic' ), [ select ] );
@@ -496,73 +558,90 @@ function Flow() {
 	}
 
 	return (
-		<ReactFlow<CanvasNode, PathEdge>
-			nodes={ nodes }
-			edges={ edges }
-			nodeTypes={ nodeTypes }
-			edgeTypes={ edgeTypes }
-			onNodesChange={ onNodesChange }
-			onNodeDragStop={ onDragStop }
-			onConnect={ onConnect }
-			onNodeClick={ ( _e, node ) => select( { node: node.id } ) }
-			onEdgeClick={ ( _e, edge ) => select( { edge: edge.id } ) }
-			onPaneClick={ () => select( {} ) }
-			onDragOver={ ( e ) => {
-				if ( e.dataTransfer.types.includes( DRAG_TYPE ) ) {
-					e.preventDefault();
-					e.dataTransfer.dropEffect = 'copy';
-				}
-			} }
-			onDrop={ onDrop }
-			nodesDraggable={ ! readOnly }
-			nodesConnectable={ ! readOnly }
-			deleteKeyCode={ null }
-			selectionKeyCode={ null }
-			multiSelectionKeyCode={ null }
-			fitView
-			fitViewOptions={ { padding: 0.15, minZoom: 0.6, maxZoom: 1, nodes: focus } }
-			minZoom={ 0.2 }
-			maxZoom={ 1.5 }
-			proOptions={ { hideAttribution: true } }
-			aria-label={ __( 'Steps of the form', 'funnelforms-pro' ) }
-			ariaLabelConfig={ flowLabels() }
-		>
-			<Background gap={ 24 } size={ 1.5 } />
-			<Controls showInteractive={ false }>
-				<ControlButton onClick={ toggleMap } aria-label={ map ? __( 'Hide the overview map', 'funnelforms-pro' ) : __( 'Show the overview map', 'funnelforms-pro' ) } title={ map ? __( 'Hide the overview map', 'funnelforms-pro' ) : __( 'Show the overview map', 'funnelforms-pro' ) } className={ map ? 'is-on' : '' }>
-					<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
-						<rect x="1.5" y="2.5" width="13" height="11" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
-						<rect x="8" y="8" width="5" height="4" rx=".5" fill="currentColor" />
-					</svg>
-				</ControlButton>
-				<ControlButton onClick={ () => window.dispatchEvent( new Event( SHORTCUTS_EVENT ) ) } aria-label={ __( 'Keyboard shortcuts', 'funnelforms-pro' ) } title={ __( 'Keyboard shortcuts', 'funnelforms-pro' ) }>
-					<span aria-hidden="true" className="ffxb-control-text">
-						?
-					</span>
-				</ControlButton>
-			</Controls>
-			{ map ? (
-				<MiniMap
-					className="ffxb-minimap"
-					pannable
-					zoomable
-					ariaLabel={ __( 'Overview map', 'funnelforms-pro' ) }
-					nodeBorderRadius={ 6 }
-					nodeStrokeWidth={ 0 }
-					maskColor="rgba(246, 244, 252, 0.72)"
-					nodeColor={ ( n ) => ( { step: '#a98bf9', contact: '#6a30f5', end: '#d9cdfc' } )[ ( n.data as NodeData ).node.type ] }
-				/>
-			) : null }
-			<CanvasTip doc={ doc } />
-			<Panel position="top-right">
-				{ 'free' === process.env.FUNNELFORMS_EDITION ? <ProAnalytics /> : <AnalyticsPanel /> }
-			</Panel>
-			{ 'free' !== process.env.FUNNELFORMS_EDITION && shown ? (
-				<Panel position="bottom-center">
-					<AnalyticsLegend />
+		<PlaybackContext.Provider value={ playback }>
+			<ReactFlow<CanvasNode, PathEdge>
+				nodes={ nodes }
+				edges={ edges }
+				nodeTypes={ nodeTypes }
+				edgeTypes={ edgeTypes }
+				onNodesChange={ onNodesChange }
+				onNodeDragStop={ onDragStop }
+				onConnect={ onConnect }
+				onNodeClick={ ( _e, node ) => select( { node: node.id } ) }
+				onEdgeClick={ ( _e, edge ) => select( { edge: edge.id } ) }
+				onPaneClick={ () => select( {} ) }
+				onDragOver={ ( e ) => {
+					if ( e.dataTransfer.types.includes( DRAG_TYPE ) ) {
+						e.preventDefault();
+						e.dataTransfer.dropEffect = 'copy';
+					}
+				} }
+				onDrop={ onDrop }
+				nodesDraggable={ ! readOnly }
+				nodesConnectable={ ! readOnly }
+				deleteKeyCode={ null }
+				selectionKeyCode={ null }
+				multiSelectionKeyCode={ null }
+				fitView
+				fitViewOptions={ { padding: 0.15, minZoom: 0.6, maxZoom: 1, nodes: focus } }
+				minZoom={ 0.2 }
+				maxZoom={ 1.5 }
+				proOptions={ { hideAttribution: true } }
+				aria-label={ __( 'Steps of the form', 'funnelforms-pro' ) }
+				ariaLabelConfig={ flowLabels() }
+			>
+				<Background gap={ 24 } size={ 1.5 } />
+				<Controls showInteractive={ false }>
+					<ControlButton onClick={ toggleMap } aria-label={ map ? __( 'Hide the overview map', 'funnelforms-pro' ) : __( 'Show the overview map', 'funnelforms-pro' ) } title={ map ? __( 'Hide the overview map', 'funnelforms-pro' ) : __( 'Show the overview map', 'funnelforms-pro' ) } className={ map ? 'is-on' : '' }>
+						<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+							<rect x="1.5" y="2.5" width="13" height="11" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
+							<rect x="8" y="8" width="5" height="4" rx=".5" fill="currentColor" />
+						</svg>
+					</ControlButton>
+					<ControlButton onClick={ () => window.dispatchEvent( new Event( SHORTCUTS_EVENT ) ) } aria-label={ __( 'Keyboard shortcuts', 'funnelforms-pro' ) } title={ __( 'Keyboard shortcuts', 'funnelforms-pro' ) }>
+						<span aria-hidden="true" className="ffxb-control-text">
+							?
+						</span>
+					</ControlButton>
+				</Controls>
+				{ map ? (
+					<MiniMap
+						className="ffxb-minimap"
+						pannable
+						zoomable
+						ariaLabel={ __( 'Overview map', 'funnelforms-pro' ) }
+						nodeBorderRadius={ 6 }
+						nodeStrokeWidth={ 0 }
+						maskColor="rgba(246, 244, 252, 0.72)"
+						nodeColor={ ( n ) => ( { step: '#a98bf9', contact: '#6a30f5', end: '#d9cdfc' } )[ ( n.data as NodeData ).node.type ] }
+					/>
+				) : null }
+				<CanvasTip doc={ doc } />
+				<Panel position="top-right">
+					{ 'free' === process.env.FUNNELFORMS_EDITION ? (
+						<ProAnalytics />
+					) : (
+						<div className="ffxb-canvas-modes">
+							<PredictionPanel />
+							<AnalyticsPanel />
+						</div>
+					) }
 				</Panel>
-			) : null }
-		</ReactFlow>
+				{ 'free' !== process.env.FUNNELFORMS_EDITION && predicted && prediction?.result && prediction.resultOf ? (
+					<>
+						<Panel position="top-left" className="ffxb-pai-play-panel">
+							<PlaybackControl created={ prediction.resultOf.created } visitors={ prediction.result.visitors } traced={ prediction.result.simulation.traces.length } onPlay={ play } />
+						</Panel>
+						<PlaybackLayer boxOf={ boxOf } />
+					</>
+				) : null }
+				{ 'free' !== process.env.FUNNELFORMS_EDITION && shown ? (
+					<Panel position="bottom-center">
+						<AnalyticsLegend dots={ !! predicted && playing } />
+					</Panel>
+				) : null }
+			</ReactFlow>
+		</PlaybackContext.Provider>
 	);
 }
 

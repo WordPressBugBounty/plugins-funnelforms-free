@@ -29,7 +29,8 @@
 		--ffx-rest: 0 1px 2px rgb(16 24 40 / 0.06), 0 10px 24px -10px rgb(16 24 40 / 0.18);
 
 		box-sizing: border-box;
-		max-width: 760px;
+		/* Width in the design (token form.width): a number of pixels, or none for the full width. */
+		max-width: var(--ffx-max-width, 960px);
 		margin: 0 auto;
 		padding: var(--ffx-padding);
 		/*

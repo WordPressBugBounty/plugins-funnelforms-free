@@ -35,6 +35,7 @@ export const LANGUAGES = [
 	'el',
 	'ja',
 	'zh_CN',
+	'zh_TW',
 	'ko_KR',
 	'vi',
 	'id_ID',

@@ -60,6 +60,7 @@ final class Edition {
 		'Funnelforms\\Integrations\\Crm\\CrmController',
 		'Funnelforms\\Application\\Payments',
 		'Funnelforms\\Admin\\AppointmentsPage',
+		'Funnelforms\\Admin\\PredictionPage',
 		'Funnelforms\\Admin\\IntegrationsPage',
 		'Funnelforms\\Http\\AppController',
 		'Funnelforms\\Application\\AppPush',
@@ -89,6 +90,8 @@ final class Edition {
 		'Funnelforms\\Admin\\AccountPage',
 		'Funnelforms\\Admin\\ReferPage',
 		'Funnelforms\\Admin\\SupportPage',
+		'Funnelforms\\Application\\Notices\\Notices',
+		'Funnelforms\\Admin\\NoticesView',
 	);
 
 	/**

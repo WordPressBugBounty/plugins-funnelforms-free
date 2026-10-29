@@ -670,5 +670,41 @@
 		"tokens": {},
 		"css": "--ffx-color-field-border:#8e8b97;",
 		"classes": " ffx-sticky"
+	},
+	{
+		"tokens": {
+			"form.width": "full"
+		},
+		"css": "--ffx-max-width:none;--ffx-color-field-border:#8e8b97;",
+		"classes": " ffx-sticky"
+	},
+	{
+		"tokens": {
+			"form.width": "1100",
+			"button.align": "full"
+		},
+		"css": "--ffx-button-align:stretch;--ffx-max-width:1100px;--ffx-next-margin:0;--ffx-button-flex:1 1 0;--ffx-color-field-border:#8e8b97;",
+		"classes": " ffx-sticky ffx-stack"
+	},
+	{
+		"tokens": {
+			"form.width": "2000"
+		},
+		"css": "--ffx-max-width:1600px;--ffx-color-field-border:#8e8b97;",
+		"classes": " ffx-sticky"
+	},
+	{
+		"tokens": {
+			"form.width": "12"
+		},
+		"css": "--ffx-max-width:320px;--ffx-color-field-border:#8e8b97;",
+		"classes": " ffx-sticky"
+	},
+	{
+		"tokens": {
+			"form.width": "80%"
+		},
+		"css": "--ffx-color-field-border:#8e8b97;",
+		"classes": " ffx-sticky"
 	}
 ]

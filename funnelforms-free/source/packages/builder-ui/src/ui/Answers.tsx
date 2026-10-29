@@ -405,6 +405,7 @@ export function Options( { node, field, edit }: { node: FormNode; field: Extract
 										value={ 'lucide' === o.media?.kind ? o.media.value : null }
 										label={ 'lucide' === o.media?.kind ? sprintf( __( 'Change the icon of answer %d', 'funnelforms-pro' ), i + 1 ) : sprintf( __( 'Choose an icon for answer %d', 'funnelforms-pro' ), i + 1 ) }
 										title={ sprintf( __( 'Icon of answer %d', 'funnelforms-pro' ), i + 1 ) }
+										hint={ text( o.label, lang ) || text( o.label, ctx.locale ) }
 										disabled={ readOnly }
 										onChange={ ( name ) =>
 											option(

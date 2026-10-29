@@ -4,7 +4,7 @@ Tags: contact form, multi step form, form builder, lead generation, conversation
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 5.0.0
+Stable tag: 5.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -221,6 +221,12 @@ If you set up a mail server under Funnelforms > Settings > E-mail, the mails of 
 The scripts in assets/builder and assets/runtime are built and minified from TypeScript. The sources, with the build scripts, are in the folder source/ of this plugin. To build them: `pnpm install` and `pnpm -r build` in that folder (Node.js 20 or newer).
 
 == Changelog ==
+
+= 5.0.1 =
+* Traditional Chinese (Taiwan): sites in zh_TW no longer show Simplified Chinese.
+* The width of the whole form in the design, fixed with a slider or full width; new forms fit each step and glide between heights.
+* Saving in the builder also works on servers that block PUT and DELETE requests.
+* Banners of the plugin page in 16 languages and screenshots in German, Spanish, French and Italian.
 
 = 5.0.0 =
 * New core: canvas builder with several fields per step, branching by answer, twelve field types, themes, block, Elementor widget and funnel pages.

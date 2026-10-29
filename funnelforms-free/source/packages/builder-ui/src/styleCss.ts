@@ -198,6 +198,15 @@ function phpRound( n: number ): number {
 	return Math.sign( n ) * Math.round( Math.abs( n ) );
 }
 
+/** Widest the whole form gets (StyleTokens::width()): full, or 320 to 1600 pixels; '' for the stylesheet's 960 px. */
+function formWidth( tokens: StyleTokens ): string {
+	const raw = ( tokens[ 'form.width' ] ?? '' ).trim();
+	if ( 'full' === raw ) {
+		return '--ffx-max-width:none;';
+	}
+	return /^\d{1,5}$/.test( raw ) ? `--ffx-max-width:${ Math.max( 320, Math.min( 1600, Number( raw ) ) ) }px;` : '';
+}
+
 /** The CSS variables of the tokens, for the style attribute of the form (StyleTokens::css()). */
 export function styleCss( tokens: StyleTokens ): string {
 	let out = '';
@@ -208,6 +217,7 @@ export function styleCss( tokens: StyleTokens ): string {
 			out += variable + ':' + v + ';';
 		}
 	}
+	out += formWidth( tokens );
 	const align = tokens[ 'button.align' ] ?? '';
 	if ( [ 'center', 'end', 'full' ].includes( align ) ) {
 		out += '--ffx-next-margin:0;' + ( 'full' === align ? '--ffx-button-flex:1 1 0;' : '' );

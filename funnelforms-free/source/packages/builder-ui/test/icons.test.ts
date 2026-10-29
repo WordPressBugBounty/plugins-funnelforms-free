@@ -1,7 +1,10 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import type { IconLibrary } from '../src/api';
+import { iconGroups } from '../src/ui/iconGroups';
 import { GERMAN_ICON_WORDS } from '../src/ui/iconWords';
-import { searchIcons } from '../src/ui/IconPicker';
+import { searchIcons, suggestIcons } from '../src/ui/IconPicker';
 
 const library: IconLibrary = {
 	version: '1',
@@ -29,5 +32,25 @@ describe( 'searchIcons', () => {
 		expect( words.every( ( w ) => w === w.toLowerCase() ) ).toBe( true );
 		expect( GERMAN_ICON_WORDS[ 'schlüssel' ] ).toBe( GERMAN_ICON_WORDS.schluessel );
 		expect( GERMAN_ICON_WORDS[ 'küche' ] ).toBe( GERMAN_ICON_WORDS.kueche );
+	} );
+} );
+
+describe( 'suggestIcons', () => {
+	it( 'suggests icons for the words of an answer, a German compound also by its last part', () => {
+		expect( suggestIcons( library, 'Einfamilienhaus' ) ).toEqual( [ 'house', 'house-plus', 'warehouse' ] );
+		expect( suggestIcons( library, 'Umzug mit Auto' ) ).toEqual( [ 'truck', 'car', 'car-taxi-front' ] );
+		expect( suggestIcons( library, 'Ja' ) ).toEqual( [] );
+	} );
+} );
+
+describe( 'iconGroups', () => {
+	it( 'names only icons of the Lucide set the plugin ships, each once per group', () => {
+		const shipped = JSON.parse( readFileSync( join( __dirname, '../../../plugin/assets/icons/lucide.json' ), 'utf8' ) ) as IconLibrary;
+		const groups = iconGroups();
+		expect( groups.length ).toBeGreaterThanOrEqual( 10 );
+		for ( const g of groups ) {
+			expect( g.icons.filter( ( name ) => ! ( name in shipped.icons ) ), g.id ).toEqual( [] );
+			expect( new Set( g.icons ).size, g.id ).toBe( g.icons.length );
+		}
 	} );
 } );

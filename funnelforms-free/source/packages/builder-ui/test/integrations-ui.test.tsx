@@ -128,6 +128,25 @@ describe( 'integrations', () => {
 		expect( api.arrangeCalendar ).toHaveBeenLastCalledWith( 'google:g1', { busy: [ 'primary', 'holidays' ] } );
 	} );
 
+	it( 'tells after a test what each checked calendar holds', async () => {
+		const api = fakeApi( {
+			testConnection: vi.fn( async () => ( {
+				sent: true,
+				calendars: [
+					{ id: 'primary', name: 'Ada', busy: 3, free: 0 },
+					{ id: 'team', name: 'Team', busy: 0, free: 2 },
+				],
+			} ) ),
+		} );
+		await act( async () => root.render( <IntegrationsScreen api={ api } config={ config } /> ) );
+		await settle();
+		await act( async () => button( 'Test ada@example.com' ).click() );
+		await settle();
+		expect( api.testConnection ).toHaveBeenCalledWith( 'google:g1', {} );
+		const found = [ ...container.querySelectorAll( '.ffx-cal-row__found li' ) ].map( ( li ) => li.textContent );
+		expect( found ).toEqual( [ 'Ada: 3 busy in the next two weeks', 'Team: 0 busy in the next two weeks · 2 marked free, they do not block' ] );
+	} );
+
 	it( 'removes a calendar after asking, naming the types that lose it', async () => {
 		const api = fakeApi();
 		await act( async () => root.render( <IntegrationsScreen api={ api } config={ config } /> ) );

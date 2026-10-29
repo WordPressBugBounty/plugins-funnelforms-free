@@ -36,7 +36,7 @@ function formInAddress(): number | null {
 /** Workspace the address opens the form in. */
 function viewInAddress(): View | undefined {
 	const view = new URL( window.location.href ).searchParams.get( 'view' );
-	return 'build' === view || 'design' === view || 'settings' === view || 'actions' === view || 'embed' === view ? view : undefined;
+	return 'build' === view || 'design' === view || 'settings' === view || 'predict' === view || 'actions' === view || 'embed' === view ? view : undefined;
 }
 
 /** Whether the address asks for the figures on the canvas (statistics page; ?view=stats of older links). */

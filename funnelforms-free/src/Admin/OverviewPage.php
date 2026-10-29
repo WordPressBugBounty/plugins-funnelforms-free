@@ -23,8 +23,9 @@ use Funnelforms\Infrastructure\Repository\FormRepository;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Greets, shows what is left to set up, the figures of the last 30 days, the latest entries and
- * the forms. Entries show their form and time only, never what visitors entered.
+ * Greets, shows what is left to set up, the figures of the last 30 days, the latest entries,
+ * the forms and, in Pro, the latest news from Funnelforms. Entries show their form and time
+ * only, never what visitors entered.
  */
 final class OverviewPage {
 
@@ -128,16 +129,16 @@ final class OverviewPage {
 	}
 
 	/**
-	 * Latest complete entries: id, form title and time.
+	 * Latest complete entries: id, who sent it, form title and time.
 	 *
 	 * @param int $limit How many.
-	 * @return list<array{id:int,form:string,created_at:string}>
+	 * @return list<array{id:int,name:string,form:string,created_at:string}>
 	 */
 	public static function latest( int $limit = 5 ): array {
 		global $wpdb;
 		$rows = (array) $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- as above.
 			$wpdb->prepare(
-				'SELECT e.id, e.created_at, f.title FROM %i e LEFT JOIN %i f ON f.id = e.form_id WHERE e.status = %s ORDER BY e.created_at DESC, e.id DESC LIMIT %d',
+				'SELECT e.id, e.created_at, e.data, f.title FROM %i e LEFT JOIN %i f ON f.id = e.form_id WHERE e.status = %s ORDER BY e.created_at DESC, e.id DESC LIMIT %d',
 				Schema::table( 'entries' ),
 				Schema::table( 'forms' ),
 				'complete',
@@ -146,13 +147,55 @@ final class OverviewPage {
 			ARRAY_A
 		);
 		return array_map(
-			static fn( array $row ): array => array(
-				'id'         => (int) $row['id'],
-				'form'       => (string) ( $row['title'] ?? '' ),
-				'created_at' => (string) $row['created_at'],
-			),
+			static function ( array $row ): array {
+				$data = json_decode( (string) $row['data'], true );
+				return array(
+					'id'         => (int) $row['id'],
+					'name'       => self::sender( is_array( $data ) ? (array) ( $data['contact'] ?? array() ) : array() ),
+					'form'       => (string) ( $row['title'] ?? '' ),
+					'created_at' => (string) $row['created_at'],
+				);
+			},
 			$rows
 		);
+	}
+
+	/**
+	 * Who sent an entry, as the entries page names it: a name field, else the e-mail address,
+	 * else the first contact value; empty without one.
+	 *
+	 * @param array<int,mixed> $contact Contact fields of the entry (data.contact).
+	 */
+	public static function sender( array $contact ): string {
+		$tests = array(
+			static fn( string $type, string $label ): bool => 'name' === $type || ( 'salutation' !== $type && 'email' !== $type && 1 === preg_match( '/name/i', $label ) ),
+			static fn( string $type ): bool => 'email' === $type,
+			static fn( string $type ): bool => 'consent' !== $type && 'checkbox' !== $type,
+		);
+		foreach ( $tests as $test ) {
+			foreach ( $contact as $field ) {
+				if ( ! is_array( $field ) ) {
+					continue;
+				}
+				$text = trim( self::text( $field['value'] ?? null ) );
+				if ( '' !== $text && $test( (string) ( $field['type'] ?? '' ), (string) ( $field['label'] ?? '' ) ) ) {
+					return $text;
+				}
+			}
+		}
+		return '';
+	}
+
+	/**
+	 * A contact value as text.
+	 *
+	 * @param mixed $value Value.
+	 */
+	private static function text( $value ): string {
+		if ( is_array( $value ) ) {
+			return implode( ', ', array_filter( array_map( array( self::class, 'text' ), $value ), static fn( string $v ): bool => '' !== $v ) );
+		}
+		return is_scalar( $value ) && ! is_bool( $value ) ? (string) $value : '';
 	}
 
 	/**
@@ -268,6 +311,14 @@ final class OverviewPage {
 			?>
 		</div>
 
+		<?php
+		// The Predictive AI and its analyses left this month; Funnelforms Free has neither.
+		$prediction = Edition::pro( PredictionPage::class );
+		if ( null !== $prediction ) {
+			$prediction::card();
+		}
+		?>
+
 		<?php if ( null !== $report ) : ?>
 			<div class="ffx-split ffx-section">
 				<section class="ffx-card">
@@ -323,9 +374,11 @@ final class OverviewPage {
 								<li>
 									<span class="ffx-avatar"><?php echo Ui::icon( 'inbox' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?></span>
 									<span class="ffx-rows__main">
-										<a class="ffx-rows__title" href="<?php echo esc_url( add_query_arg( 'entry', $entry['id'], $entries ) ); ?>"><?php echo esc_html( '' !== $entry['form'] ? $entry['form'] : __( 'Deleted form', 'funnelforms-free' ) ); ?></a>
+										<?php $form = '' !== $entry['form'] ? $entry['form'] : __( 'Deleted form', 'funnelforms-free' ); ?>
+										<a class="ffx-rows__title" href="<?php echo esc_url( add_query_arg( 'entry', $entry['id'], $entries ) ); ?>"><?php echo esc_html( '' !== $entry['name'] ? $entry['name'] : $form ); ?></a>
 										<?php /* translators: %s: time since the entry came in, e.g. 5 minutes. */ ?>
-										<span class="ffx-rows__meta"><?php echo esc_html( sprintf( __( '%s ago', 'funnelforms-free' ), human_time_diff( (int) strtotime( $entry['created_at'] . ' UTC' ) ) ) ); ?></span>
+										<?php $ago = sprintf( __( '%s ago', 'funnelforms-free' ), human_time_diff( (int) strtotime( $entry['created_at'] . ' UTC' ) ) ); ?>
+										<span class="ffx-rows__meta"><?php echo esc_html( '' !== $entry['name'] ? $form . ' · ' . $ago : $ago ); ?></span>
 									</span>
 								</li>
 							<?php endforeach; ?>
@@ -371,6 +424,11 @@ final class OverviewPage {
 			</section>
 		</div>
 		<?php
+		// News the Funnelforms team published in the Leitstand (kept by WP-Cron); Free has none.
+		$news = Edition::pro( NoticesView::class );
+		if ( null !== $news ) {
+			$news::card();
+		}
 		Ui::close();
 	}
 

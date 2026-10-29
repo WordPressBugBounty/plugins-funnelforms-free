@@ -16,16 +16,17 @@ if ( defined( 'FUNNELFORMS_VERSION' ) ) {
 	return;
 }
 
-define( 'FUNNELFORMS_VERSION', '5.0.0' );
+define( 'FUNNELFORMS_VERSION', '5.0.1' );
 define( 'FUNNELFORMS_MIN_PHP', '8.1' );
 // Funnelforms Free defines the main file (and FUNNELFORMS_EDITION) before it loads this file.
 defined( 'FUNNELFORMS_PLUGIN_FILE' ) || define( 'FUNNELFORMS_PLUGIN_FILE', dirname( __DIR__ ) . '/Funnelforms-pro.php' );
 define( 'FUNNELFORMS_PLUGIN_DIR', dirname( __DIR__ ) );
-// Version of the scripts and styles in their addresses. A development build keeps its version
-// number while its files change, so the build time joins it and browsers load the new files.
+// Version of the scripts and styles in their addresses. The build time joins the version number:
+// a build replaced under the same number (development builds, a test or release candidate installed
+// again) would otherwise stay in the browser cache, and the editor would miss its new parts.
 define(
 	'FUNNELFORMS_ASSET_VERSION',
-	false === strpos( FUNNELFORMS_VERSION, '-dev' ) ? FUNNELFORMS_VERSION : FUNNELFORMS_VERSION . '.' . max( (int) @filemtime( FUNNELFORMS_PLUGIN_DIR . '/assets/builder/builder.js' ), (int) @filemtime( FUNNELFORMS_PLUGIN_DIR . '/assets/runtime/runtime.js' ) ) // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- A missing file only means no build time.
+	FUNNELFORMS_VERSION . '.' . max( (int) @filemtime( FUNNELFORMS_PLUGIN_DIR . '/assets/builder/builder.js' ), (int) @filemtime( FUNNELFORMS_PLUGIN_DIR . '/assets/builder/builder.css' ), (int) @filemtime( FUNNELFORMS_PLUGIN_DIR . '/assets/runtime/runtime.js' ) ) // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- A missing file only means no build time.
 );
 
 if ( version_compare( PHP_VERSION, FUNNELFORMS_MIN_PHP, '<' ) ) {

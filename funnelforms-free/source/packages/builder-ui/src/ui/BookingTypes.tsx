@@ -196,7 +196,7 @@ export function BookingTypeField( { value, onChange }: { value: string; onChange
 }
 
 /** What the editor of appointment types needs of the API. */
-export type BookingEditorApi = Pick<FormsApi, 'saveBookingType' | 'deleteBookingType'> & CalendarApi;
+export type BookingEditorApi = Pick<FormsApi, 'saveBookingType' | 'deleteBookingType' | 'accountCalendars' | 'arrangeCalendar'> & CalendarApi;
 
 /** Address of Funnelforms → Integrations, where calendars are connected and arranged. */
 export const INTEGRATIONS_URL = 'admin.php?page=funnelforms-integrations';
@@ -641,14 +641,23 @@ export function BookingTypeEditor( { data, type, api: given, canConnect, onSaved
 								/>
 								{ calendars.length ? <p className="ffxb-hint">{ __( 'Busy times in these calendars cannot be booked:', 'funnelforms-pro' ) }</p> : null }
 								{ calendars.map( ( calendar ) => (
-									<label key={ calendar.ref } className="ffxb-consent">
-										<input
-											type="checkbox"
-											checked={ config.calendars.conflicts.includes( calendar.ref ) }
-											onChange={ ( e ) => change( ( c ) => void ( c.calendars.conflicts = e.target.checked ? [ ...c.calendars.conflicts, calendar.ref ] : c.calendars.conflicts.filter( ( r ) => r !== calendar.ref ) ) ) }
-										/>
-										<span>{ calendar.label }</span>
-									</label>
+									<div key={ calendar.ref }>
+										<label className="ffxb-consent">
+											<input
+												type="checkbox"
+												checked={ config.calendars.conflicts.includes( calendar.ref ) }
+												onChange={ ( e ) => change( ( c ) => void ( c.calendars.conflicts = e.target.checked ? [ ...c.calendars.conflicts, calendar.ref ] : c.calendars.conflicts.filter( ( r ) => r !== calendar.ref ) ) ) }
+											/>
+											<span>{ calendar.label }</span>
+										</label>
+										{ connect && config.calendars.conflicts.includes( calendar.ref ) ? (
+											<AccountCalendars
+												account={ calendar }
+												api={ api }
+												onChanged={ ( busy ) => setCalendars( ( list ) => list.map( ( c ) => ( c.ref === calendar.ref ? { ...c, busy } : c ) ) ) }
+											/>
+										) : null }
+									</div>
 								) ) }
 								{ staffed ? <p className="ffxb-hint">{ __( 'The calendars of the people booked count for them anyway, once they are assigned to them under Integrations.', 'funnelforms-pro' ) }</p> : null }
 								{ calendars
@@ -782,6 +791,65 @@ export function BookingTypeEditor( { data, type, api: given, canConnect, onSaved
 	);
 }
 
+
+/**
+ * The calendars of one connected account under its checkbox in an appointment type: which of
+ * them are checked for busy times. The choice belongs to the account (Integrations shows the
+ * same), so it is saved at once and counts for every type that checks the account.
+ */
+function AccountCalendars( { account, api, onChanged }: { account: CalendarConnection; api: BookingEditorApi; onChanged: ( busy: string[] ) => void } ) {
+	const [ list, setList ] = useState<CalendarChoice[] | null>( null );
+	const [ problem, setProblem ] = useState<string | null>( null );
+	const [ saving, setSaving ] = useState( false );
+
+	useEffect( () => {
+		let live = true;
+		api.accountCalendars?.( account.ref ).then(
+			( found ) => live && setList( found ),
+			( e: unknown ) => live && setProblem( e instanceof Error ? e.message : String( e ) )
+		);
+		return () => {
+			live = false;
+		};
+	}, [ api, account.ref ] );
+
+	if ( ! api.accountCalendars || ! api.arrangeCalendar ) {
+		return null;
+	}
+	const busy = account.busy ?? [];
+	const toggle = async ( id: string, on: boolean ): Promise<void> => {
+		if ( ! api.arrangeCalendar ) {
+			return;
+		}
+		const next = on ? [ ...busy, id ] : busy.filter( ( b ) => b !== id );
+		setSaving( true );
+		setProblem( null );
+		try {
+			const overview = await api.arrangeCalendar( account.ref, { busy: next } );
+			onChanged( overview.connections.find( ( c ) => c.ref === account.ref )?.busy ?? next );
+		} catch ( e ) {
+			setProblem( e instanceof Error ? e.message : String( e ) );
+		}
+		setSaving( false );
+	};
+
+	return (
+		<div className="ffxb-account-calendars">
+			{ ! list && ! problem ? <p className="ffxb-hint">{ __( 'Reading the calendars…', 'funnelforms-pro' ) }</p> : null }
+			{ list && list.length > 1
+				? list.map( ( c ) => (
+						<label key={ c.id } className="ffxb-consent">
+							<input type="checkbox" checked={ busy.includes( c.id ) } disabled={ saving } onChange={ ( e ) => void toggle( c.id, e.target.checked ) } />
+							<span>{ c.name }</span>
+						</label>
+				  ) )
+				: null }
+			{ list && list.length > 1 ? <p className="ffxb-hint">{ __( 'Saved at once for this account; it counts in every appointment type that checks it.', 'funnelforms-pro' ) }</p> : null }
+			{ list && list.length > 1 && list.every( ( c ) => ! busy.includes( c.id ) ) ? <Notice tone="warning">{ __( 'No calendar of this account is checked, so it blocks no times.', 'funnelforms-pro' ) }</Notice> : null }
+			{ problem ? <p className="ffxb-hint" role="alert">{ sprintf( __( 'The calendars could not be read: %s', 'funnelforms-pro' ), problem ) }</p> : null }
+		</div>
+	);
+}
 
 export type CalendarService = 'google' | 'microsoft' | 'icloud' | 'caldav';
 
