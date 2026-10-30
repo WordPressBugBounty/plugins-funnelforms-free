@@ -3,7 +3,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '../src/api';
 import type { ConnectApi, CrmProvider } from '../src/connect';
-import { createHubApi, filterServices, hubServices, hubSummary, importable, type HubApi, type HubConnection, type HubOverview } from '../src/hub';
+import { createHubApi, filterServices, hubServices, hubSummary, type HubApi, type HubConnection, type HubOverview } from '../src/hub';
 import { categoryName, IntegrationsHub, usage, type HubScreenApi } from '../src/ui/IntegrationsHub';
 
 ( globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean } ).IS_REACT_ACT_ENVIRONMENT = true;
@@ -104,7 +104,7 @@ function fakeApi( hub: Partial<HubApi> = {}, rest: Partial<HubScreenApi> = {} ):
 	};
 }
 
-const config = { importUrl: 'admin.php?page=funnelforms-import', interfacesUrl: 'admin.php?page=funnelforms-settings&tab=interfaces', builderUrl: 'admin.php?page=funnelforms-builder' };
+const config = { interfacesUrl: 'admin.php?page=funnelforms-settings&tab=interfaces', builderUrl: 'admin.php?page=funnelforms-builder' };
 
 describe( 'the rules of the overview', () => {
 	it( 'puts the CRM tools of the server into their categories and filters by search, category and connections', () => {
@@ -122,9 +122,8 @@ describe( 'the rules of the overview', () => {
 		expect( ids( '', 'all', true ) ).toEqual( [ 'stripe', 'icloud', 'slack' ] );
 	} );
 
-	it( 'counts connections, those in use and those that need something, and the forms left to import', () => {
+	it( 'counts connections, those in use and those that need something', () => {
 		expect( hubSummary( [ stripe, slack, icloud ] ) ).toEqual( { connected: 3, inUse: 1, attention: 1 } );
-		expect( importable( overview().imports ) ).toEqual( { forms: 2, plugins: [ 'WPForms' ] } );
 	} );
 
 	it( 'asks the routes below funnelforms/v1', async () => {
@@ -142,15 +141,12 @@ describe( 'the rules of the overview', () => {
 } );
 
 describe( 'the overview of all integrations', () => {
-	it( 'shows the figures, what needs attention, the forms to import and each service with its state', async () => {
+	it( 'shows the figures, what needs attention and each service with its state', async () => {
 		const api = fakeApi();
 		await act( async () => root.render( <IntegrationsHub api={ api } config={ config } onCalendar={ () => undefined } /> ) );
 		await settle();
 		expect( [ ...container.querySelectorAll( '.ffx-hub__figures dd' ) ].map( ( d ) => d.textContent ) ).toEqual( [ '3', '1', '1' ] );
 		expect( container.querySelector( '.ffx-hub-todo' )?.textContent ).toContain( 'Shop' );
-		expect( container.querySelector( '.ffx-hub-import' )?.textContent ).toContain( 'Forms from WPForms found on this website' );
-		expect( container.querySelector( '.ffx-hub-import__count' )?.textContent ).toBe( '2' );
-		expect( container.querySelector( '.ffx-hub-import a' )?.getAttribute( 'href' ) ).toBe( config.importUrl );
 		expect( [ ...tile( 'Stripe' ).querySelectorAll( '.ffx-badge' ) ].map( ( b ) => b.textContent ) ).toEqual( [ 'Connected', 'Needs attention', 'Test mode' ] );
 		expect( tile( 'PayPal' ).querySelector( '.ffx-badge' ) ).toBeNull();
 		expect( tile( 'Apple iCloud' ).textContent ).toContain( 'Connected' );
@@ -283,12 +279,16 @@ describe( 'the overview of all integrations', () => {
 		expect( [ ...container.querySelectorAll( '.ffx-hub-tile strong' ) ].map( ( s ) => s.textContent ) ).toEqual( [ 'Slack', 'Microsoft Teams', 'WhatsApp Business', 'Twilio', 'Bird' ] );
 	} );
 
-	it( 'invites to import when no other plugin has forms', async () => {
-		const api = fakeApi( { overview: vi.fn( async () => overview( { imports: [] } ) ) } );
-		await act( async () => root.render( <IntegrationsHub api={ api } config={ config } onCalendar={ () => undefined } /> ) );
-		await settle();
-		expect( container.querySelector( '.ffx-hub-import' )?.textContent ).toContain( 'Coming from another form plugin?' );
-		expect( container.querySelector( '.ffx-hub-import__count' ) ).toBeNull();
+	it( 'has no invitation to import forms of other plugins, found or not', async () => {
+		for ( const imports of [ overview().imports, [] ] ) {
+			const api = fakeApi( { overview: vi.fn( async () => overview( { imports } ) ) } );
+			await act( async () => root.render( <IntegrationsHub api={ api } config={ config } onCalendar={ () => undefined } /> ) );
+			await settle();
+			expect( container.querySelector( '.ffx-hub__figures' ) ).toBeTruthy();
+			expect( container.querySelector( '.ffx-hub-import' ) ).toBeNull();
+			expect( container.textContent ).not.toContain( 'Coming from another form plugin?' );
+			expect( container.textContent ).not.toContain( 'Import from other plugins' );
+		}
 	} );
 } );
 

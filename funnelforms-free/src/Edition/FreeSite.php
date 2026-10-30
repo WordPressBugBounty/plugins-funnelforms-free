@@ -31,7 +31,8 @@ defined( 'ABSPATH' ) || exit;
  * - once the import of the Free 3.x data is complete, every imported form goes to the new
  *   renderer on its own; forms the import could not verify stay off and are listed for the admin;
  * - a page under Funnelforms names what Funnelforms Pro adds. Other screens name a Pro feature
- *   only in its place, in one line with a link to that page (hint()); there are no notices about Pro.
+ *   only in its place, in one line with a link to that page (hint()); there are no notices about Pro;
+ * - after 10 entries, one request for a review on wordpress.org (ReviewNotice).
  */
 final class FreeSite {
 
@@ -53,6 +54,7 @@ final class FreeSite {
 		if ( is_admin() ) {
 			add_action( 'admin_menu', array( self::class, 'menu' ), 40 );
 			add_action( 'admin_notices', array( self::class, 'notices' ) );
+			ReviewNotice::register();
 			add_filter( 'plugin_action_links_' . plugin_basename( FUNNELFORMS_PLUGIN_FILE ), array( self::class, 'action_links' ) );
 		}
 	}

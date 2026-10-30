@@ -107,6 +107,8 @@ class Mailer {
 				$phpmailer->Username   = (string) $connection['config']['username']; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- PHPMailer API.
 				$phpmailer->Password   = (string) $connection['secret']['password']; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- PHPMailer API.
 				$phpmailer->SMTPSecure = 'tls' === ( $connection['config']['encryption'] ?? 'ssl' ) ? 'tls' : 'ssl'; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- PHPMailer API.
+				// 3.x gave up after 10 s; PHPMailer's own 300 s would hold the job queue on a dead server.
+				$phpmailer->Timeout = 15; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- PHPMailer API.
 			};
 			add_action( 'phpmailer_init', $smtp );
 		}
@@ -117,6 +119,11 @@ class Mailer {
 
 		if ( null !== $smtp ) {
 			remove_action( 'phpmailer_init', $smtp );
+			// wp_mail() reuses its PHPMailer: the next mail of the site must not carry the form's login along.
+			if ( isset( $GLOBALS['phpmailer'] ) && is_object( $GLOBALS['phpmailer'] ) ) {
+				$GLOBALS['phpmailer']->Password = ''; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- PHPMailer API.
+				$GLOBALS['phpmailer']->Timeout  = 300; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- PHPMailer API.
+			}
 		}
 		if ( null !== $pdf ) {
 			wp_delete_file( $pdf['path'] );

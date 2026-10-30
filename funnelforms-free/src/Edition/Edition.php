@@ -60,6 +60,7 @@ final class Edition {
 		'Funnelforms\\Integrations\\Crm\\CrmController',
 		'Funnelforms\\Application\\Payments',
 		'Funnelforms\\Admin\\AppointmentsPage',
+		'Funnelforms\\Admin\\CronofyNotice',
 		'Funnelforms\\Admin\\PredictionPage',
 		'Funnelforms\\Admin\\IntegrationsPage',
 		'Funnelforms\\Http\\AppController',
@@ -81,6 +82,7 @@ final class Edition {
 		'Funnelforms\\Frontend\\AbandonPage',
 		'Funnelforms\\Application\\SupportAccess',
 		'Funnelforms\\Application\\License\\License',
+		'Funnelforms\\Application\\License\\LicenseLock',
 		'Funnelforms\\Frontend\\EntriesShortcode',
 		'Funnelforms\\Compat\\Multilingual',
 		'Funnelforms\\Frontend\\ExternalEmbed',
@@ -147,6 +149,27 @@ final class Edition {
 	 */
 	public static function is_pro(): bool {
 		return self::PRO === self::current();
+	}
+
+	/**
+	 * Whether Funnelforms Pro runs without an active license (License::allows( 'pro' ) is false):
+	 * not connected, a token of another address, the plan ended or the token ran out more than
+	 * License::GRACE_DAYS ago. License\LicenseLock then locks everything but the account page;
+	 * forms on the website keep running. A Brain that cannot be reached does not lock: the stored
+	 * token counts until it runs out, and the grace period after that. Neither does a website that
+	 * comes from Funnelforms 3 while it still connects itself with the old license key
+	 * (LegacyKey::connecting(), at most about a week); it locks when that stops without success.
+	 */
+	public static function locked(): bool {
+		$license = self::pro( \Funnelforms\Application\License\License::class );
+		$legacy  = self::pro( \Funnelforms\Application\License\LegacyKey::class );
+		$locked  = null !== $license && ! $license::allows( 'pro' ) && ! ( null !== $legacy && $legacy::connecting() );
+		/**
+		 * Filters whether Funnelforms Pro is locked for want of a license.
+		 *
+		 * @param bool $locked Whether no active license includes Pro.
+		 */
+		return (bool) apply_filters( 'funnelforms_pro_locked', $locked );
 	}
 
 	/**

@@ -21,7 +21,6 @@ export interface IntegrationsConfig {
 	userLocale?: string;
 	appointmentsUrl?: string;
 	interfacesUrl?: string;
-	importUrl?: string;
 	builderUrl?: string;
 }
 

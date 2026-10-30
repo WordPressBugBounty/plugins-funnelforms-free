@@ -32,6 +32,18 @@ describe( 'tracking for server-side conversions', () => {
 		} );
 	} );
 
+	it( 'reads the GA4 session of each stream in the old and the new cookie format', () => {
+		window.wp_has_consent = ( category ) => category === 'statistics';
+		const ga = '_ga=GA1.1.987654321.1700000000; _ga_ABC123XYZ=GS1.1.1700000100.3.1.1700000200.0.0.0; _ga_NEW9=GS2.1.s1746000000$o3$g1$t1746000100$j60$l0$h0; _ga_BAD=GS1.1.x.1';
+		expect( trackingInfo( '', ga ) ).toEqual( {
+			consent: { marketing: false, statistics: true },
+			gaClientId: '987654321.1700000000',
+			gaSessions: { ABC123XYZ: '1700000100', NEW9: '1746000000' },
+		} );
+		window.wp_has_consent = () => false;
+		expect( trackingInfo( '', ga ) ).toEqual( { consent: { marketing: false, statistics: false } } );
+	} );
+
 	it( 'leaves out what the visitor refused', () => {
 		window.wp_has_consent = ( category ) => category === 'statistics';
 		expect( trackingInfo( '?fbclid=IwAR0x', cookies ) ).toEqual( {

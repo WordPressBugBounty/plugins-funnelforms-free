@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * The runtime reads the consent from the WP Consent API (wp_has_consent) that cookie banners such
  * as Complianz, CookieYes or Real Cookie Banner fill, and the first-party cookies of the pixels
- * (_fbp, _fbc, _ga, _ttp) plus click IDs in the address. Everything is checked against the
+ * (_fbp, _fbc, _ga, _ga_<stream>, _ttp) plus click IDs in the address. Everything is checked against the
  * formats the platforms use; anything else is dropped. Stored with the entry only for forms with
  * conversion actions, and only what the visitor allowed: identifiers, IP address and user agent of
  * a category need a yes. No answer (no consent tool) counts as no in the EU privacy mode and as yes
@@ -66,6 +66,14 @@ final class VisitorTracking {
 		foreach ( self::PATTERNS as $key => $pattern ) {
 			$value       = $allowed[ self::CATEGORY[ $key ] ] ? ( $input[ $key ] ?? '' ) : '';
 			$out[ $key ] = is_string( $value ) && 1 === preg_match( $pattern, $value ) ? $value : '';
+		}
+		// GA4 session per stream (measurement ID without "G-"), at most five.
+		$out['gaSessions'] = array();
+		$sessions          = $allowed['statistics'] && is_array( $input['gaSessions'] ?? null ) ? $input['gaSessions'] : array();
+		foreach ( $sessions as $stream => $session ) {
+			if ( count( $out['gaSessions'] ) < 5 && 1 === preg_match( '/^[A-Z0-9]{4,20}$/', (string) $stream ) && is_string( $session ) && 1 === preg_match( '/^[0-9]{6,20}$/', $session ) ) {
+				$out['gaSessions'][ (string) $stream ] = $session;
+			}
 		}
 		// Only Meta and TikTok (marketing) match by IP address and browser.
 		$marketing        = $allowed['marketing'];

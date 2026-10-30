@@ -23,8 +23,12 @@ defined( 'ABSPATH' ) || exit;
  */
 final class UpgradePage {
 
-	/** Account pages of Funnelforms, where plans are bought and Pro is downloaded. */
-	public const ACCOUNT_URL = 'https://account.funnelforms.io/konto';
+	/**
+	 * Account pages of Funnelforms, where plans are bought and Pro is downloaded (English paths since
+	 * 22.10.2026; the old /konto paths redirect). The account moves to member.funnelforms.io later,
+	 * and account.funnelforms.io then redirects there for good.
+	 */
+	public const ACCOUNT_URL = 'https://account.funnelforms.io/account';
 
 	/** Main file of Funnelforms Pro, relative to the plugins folder. */
 	public const PRO_PLUGIN = 'Funnelforms-pro/Funnelforms-pro.php';
@@ -39,7 +43,7 @@ final class UpgradePage {
 				'von'     => 'free',
 				'zurueck' => rawurlencode( self::install_url() ),
 			),
-			self::ACCOUNT_URL . '/kaufen'
+			self::ACCOUNT_URL . '/pricing'
 		);
 	}
 

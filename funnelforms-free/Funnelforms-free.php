@@ -3,7 +3,7 @@
  * Plugin Name:       Funnelforms Free – Multi Step Form, Contact Form & Lead Funnel Builder
  * Plugin URI:        https://funnelforms.io/
  * Description:       Multi-step forms and lead funnels with drag and drop: no limits on forms or entries, branching by answer, CSV export and import from other form plugins.
- * Version:           5.0.1
+ * Version:           5.0.2
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Author:            Funnelforms

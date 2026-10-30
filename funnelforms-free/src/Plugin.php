@@ -23,6 +23,7 @@ use Funnelforms\Admin\ImportPage;
 use Funnelforms\Admin\EntryPdfDownload;
 use Funnelforms\Admin\Menu;
 use Funnelforms\Admin\AppointmentsPage;
+use Funnelforms\Admin\CronofyNotice;
 use Funnelforms\Admin\PredictionPage;
 use Funnelforms\Admin\IntegrationsPage;
 use Funnelforms\Admin\MigrationPage;
@@ -184,6 +185,7 @@ final class Plugin {
 			\Funnelforms\Application\ExperimentSchedule::class,
 			SupportAccess::class,
 			License::class,
+			\Funnelforms\Application\License\LicenseLock::class,
 			\Funnelforms\Application\Notices\Notices::class,
 			Sender::class,
 			AdminUsage::class,
@@ -218,6 +220,7 @@ final class Plugin {
 			BuilderPage::class,
 			EntriesPage::class,
 			AppointmentsPage::class,
+			CronofyNotice::class,
 			IntegrationsPage::class,
 			StatsPage::class,
 			PredictionPage::class,

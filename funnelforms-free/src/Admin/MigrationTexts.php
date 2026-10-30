@@ -138,11 +138,12 @@ final class MigrationTexts {
 				$builder,
 			),
 			'booking_calendar_reconnect' => array(
-				__( 'A calendar needs to be connected again', 'funnelforms-free' ),
-				__( 'An appointment type of this form was connected to a calendar through Cronofy, which Funnelforms 5 no longer uses. Without the calendar, booked times could overlap with your other appointments.', 'funnelforms-free' ),
-				__( 'Connect the calendar again in the form builder at the appointment type, or save the appointment type there once to use it without a calendar.', 'funnelforms-free' ),
-				$open,
-				$builder,
+				__( 'Your Cronofy calendar connection is gone', 'funnelforms-free' ),
+				__( 'An appointment type of this form was connected to a calendar through Cronofy. Funnelforms 5 no longer uses Cronofy, so this connection could not be taken over. Without a calendar, booked times could overlap with your other appointments.', 'funnelforms-free' ),
+				__( 'Connect your calendar again under Funnelforms → Integrations, then set up the appointment type again under Funnelforms → Appointments → Appointment types: choose the calendar and save.', 'funnelforms-free' ),
+				__( 'Open appointment types', 'funnelforms-free' ),
+				// AppointmentsPage::url( 'types' ), spelled out: Free has no appointments page and never reports this.
+				add_query_arg( 'tab', 'types', admin_url( 'admin.php?page=funnelforms-appointments' ) ),
 			),
 			'field_type'                 => array(
 				__( 'A kind of field Funnelforms 5 cannot show yet', 'funnelforms-free' ),

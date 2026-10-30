@@ -304,7 +304,7 @@ final class MigrationPage {
 			'google_maps_key_missing'    => __( 'Google Maps key for address suggestions is missing', 'funnelforms-free' ),
 			'sms_not_configured'         => __( 'a phone field confirmed by text message has no SMS connection', 'funnelforms-free' ),
 			'booking_type_missing'       => __( 'the appointment type of a booking question is missing', 'funnelforms-free' ),
-			'booking_calendar_reconnect' => __( 'the calendar of an appointment type was connected through Cronofy; connect a calendar for conflicts or save the appointment type again in the form builder', 'funnelforms-free' ),
+			'booking_calendar_reconnect' => __( 'the Cronofy calendar connection of an appointment type is gone; connect the calendar again and set up the appointment type again', 'funnelforms-free' ),
 			/* translators: %s: technical name of a field type, e.g. file. */
 			'field_type'                 => __( 'field type %s', 'funnelforms-free' ),
 			/* translators: %s: technical name of an integration, e.g. crm:hubspot. */
@@ -503,6 +503,11 @@ final class MigrationPage {
 		$total   = count( $forms );
 		$running = 'running' === $state['status'] || LegacyBackup::running();
 		self::hero( $state, $data, $by, $total, $running );
+		/**
+		 * Fires below the state of the move on the migration overview. Pro shows here the
+		 * appointment types from 3.x that lost their Cronofy calendar (CronofyNotice).
+		 */
+		do_action( 'funnelforms_migration_overview_top' );
 		?>
 		<div class="ffx-grid ffx-mig-kpis ffx-section">
 			<?php

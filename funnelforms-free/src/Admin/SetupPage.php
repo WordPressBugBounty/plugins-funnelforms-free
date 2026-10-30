@@ -92,6 +92,8 @@ final class SetupPage {
 	 * pages of Funnelforms 3) leads to it. The dashboard and the plugin list open it once per
 	 * administrator, as a first hint. Nothing else is held back: not the rest of wp-admin, not
 	 * AJAX, REST, cron or WP-CLI, and not users who may not run the assistant themselves.
+	 * While Funnelforms Pro is locked for want of a license (Edition::locked()), the lock screen
+	 * comes first: the website is connected on the account page, then the assistant opens.
 	 */
 	public static function maybe_redirect(): void {
 		global $pagenow;
@@ -106,7 +108,7 @@ final class SetupPage {
 		$own  = BuilderPage::SLUG === $page && $form > 0 && (int) ( SetupFlow::state()['form_id'] ?? 0 ) === $form;
 		$must = 'admin.php' === $pagenow && ! $own && ! in_array( $page, array( self::SLUG, FreeSite::SLUG ), true ) && ( str_starts_with( $page, 'funnelforms' ) || str_starts_with( $page, 'af2_' ) );
 		$once = in_array( $pagenow, array( 'index.php', 'plugins.php' ), true ) && '' === (string) get_user_meta( get_current_user_id(), self::SEEN, true );
-		if ( ! ( $must || $once ) || ! SetupFlow::open() ) {
+		if ( ! ( $must || $once ) || ! SetupFlow::open() || Edition::locked() ) {
 			return;
 		}
 		update_user_meta( get_current_user_id(), self::SEEN, gmdate( 'Y-m-d H:i:s' ) );
@@ -120,7 +122,7 @@ final class SetupPage {
 	 * wordpress.org: no notices across all of wp-admin that cannot be closed).
 	 */
 	public static function notice(): void {
-		if ( ! current_user_can( 'manage_options' ) || ! SetupFlow::open() ) {
+		if ( ! current_user_can( 'manage_options' ) || ! SetupFlow::open() || Edition::locked() ) {
 			return;
 		}
 		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
@@ -136,11 +138,12 @@ final class SetupPage {
 	}
 
 	/**
-	 * Shows the assistant as a page of its own.
+	 * Shows the assistant as a page of its own; while Funnelforms Pro is locked, its page shows the
+	 * lock screen instead (License\LicenseLock).
 	 */
 	public static function maybe_render(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- navigation only.
-		if ( wp_doing_ajax() || ! isset( $_GET['page'] ) || self::SLUG !== $_GET['page'] || ! current_user_can( 'manage_options' ) ) {
+		if ( wp_doing_ajax() || ! isset( $_GET['page'] ) || self::SLUG !== $_GET['page'] || ! current_user_can( 'manage_options' ) || Edition::locked() ) {
 			return;
 		}
 		update_user_meta( get_current_user_id(), self::SEEN, gmdate( 'Y-m-d H:i:s' ) );

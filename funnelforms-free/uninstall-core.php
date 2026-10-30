@@ -26,6 +26,7 @@ remove_role( 'funnelforms_support' );
 // The connection to the Funnelforms account (encrypted site token and secret).
 delete_option( 'funnelforms_license' );
 delete_option( 'funnelforms_license_legacy' );
+delete_option( 'funnelforms_license_legacy_since' );
 delete_option( 'funnelforms_license_account_last' );
 // What the Brain last said about the analyses of the Predictive AI.
 delete_transient( 'funnelforms_prediction_quota' );

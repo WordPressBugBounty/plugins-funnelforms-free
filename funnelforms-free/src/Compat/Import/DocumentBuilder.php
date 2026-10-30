@@ -571,6 +571,8 @@ final class DocumentBuilder {
 				// HTML bodies keep their markup; plain text ones get line breaks.
 				'nl2br'     => strip_tags( $body ) === $body, // phpcs:ignore WordPress.WP.AlternativeFunctions.strip_tags_strip_tags -- runs without WordPress in unit tests.
 				'transport' => array( 'type' => 'wp_mail' ),
+				// The other plugin's text on the designed card of Funnelforms, answers as a table.
+				'layout'    => 'branded',
 			),
 		);
 	}

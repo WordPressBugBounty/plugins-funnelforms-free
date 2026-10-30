@@ -451,6 +451,8 @@ final class Diagnostics {
 			'support_access_revoked'            => __( 'Support access ended', 'funnelforms-free' ),
 			'support_access_expired'            => __( 'Support access ran out', 'funnelforms-free' ),
 			'support_ticket_sent'               => __( 'Support ticket sent', 'funnelforms-free' ),
+			'support_ticket_answered'           => __( 'Answered a support ticket', 'funnelforms-free' ),
+			'support_ticket_closed'             => __( 'Support ticket closed', 'funnelforms-free' ),
 			'license_connected'                 => __( 'Website connected with Funnelforms', 'funnelforms-free' ),
 			'license_activated_with_code'       => __( 'Website activated with a code', 'funnelforms-free' ),
 			'license_activated_with_legacy_key' => __( 'Website activated with the license key of Funnelforms 3', 'funnelforms-free' ),

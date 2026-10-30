@@ -4,7 +4,7 @@ Tags: contact form, multi step form, form builder, lead generation, conversation
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 5.0.1
+Stable tag: 5.0.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -221,6 +221,11 @@ If you set up a mail server under Funnelforms > Settings > E-mail, the mails of 
 The scripts in assets/builder and assets/runtime are built and minified from TypeScript. The sources, with the build scripts, are in the folder source/ of this plugin. To build them: `pnpm install` and `pnpm -r build` in that folder (Node.js 20 or newer).
 
 == Changelog ==
+
+= 5.0.2 =
+* After 10 complete entries, Funnelforms Free asks once for a review on wordpress.org; "No, thanks" or the review ends it for good. Only users who may change the settings see it.
+* Banners of the plugin page in all 23 languages of the plugin, Persian from right to left.
+* New screenshots of a form on a website and on a phone.
 
 = 5.0.1 =
 * Traditional Chinese (Taiwan): sites in zh_TW no longer show Simplified Chinese.

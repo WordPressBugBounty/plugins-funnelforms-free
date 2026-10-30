@@ -14,6 +14,7 @@ import { setIntegrationsUrl } from '../src/actions';
 import type { ConnectApi, CrmProvider } from '../src/connect';
 import { formProtection, setSpam } from '../src/spam';
 import { today } from '../src/experiments';
+import { periodDays } from '../src/stats';
 import { blank } from './blank';
 import { validateDocument, type ChoiceField, type ContactField, type FormDocument, type FormNode } from '@funnelforms/form-schema';
 
@@ -114,7 +115,8 @@ function fakeApi( overrides: Partial<FormsApi> = {} ): FormsApi {
 			form: 7,
 			from,
 			to,
-			totals: from < '2026-09-01' ? { views: 100, starts: 40, completions: 10, conversionRate: 0.1 } : { views: 150, starts: 60, completions: 12, conversionRate: 0.08, averageSeconds: 125, medianSeconds: 70 },
+			// The 30 days before the current 30-day period, whatever today is.
+			totals: from < periodDays( 30 ).from ? { views: 100, starts: 40, completions: 10, conversionRate: 0.1 } : { views: 150, starts: 60, completions: 12, conversionRate: 0.08, averageSeconds: 125, medianSeconds: 70 },
 			devices: { desktop: 3, tablet: 0, mobile: 9 },
 			daily: [ { date: to, views: 150, starts: 60, completions: 12 } ],
 			steps: [ { id: 'n1', type: 'step' as const, title: 'Wofür?', reached: 60, left: 20 } ],

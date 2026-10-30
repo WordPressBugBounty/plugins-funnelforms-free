@@ -11,7 +11,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FormsApi } from '../api';
 import type { ConnectApi, CrmConnection, CrmProvider } from '../connect';
-import { connectionsOf, deletable, filterServices, hubServices, hubSummary, importable, HUB_CATEGORIES, type HubApi, type HubCategory, type HubConnection, type HubOverview, type HubService } from '../hub';
+import { connectionsOf, deletable, filterServices, hubServices, hubSummary, HUB_CATEGORIES, type HubApi, type HubCategory, type HubConnection, type HubOverview, type HubService } from '../hub';
 import type { CalendarService } from './BookingTypes';
 import { CrmConnectionDialog } from './CrmConnections';
 import { __, sprintf } from './i18n';
@@ -19,7 +19,6 @@ import { Button, Dialog, Notice, Spinner, TextInput, Toggle } from './ui';
 
 export interface HubConfig {
 	interfacesUrl?: string;
-	importUrl?: string;
 	builderUrl?: string;
 }
 
@@ -32,7 +31,6 @@ const PATHS = {
 	search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-4.35-4.35',
 	calendar: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
 	bolt: 'M13 2 3 14h9l-1 8 10-12h-9l1-8z',
-	upload: 'M12 16V4M7 9l5-5 5 5M5 20h14',
 	external: 'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5',
 };
 
@@ -234,7 +232,6 @@ export function IntegrationsHub( { api, config, onCalendar, stamp }: { api: HubS
 	const connections = data?.connections ?? [];
 	const shown = filterServices( services, { query, category, connectedOnly }, connections, categoryName );
 	const figures = hubSummary( connections );
-	const toImport = importable( data?.imports ?? [] );
 	const service = services.find( ( s ) => s.id === open ) ?? null;
 	const nameOf = ( type: string ): string => services.find( ( s ) => s.types.includes( type ) )?.name ?? type;
 
@@ -370,22 +367,6 @@ export function IntegrationsHub( { api, config, onCalendar, stamp }: { api: HubS
 						</li>
 					) ) }
 				</ul>
-			) : null }
-
-			{ data && config.importUrl ? (
-				<div className={ 'ffx-hub-import' + ( toImport.forms ? ' is-found' : '' ) }>
-					<span className="ffx-hub-import__icon">
-						<Icon name="upload" />
-					</span>
-					<div>
-						<strong>{ toImport.forms ? sprintf( __( 'Forms from %s found on this website', 'funnelforms-pro' ), toImport.plugins.join( ', ' ) ) : __( 'Coming from another form plugin?', 'funnelforms-pro' ) }</strong>
-						<p>{ toImport.forms ? __( 'Import them as drafts in a few clicks and check each one before it goes live.', 'funnelforms-pro' ) : __( 'Import forms of WPForms, Gravity Forms, Contact Form 7, Ninja Forms, Fluent Forms, Formidable and Elementor, from this website or from an export file.', 'funnelforms-pro' ) }</p>
-					</div>
-					{ toImport.forms ? <span className="ffx-hub-import__count">{ toImport.forms }</span> : null }
-					<a className={ 'ffx-btn ffx-btn--sm' + ( toImport.forms ? ' ffx-btn--primary' : '' ) } href={ config.importUrl }>
-						{ __( 'Import from other plugins', 'funnelforms-pro' ) }
-					</a>
-				</div>
 			) : null }
 
 			<div className="ffx-hub__tools">

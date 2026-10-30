@@ -99,15 +99,18 @@ test( 'the page of the Predictive AI shows the report of a form, the overview th
 	await expect( card ).toContainText( 'Connect your Funnelforms Pro license' );
 	await card.getByRole( 'link', { name: 'Open Predictive AI' } ).click();
 	await expect( page ).toHaveURL( /page=funnelforms-prediction/ );
-	await page.getByLabel( 'Choose a form' ).selectOption( String( id ) );
-
-	await expect( page.locator( '.ffxb-predict-score__ring' ) ).toContainText( 'send the form' );
-	await expect( page.locator( '.ffxb-predict-score' ) ).toContainText( 'Ein kurzer Rückruf-Funnel.' );
-	await expect( page.locator( '.ffxb-predict-funnel > li' ).first() ).toContainText( '1000 reached' );
-	await expect( page.locator( '.ffxb-predict-ideas' ) ).toContainText( 'Vertrauen vor dem Absenden' );
-	await expect( page.locator( '.ffxb-predict-personas' ) ).toContainText( 'Rückrufwillige' );
-	// Without a license nothing new can be asked for.
+	// The overview: every form with its last prediction; without a license nothing new can be asked for.
+	await expect( page.getByRole( 'heading', { name: 'Which form loses the most leads?' } ) ).toBeVisible();
 	await expect( page.getByText( 'Connect your license' ) ).toBeVisible();
-	await expect( page.getByRole( 'button', { name: 'Analyse again' } ) ).toBeDisabled();
+	const open = page.locator( `.ffxb-pai-overview__card a[href*="form=${ id }&view=predict"]` );
+	await expect( open ).toHaveCount( 1 );
+	// Simulating and applying happen in the editor, in the tab Predictive AI, which draws the last prediction.
+	await page.addInitScript( () => window.localStorage.setItem( 'ffxb-tour-seen', '1' ) );
+	await open.click();
+	await expect( page ).toHaveURL( new RegExp( `page=funnelforms-builder.*form=${ id }` ) );
+	await expect( page.getByText( 'Funnel score', { exact: true } ) ).toBeVisible();
+	await expect( page.getByText( '1.000 virtual visitors' ) ).toBeVisible();
+	await expect( page.getByText( 'Connect your license' ) ).toBeVisible();
+	await expect( page.getByRole( 'button', { name: 'Simulate again' } ) ).toBeDisabled();
 	expect( errors, 'browser errors on the page' ).toEqual( [] );
 } );

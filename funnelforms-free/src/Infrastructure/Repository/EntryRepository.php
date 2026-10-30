@@ -410,6 +410,17 @@ final class EntryRepository {
 	}
 
 	/**
+	 * Whether the site has at least this many complete entries, over all forms. Counts no further.
+	 *
+	 * @param int $min Number of entries.
+	 */
+	public function has_complete( int $min ): bool {
+		global $wpdb;
+		$found = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM ( SELECT id FROM %i WHERE status = %s LIMIT %d ) AS found', Schema::table( 'entries' ), 'complete', $min ) );
+		return $found >= $min;
+	}
+
+	/**
 	 * A page of entries, newest first, and how many match. Entries in the spam folder and abandoned
 	 * ones only come with the filter status spam or abandoned; not_status is a comma-separated list.
 	 * sort "value" or "score" puts the highest lead value or score first (entries without one last),

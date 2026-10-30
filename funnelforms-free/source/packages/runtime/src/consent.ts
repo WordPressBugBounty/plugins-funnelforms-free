@@ -14,6 +14,8 @@ export interface TrackingInfo {
 	fbp?: string;
 	fbc?: string;
 	gaClientId?: string;
+	/** Session ID per GA4 stream, keyed by the measurement ID without "G-" (cookie _ga_<ID>). */
+	gaSessions?: Record<string, string>;
 	ttp?: string;
 	ttclid?: string;
 }
@@ -63,6 +65,28 @@ function cookie( cookies: string, name: string ): string | undefined {
 	return undefined;
 }
 
+/**
+ * The current GA4 session of each stream on the page, so that a lead sent by the plugin's server
+ * counts in the visitor's session and keeps its traffic source (without it GA4 reports it as
+ * Unassigned). _ga_<ID> is GS1.1.<session>.<count>.… or, since 2025, GS2.1.s<session>$o<count>$….
+ */
+function gaSessions( cookies: string ): Record<string, string> {
+	const out: Record<string, string> = {};
+	for ( const part of cookies.split( ';' ) ) {
+		const [ key, ...value ] = part.trim().split( '=' );
+		const stream = /^_ga_([A-Z0-9]{4,20})$/.exec( key ?? '' )?.[ 1 ];
+		if ( ! stream || Object.keys( out ).length >= 5 ) {
+			continue;
+		}
+		const raw = decodeURIComponent( value.join( '=' ) );
+		const session = raw.startsWith( 'GS1.' ) ? raw.split( '.' )[ 2 ] : /^GS2\.[0-9]+\.s([0-9]+)/.exec( raw )?.[ 1 ];
+		if ( session && /^[0-9]{6,20}$/.test( session ) ) {
+			out[ stream ] = session;
+		}
+	}
+	return out;
+}
+
 export function trackingInfo( search: string, cookies: string, now: number = Date.now() ): TrackingInfo {
 	const consent = { marketing: answer( 'marketing' ), statistics: answer( 'statistics' ) };
 	const params = new URLSearchParams( search );
@@ -78,6 +102,8 @@ export function trackingInfo( search: string, cookies: string, now: number = Dat
 		// _ga is GA1.1.<random>.<time>; the client ID is the last two parts.
 		const ga = cookie( cookies, '_ga' )?.split( '.' );
 		ids.gaClientId = ga && ga.length >= 4 ? ga.slice( -2 ).join( '.' ) : undefined;
+		const sessions = gaSessions( cookies );
+		ids.gaSessions = Object.keys( sessions ).length > 0 ? sessions : undefined;
 	}
 	// Identifiers that are undefined are left out of the JSON.
 	return { consent, ...ids };

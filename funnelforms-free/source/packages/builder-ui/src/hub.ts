@@ -177,12 +177,6 @@ export function hubSummary( connections: HubConnection[] ): { connected: number;
 	};
 }
 
-/** Forms of other plugins that are not imported yet, and the plugins they are in. */
-export function importable( imports: HubImport[] ): { forms: number; plugins: string[] } {
-	const open = imports.filter( ( i ) => i.forms > i.imported );
-	return { forms: open.reduce( ( n, i ) => n + i.forms - i.imported, 0 ), plugins: open.map( ( i ) => i.label ) };
-}
-
 /** Connections created on this site (not brought over from Funnelforms 3) can be deleted. */
 export function deletable( ref: string ): boolean {
 	return /^[a-z0-9]+:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test( ref );
