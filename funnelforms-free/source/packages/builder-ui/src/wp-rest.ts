@@ -5,9 +5,10 @@ import type { FormDocument } from '@funnelforms/form-schema';
 import { ApiError } from './api';
 import { createConnectApi, type ConnectApi } from './connect';
 import { createHubApi, type HubApi } from './hub';
+import { restFetch } from './rest-bridge';
 import { __ } from './ui/i18n';
 import type { PredictionFigures, PredictionParameters, StoredPrediction } from './predict';
-import type { AiChange, AiCreated, PredictionHistory, PredictionQuota, PredictionRun, Appointment, BookingConfig, BookingType, BookingTypes, Branding, BulkChanges, CalendarChoice, CalendarSignIn, CalendarsOverview, Connection, ConnectionTest, ConnectionTestResult, EntriesApi, EntryChanges, EntryDetail, EntryFigures, EntryFiguresQuery, EntryFilter, EntryList, EntryNote, EntryPayment, EntrySummary, ExperimentStats, LeadStage, LeadStageInput, FontFile, FormDetail, FormFigures, FormList, FormsApi, FormStatsReport, FormStatus, GoogleFont, IconLibrary, ImportedForm, ListQuery, MediaFile, MediaImage, NewWhatsAppTemplate, PublishResult, Revision, SavedStyle, SaveResult, SiteDesign, SitePage, TemplateCatalog, UserRef, WhatsAppTemplate } from './api';
+import type { AiChange, AiCreated, PredictionHistory, PredictionQuota, PredictionRun, Appointment, BookingConfig, BookingType, BookingTypes, Branding, BulkChanges, CalendarChoice, CalendarSignIn, CalendarsOverview, Connection, ConnectionTest, ConnectionTestResult, EntriesApi, EntryChanges, EntryDetail, EntryFigures, EntryFiguresQuery, EntryFilter, EntryList, EntryNote, EntryPayment, EntrySummary, ExperimentStats, LeadStage, LeadStageInput, FontFile, FormDetail, FormFigures, FormList, FormsApi, FormStatsReport, FormStatus, GoogleFont, IconLibrary, ImportedForm, ListQuery, MediaFile, MediaImage, MoveResult, NewWhatsAppTemplate, PublishResult, Revision, SavedStyle, SaveResult, SiteDesign, SitePage, TemplateCatalog, UserRef, WhatsAppTemplate } from './api';
 
 export interface WpRestOptions {
 	/** REST root as WordPress prints it (wpApiSettings.root): …/wp-json/ or …/?rest_route=/ */
@@ -19,6 +20,8 @@ export interface WpRestOptions {
 	/** Address of the site's logo (Application\SiteLogo::url()). */
 	logo?: string | null;
 	fetch?: typeof fetch;
+	/** Address of admin-ajax.php for the second way to the routes; ajaxurl of the page when left out, none when null. */
+	ajax?: string | null;
 }
 
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -68,7 +71,8 @@ export class WpRestAdapter implements FormsApi, EntriesApi {
 	readonly hub: HubApi = createHubApi( ( method, path, body ) => this.request( method, path, body ) );
 
 	constructor( private readonly options: WpRestOptions ) {
-		this.fetcher = options.fetch ?? ( ( input, init ) => fetch( input, init ) );
+		// Through admin-ajax.php where the login cookie does not reach /wp-json/ (rest-bridge.ts).
+		this.fetcher = restFetch( options.root, options.fetch ?? ( ( input, init ) => fetch( input, init ) ), options.ajax );
 		this.nonce = options.nonce;
 	}
 
@@ -174,6 +178,10 @@ export class WpRestAdapter implements FormsApi, EntriesApi {
 
 	publish( id: number, note = '' ): Promise<PublishResult> {
 		return this.request( 'POST', '/' + id + '/publish', { note } );
+	}
+
+	moveToV5( id: number ): Promise<MoveResult> {
+		return this.request( 'POST', '/' + id + '/renderer' );
 	}
 
 	revisions( id: number ): Promise<Revision[]> {

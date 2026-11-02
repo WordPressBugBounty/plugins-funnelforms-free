@@ -10,7 +10,6 @@ declare(strict_types=1);
 namespace Funnelforms\Compat\Migration;
 
 use Funnelforms\Application\FormRenderer;
-use Funnelforms\Application\SetupFlow;
 use Funnelforms\Compat\Legacy\LegacyRepository;
 use Funnelforms\Compat\Safety\Rollback;
 use Funnelforms\Infrastructure\Crypto\SecretBox;
@@ -25,8 +24,12 @@ defined( 'ABSPATH' ) || exit;
  *
  * Only forms whose check passed and that nothing else keeps on 3.x (FormRenderer::blockers())
  * move. A form someone sent back to Funnelforms 3 by hand stays there ("pinned") until it is moved
- * by hand again. Nothing moves while the site went back to Funnelforms 3 or before the update
- * assistant is through, which asks for every form itself.
+ * by hand again. Nothing moves while the site went back to Funnelforms 3.
+ *
+ * Since 5.0.3 this does not wait for the update assistant: most sites update without anyone
+ * opening it, and every form left on 3.x keeps the whole 3.x code loaded (LegacyCode). The
+ * assistant still shows every form; a form left out or sent back there goes back to 3.x and is
+ * pinned (SetupFlow::go_live_update()).
  */
 final class AutoRenderer {
 
@@ -90,7 +93,7 @@ final class AutoRenderer {
 	/**
 	 * Why nothing moves right now, or an empty string.
 	 *
-	 * @return string off, rollback, assistant or ''.
+	 * @return string off, rollback or ''.
 	 */
 	public static function waiting(): string {
 		if ( ! self::enabled() ) {
@@ -98,12 +101,6 @@ final class AutoRenderer {
 		}
 		if ( Rollback::active() ) {
 			return 'rollback';
-		}
-		// Until the update assistant is through: it shows every form before it goes live, also
-		// before anyone opened it (the first page load after the update runs the import).
-		$setup = SetupFlow::state();
-		if ( 'update' === $setup['path'] && 'open' === $setup['status'] ) {
-			return 'assistant';
 		}
 		return '';
 	}

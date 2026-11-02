@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Funnelforms\Infrastructure\Repository;
 
 use Funnelforms\Infrastructure\Database\Schema;
+use Funnelforms\Infrastructure\PageCache;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -187,6 +188,7 @@ final class FormRepository {
 			),
 			array( 'id' => $form_id )
 		);
+		PageCache::changed( 'renderer' );
 		$wpdb->insert(
 			Schema::table( 'audit_log' ),
 			array(
@@ -301,6 +303,31 @@ final class FormRepository {
 	}
 
 	/**
+	 * The newest form (not in the trash) imported from a form of another system, by the id it had
+	 * there (meta.import.sourceId of its draft or its live revision); null when there is none.
+	 *
+	 * @param string $source_id Id of the form in the other system.
+	 * @return array<string,mixed>|null
+	 */
+	public function by_import_source( string $source_id ): ?array {
+		global $wpdb;
+		if ( '' === $source_id ) {
+			return null;
+		}
+		$like = '%' . $wpdb->esc_like( '"sourceId":' . (string) wp_json_encode( $source_id ) ) . '%';
+		$id   = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT f.id FROM %i f WHERE f.status <> 'trashed' AND ( f.draft LIKE %s OR EXISTS ( SELECT 1 FROM %i r WHERE r.id = f.current_revision_id AND r.document LIKE %s ) ) ORDER BY f.id DESC LIMIT 1",
+				Schema::table( 'forms' ),
+				$like,
+				Schema::table( 'form_revisions' ),
+				$like
+			)
+		);
+		return null === $id ? null : $this->by_id( (int) $id );
+	}
+
+	/**
 	 * JSON of the draft, null when there is none.
 	 *
 	 * @param int $form_id Form ID.
@@ -345,6 +372,10 @@ final class FormRepository {
 		}
 		$wpdb->update( Schema::table( 'forms' ), $data, array( 'id' => $form_id ) );
 		unset( self::$rows[ $form_id ] );
+		if ( isset( $data['status'] ) ) {
+			// Unpublished or trashed: the form leaves the pages.
+			PageCache::changed( 'publish' );
+		}
 	}
 
 	/**
@@ -386,6 +417,7 @@ final class FormRepository {
 			array( 'id' => $form_id )
 		);
 		unset( self::$rows[ $form_id ], self::$documents[ $revision ] );
+		PageCache::changed( 'publish' );
 		return $revision;
 	}
 

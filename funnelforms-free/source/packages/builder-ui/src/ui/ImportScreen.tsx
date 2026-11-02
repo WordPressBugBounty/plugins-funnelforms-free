@@ -6,7 +6,7 @@
  * open it in the editor.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { ImportedForm } from '../api';
+import type { ImportedEntries, ImportedForm } from '../api';
 import { IMPORT_MAX_BYTES, type ConnectApi, type ImportItem, type ImportResult, type ImportSource } from '../connect';
 import { problemTexts } from './catalog';
 import { __, sprintf } from './i18n';
@@ -15,6 +15,8 @@ import { Spinner } from './ui';
 export interface ImportConfig {
 	/** The editor, to open a form: its address plus &form=<id>. */
 	builderUrl?: string | null;
+	/** The entries, to show those of a form: its address plus &form=<id>; null without the right to see them. */
+	entriesUrl?: string | null;
 	/** Size limit of an export file in bytes. */
 	maxBytes?: number;
 	/** The other import page: Import from other plugins … */
@@ -445,6 +447,51 @@ interface OwnFailure {
  * Funnelforms 4, the online version, .json; an export of Funnelforms 3, .zip) through
  * admin/forms/import. Each form becomes a draft.
  */
+/** Whether a file is a leads export of Funnelforms 4 (format "funnelforms4-responses"). */
+async function isLeadsFile( file: File ): Promise<boolean> {
+	try {
+		return ( await file.slice( 0, 512 ).text() ).includes( '"funnelforms4-responses"' );
+	} catch {
+		return false;
+	}
+}
+
+/** The result of a leads file for one form. */
+function LeadsRow( { form, entries, entriesUrl }: { form: ImportedForm; entries: ImportedEntries; entriesUrl?: string | null } ) {
+	const notes = [
+		entries.skipped ? sprintf( __( 'Imported before and skipped: %d', 'funnelforms-pro' ), entries.skipped ) : '',
+		entries.failed ? sprintf( __( 'Could not be saved: %d', 'funnelforms-pro' ), entries.failed ) : '',
+		entries.files ? sprintf( __( 'Files copied: %d', 'funnelforms-pro' ), entries.files ) : '',
+		entries.filesLeft ? sprintf( __( 'Files still in Funnelforms 4: %d. Import the same file again to copy them.', 'funnelforms-pro' ), entries.filesLeft ) : '',
+	].filter( Boolean );
+	return (
+		<li className="ffx-import__row">
+			<div className="ffx-import__row-head">
+				<div className="ffx-rows__main">
+					<span className="ffx-rows__title">{ form.title }</span>
+					<span className="ffx-rows__meta">{ __( 'Leads of Funnelforms 4', 'funnelforms-pro' ) }</span>
+				</div>
+				<span className="ffx-badge ffx-badge--success">{ sprintf( __( 'Leads imported: %d', 'funnelforms-pro' ), entries.imported ) }</span>
+				{ entriesUrl && null !== form.id ? (
+					<a className="ffx-btn ffx-btn--sm" href={ entriesUrl + ( entriesUrl.includes( '?' ) ? '&' : '?' ) + 'form=' + form.id }>
+						<span>{ __( 'Show entries', 'funnelforms-pro' ) }</span>
+						<span className="screen-reader-text">{ ' – ' + ( form.title ?? '' ) }</span>
+					</a>
+				) : null }
+			</div>
+			{ notes.length > 0 ? (
+				<div className="ffx-import__notes">
+					<ul>
+						{ notes.map( ( n ) => (
+							<li key={ n }>{ n }</li>
+						) ) }
+					</ul>
+				</div>
+			) : null }
+		</li>
+	);
+}
+
 export function FunnelformsImport( { api, config = {} }: { api: { importFile( file: Blob, name: string ): Promise<ImportedForm[]> }; config?: ImportConfig } ) {
 	const [ busy, setBusy ] = useState( false );
 	const [ forms, setForms ] = useState<ImportedForm[] | null>( null );
@@ -456,16 +503,21 @@ export function FunnelformsImport( { api, config = {} }: { api: { importFile( fi
 	const base = config.builderUrl ?? '';
 	const editUrl = ( id: number ): string => base + ( base.includes( '?' ) ? '&' : '?' ) + 'form=' + id;
 
+	const newForms = ( forms ?? [] ).filter( ( f ) => ! f.entries );
+
 	useEffect( () => {
 		if ( forms || failures.length ) {
 			resultHead.current?.focus();
 		}
 	}, [ forms, failures ] );
 
-	const importFiles = async ( files: File[] ): Promise<void> => {
+	const importFiles = async ( picked: File[] ): Promise<void> => {
 		setBusy( true );
 		const done: ImportedForm[] = [];
 		const failed: OwnFailure[] = [];
+		// Leads of Funnelforms 4 go into forms imported before: their files come after the forms files.
+		const leads = await Promise.all( picked.map( ( file ) => isLeadsFile( file ) ) );
+		const files = [ ...picked.filter( ( _, i ) => ! leads[ i ] ), ...picked.filter( ( _, i ) => leads[ i ] ) ];
 		for ( const file of files ) {
 			if ( file.size > maxBytes ) {
 				failed.push( { file: file.name, text: sprintf( __( '%1$s is larger than %2$s MB.', 'funnelforms-pro' ), file.name, megabytes( maxBytes ) ) } );
@@ -473,7 +525,9 @@ export function FunnelformsImport( { api, config = {} }: { api: { importFile( fi
 			}
 			try {
 				for ( const form of await api.importFile( file, file.name ) ) {
-					if ( null === form.id ) {
+					if ( form.errors?.includes( 'ff4_form_missing' ) ) {
+						failed.push( { file: file.name, text: sprintf( /* translators: title of the form in Funnelforms 4, or the file name */ __( '%s: the form of these leads is not imported yet. Import the forms file of Funnelforms 4 first, then this file again.', 'funnelforms-pro' ), form.title || file.name ) } );
+					} else if ( null === form.id ) {
 						failed.push( { file: file.name, text: sprintf( /* translators: 1: file name, 2: reason */ __( '%1$s: a form could not be converted (%2$s).', 'funnelforms-pro' ), file.name, ( form.errors ?? [] ).join( ', ' ) || '?' ) } );
 					} else {
 						done.push( form );
@@ -498,11 +552,12 @@ export function FunnelformsImport( { api, config = {} }: { api: { importFile( fi
 								{ __( 'Result', 'funnelforms-pro' ) }
 							</h2>
 							<p>
-								{ ! forms?.length
+								{ ! newForms.length
 									? __( 'No new form was created.', 'funnelforms-pro' )
-									: 1 === forms.length
+									: 1 === newForms.length
 									? __( '1 form was imported as a draft. Nothing is live yet: open it, check it and publish it.', 'funnelforms-pro' )
-									: sprintf( __( '%d forms were imported as drafts. Nothing is live yet: open each one, check it and publish it.', 'funnelforms-pro' ), forms.length ) }
+									: sprintf( __( '%d forms were imported as drafts. Nothing is live yet: open each one, check it and publish it.', 'funnelforms-pro' ), newForms.length ) }
+								{ newForms.length < ( forms?.length ?? 0 ) ? ' ' + __( 'The leads were imported. Imported leads send no e-mails or webhooks.', 'funnelforms-pro' ) : null }
 							</p>
 						</div>
 						<button
@@ -523,6 +578,9 @@ export function FunnelformsImport( { api, config = {} }: { api: { importFile( fi
 					) ) }
 					<ul className="ffx-import__rows">
 						{ ( forms ?? [] ).map( ( form ) => {
+							if ( form.entries ) {
+								return <LeadsRow key={ 'leads-' + form.id } form={ form } entries={ form.entries } entriesUrl={ config.entriesUrl } />;
+							}
 							const todo = problemTexts( form.problems ?? [] );
 							const notes = form.messages ?? form.notes ?? [];
 							return (

@@ -9,13 +9,16 @@ declare(strict_types=1);
 
 namespace Funnelforms\Application\Telemetry;
 
+use Funnelforms\Edition\Edition;
 use Funnelforms\Infrastructure\Crypto\SecretBox;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Off until an administrator ticks the box in the setup assistant or under Settings → General.
- * While it is on, the installation has a random ID (inst_ and 24 letters and digits) and a secret
+ * Funnelforms Free: off until an administrator ticks the box in the setup assistant or under
+ * Settings → General (wordpress.org guidelines). Funnelforms Pro: on by default, as the terms of
+ * use say, until an administrator turns it off (start_by_default()); the site's address goes only
+ * with the extra box, as in Free. While it is on, the installation has a random ID (inst_ and 24 letters and digits) and a secret
  * of 32 random bytes (base64url), stored encrypted. Neither is linked to the license, the site
  * token or the domain. Turning it off forgets both; turning it on again makes new ones.
  * Contract: docs/api/diagnostics.md.
@@ -36,13 +39,19 @@ final class Consent {
 	/** Last status: the Brain takes no more reports from this installation (410). */
 	public const STOPPED = 'stopped';
 
+	/** Basis: an administrator turned it on. */
+	public const BASIS_CONSENT = 'consent';
+
+	/** Basis: on by default in Funnelforms Pro (start_by_default()); nobody has turned it off. */
+	public const BASIS_DEFAULT = 'default';
+
 	/** Industries a site can name, in the order of the list. */
 	public const INDUSTRIES = array( 'craft', 'construction', 'real_estate', 'finance', 'insurance', 'health', 'beauty', 'education', 'coaching', 'agency', 'ecommerce', 'software', 'solar_energy', 'automotive', 'tourism', 'legal', 'other' );
 
 	/**
 	 * The stored settings.
 	 *
-	 * @return array{enabled:bool,site_url:bool,industry:string,install_id:string,secret:string,consented_at:string,last_sent_at:string,last_status:string,next_after:string}
+	 * @return array{enabled:bool,site_url:bool,industry:string,install_id:string,secret:string,consented_at:string,basis:string,last_sent_at:string,last_status:string,next_after:string}
 	 */
 	public static function get(): array {
 		$stored = get_option( self::OPTION, array() );
@@ -61,7 +70,7 @@ final class Consent {
 	 * Settings with every key and a known value.
 	 *
 	 * @param array<string,mixed> $stored Stored or changed values.
-	 * @return array{enabled:bool,site_url:bool,industry:string,install_id:string,secret:string,consented_at:string,last_sent_at:string,last_status:string,next_after:string}
+	 * @return array{enabled:bool,site_url:bool,industry:string,install_id:string,secret:string,consented_at:string,basis:string,last_sent_at:string,last_status:string,next_after:string}
 	 */
 	public static function clean( array $stored ): array {
 		$enabled = ! empty( $stored['enabled'] );
@@ -74,6 +83,7 @@ final class Consent {
 			'install_id'   => self::valid_id( $text( 'install_id' ) ) ? $text( 'install_id' ) : '',
 			'secret'       => $text( 'secret' ),
 			'consented_at' => $text( 'consented_at' ),
+			'basis'        => $enabled && self::BASIS_DEFAULT === $text( 'basis' ) ? self::BASIS_DEFAULT : ( $enabled ? self::BASIS_CONSENT : '' ),
 			'last_sent_at' => $text( 'last_sent_at' ),
 			'last_status'  => in_array( $text( 'last_status' ), array( self::SENT, self::FAILED, self::RENEWED, self::STOPPED ), true ) ? $text( 'last_status' ) : '',
 			'next_after'   => $text( 'next_after' ),
@@ -163,6 +173,7 @@ final class Consent {
 		if ( $enabled && ! self::enabled() ) {
 			$after = self::identity() + array(
 				'consented_at' => gmdate( 'Y-m-d H:i:s' ),
+				'basis'        => self::BASIS_CONSENT,
 				'last_sent_at' => '',
 				'last_status'  => '',
 				'next_after'   => '',
@@ -193,6 +204,30 @@ final class Consent {
 	}
 
 	/**
+	 * Funnelforms Pro sends diagnostic data by default (terms of use; Pro is not bound by the
+	 * wordpress.org guidelines, Free is and stays opt-in). Turns it on once, on a Pro site that has
+	 * never stored a choice: a new identity, no address, no industry, basis default. Any stored
+	 * choice wins, also an earlier "No" in the setup assistant, turning it off in the settings and a
+	 * 410 of the Brain, because each of them stores the option with diagnostics off.
+	 *
+	 * @return bool Whether it was turned on now.
+	 */
+	public static function start_by_default(): bool {
+		if ( ! Edition::is_pro() || false !== get_option( self::OPTION, false ) ) {
+			return false;
+		}
+		self::store(
+			self::identity() + array(
+				'enabled'  => true,
+				'site_url' => false,
+				'industry' => '',
+				'basis'    => self::BASIS_DEFAULT,
+			)
+		);
+		return true;
+	}
+
+	/**
 	 * Settings without the identity: off, no ID, no secret, no consent time.
 	 *
 	 * @param array<string,mixed> $settings Settings.
@@ -205,6 +240,7 @@ final class Consent {
 			'install_id'   => '',
 			'secret'       => '',
 			'consented_at' => '',
+			'basis'        => '',
 			'next_after'   => '',
 		) + $settings;
 	}

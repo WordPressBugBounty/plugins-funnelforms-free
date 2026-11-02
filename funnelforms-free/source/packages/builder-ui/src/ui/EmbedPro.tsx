@@ -7,6 +7,7 @@ import { cssClass, cssSize, frameCode, HEIGHT_UNITS, popupShortcode, widgetShort
 import { useBuilder } from './context';
 import { CodeBox, Steps, type EmbedMethod } from './EmbedParts';
 import { __, sprintf } from './i18n';
+import { LegacyNotice } from './LegacyNotice';
 import { ColorInput, Notice, NumberInput, Select, TextInput, Toggle } from './ui';
 
 interface Props {
@@ -70,7 +71,7 @@ function PopupPanel( { popup, onPopup }: { popup: PopupSettings; onPopup: ( popu
 						onChange={ ( v ) => set( { pause: v ?? 0 } ) }
 					/>
 				) : null }
-				{ needsNew ? <Notice tone="warning">{ __( 'This form still runs on Funnelforms 3, which shows it in the page instead. Scrolling and leaving the page work once it uses the new renderer.', 'funnelforms-pro' ) }</Notice> : null }
+				{ needsNew ? <LegacyNotice text={ __( 'This form still runs on Funnelforms 3, which shows it in the page instead. Scrolling and leaving the page work once it uses the new renderer.', 'funnelforms-pro' ) } /> : null }
 			</div>
 			<CodeBox label={ __( 'Shortcode', 'funnelforms-pro' ) } code={ popupShortcode( form.shortcode, popup ) } />
 			<Steps
@@ -106,7 +107,7 @@ function WidgetPanel( { widget, onWidget }: { widget: WidgetSettings; onWidget: 
 	return (
 		<>
 			<div className="ffxb-embed__settings">
-				{ 'legacy' === form.renderer ? <Notice tone="warning">{ __( 'This form still runs on Funnelforms 3, which shows it in the page instead. The button works once it uses the new renderer.', 'funnelforms-pro' ) }</Notice> : null }
+				<LegacyNotice text={ __( 'This form still runs on Funnelforms 3, which shows it in the page instead. The button works once it uses the new renderer.', 'funnelforms-pro' ) } />
 				<div className="ffxb-embed__grid">
 					<Select label={ __( 'Corner', 'funnelforms-pro' ) } value={ widget.position } options={ corners } onChange={ ( position ) => set( { position } ) } />
 					<Select label={ __( 'Animation', 'funnelforms-pro' ) } value={ widget.animation } options={ animations } onChange={ ( animation ) => set( { animation } ) } />
@@ -143,7 +144,7 @@ function FramePanel( { config, frame, onFrame }: { config: EmbedConfig | null; f
 	return (
 		<>
 			<div className="ffxb-embed__settings">
-				{ 'legacy' === form.renderer ? <Notice tone="warning">{ __( 'This form still runs on Funnelforms 3. The embed code shows it once it uses the new renderer.', 'funnelforms-pro' ) }</Notice> : null }
+				<LegacyNotice text={ __( 'This form still runs on Funnelforms 3. The embed code shows it once it uses the new renderer.', 'funnelforms-pro' ) } />
 				<div className="ffxb-embed__grid">
 					<TextInput label={ __( 'Width', 'funnelforms-pro' ) } value={ frame.width } onChange={ ( width ) => set( { width } ) } hint={ widthOk ? sprintf( __( 'Supports: %s', 'funnelforms-pro' ), WIDTH_UNITS.join( ', ' ) ) : __( 'A number with %, px, rem or vw, such as 100%.', 'funnelforms-pro' ) } />
 					<TextInput label={ __( 'Height', 'funnelforms-pro' ) } value={ frame.height } onChange={ ( height ) => set( { height } ) } hint={ heightOk ? sprintf( __( 'Supports: %s', 'funnelforms-pro' ), HEIGHT_UNITS.join( ', ' ) ) : __( 'A number with px, %, rem or vh, such as 600px.', 'funnelforms-pro' ) } />

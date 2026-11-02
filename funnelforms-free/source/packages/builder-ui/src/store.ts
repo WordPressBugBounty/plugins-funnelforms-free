@@ -6,7 +6,7 @@ import { applyPatches, enablePatches, produce, produceWithPatches, type Patch } 
 import { createStore, type StoreApi } from 'zustand/vanilla';
 import type { FormDocument } from '@funnelforms/form-schema';
 import { ApiError } from './api';
-import type { FormDetail, FormsApi, FormSummary, UserRef } from './api';
+import type { FormDetail, FormsApi, FormSummary, PublishStay, UserRef } from './api';
 import { syncQuiz } from './quiz';
 import { takeSchedule } from './experiments';
 
@@ -41,7 +41,7 @@ export interface BuilderState {
 	problems: string[];
 	/** Rights the user lacks to publish the draft. */
 	missingRights: string[];
-	publishing: { state: 'idle' | 'publishing' | 'published' | 'failed'; warnings: string[]; error: string | null; code: string | null };
+	publishing: { state: 'idle' | 'publishing' | 'published' | 'failed'; warnings: string[]; error: string | null; code: string | null; stays?: PublishStay[] };
 	device: Device;
 	/** Language chosen for editing texts; null for the form's default language. */
 	lang: string | null;
@@ -351,7 +351,7 @@ export function createBuilderStore( api: FormsApi, formId: number, options: Buil
 				}
 				try {
 					const result = await api.publish( formId, note );
-					set( { form: result.form, problems: [], missingRights: [], publishing: { state: 'published', warnings: result.warnings, error: null, code: null } } );
+					set( { form: result.form, problems: [], missingRights: [], publishing: { state: 'published', warnings: result.warnings, error: null, code: null, stays: result.stays ?? [] } } );
 					// The plugin noted the days of the A/B tests; the next save keeps them.
 					const { doc } = get();
 					if ( doc && result.experiments && Object.keys( result.experiments ).length ) {

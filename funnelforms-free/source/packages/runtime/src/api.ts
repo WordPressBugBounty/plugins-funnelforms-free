@@ -1,4 +1,5 @@
 import type { FreeTimes } from './booking';
+import { send } from './transport';
 
 /**
  * REST client for funnelforms/v1/forms/<uid> (Http\FormsController in the plugin).
@@ -32,8 +33,11 @@ export class Api {
 	/** Seconds left of the time limit, from each token answer. */
 	onTimeLeft: ( ( seconds: number ) => void ) | null = null;
 
-	/** @param unlock Key of a password-protected form, sent with every request. */
-	constructor( private readonly endpoint: string, private readonly unlock = '' ) {}
+	/**
+	 * @param unlock Key of a password-protected form, sent with every request.
+	 * @param bridge Address of the admin-ajax.php bridge, for sites that refuse the REST API (transport.ts).
+	 */
+	constructor( private readonly endpoint: string, private readonly unlock = '', private readonly bridge?: string ) {}
 
 	/**
 	 * Fetches a submit token early, when the visitor starts, so the time trap has passed at submit.
@@ -165,17 +169,7 @@ export class Api {
 	}
 
 	private async request<T>( path: string, body: string | FormData, keepalive = false ): Promise<ApiResult<T>> {
-		const headers: Record<string, string> = { Accept: 'application/json' };
-		if ( typeof body === 'string' ) {
-			headers[ 'Content-Type' ] = 'application/json';
-		}
-		const response = await fetch( this.endpoint + path, {
-			method: 'POST',
-			headers,
-			body,
-			credentials: 'omit',
-			...( keepalive ? { keepalive: true } : {} ),
-		} );
+		const response = await send( { endpoint: this.endpoint, bridge: this.bridge }, path, { body, keepalive } );
 		let data: unknown = {};
 		try {
 			data = await response.json();

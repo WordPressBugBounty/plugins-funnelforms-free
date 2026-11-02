@@ -11,7 +11,9 @@ namespace Funnelforms\Application;
 
 use Funnelforms\Compat\Ff4\Ff4Converter;
 use Funnelforms\Compat\Ff4\Ff4Export;
+use Funnelforms\Compat\Ff4\Ff4Media;
 use Funnelforms\Compat\Ff4\Ff4Messages;
+use Funnelforms\Compat\Ff4\Ff4Responses;
 use Funnelforms\Compat\Legacy\LegacyCodec;
 use Funnelforms\Compat\Legacy\LegacyRepository;
 use Funnelforms\Compat\Migration\FormConverter;
@@ -314,13 +316,18 @@ final class FormEditor {
 		if ( is_object( $data ) && Ff4Export::recognizes( $data ) ) {
 			return $this->import_ff4( $data );
 		}
+		if ( is_object( $data ) && Ff4Responses::recognizes( $data ) ) {
+			// Leads of Funnelforms 4: entries of the forms imported before.
+			return Ff4LeadImport::create()->import( $data );
+		}
 		return is_object( $data ) ? $this->import_export( $data ) : self::import_error( 'unknown_format' );
 	}
 
 	/**
 	 * Imports an export of Funnelforms 4, the online version (docs/import/funnelforms-4.md):
 	 * each form with its logic, contact form, thank-you page, e-mails, webhooks and design.
-	 * Appointment fields get a booking type of their own (Pro). Entries stay in Funnelforms 4.
+	 * Appointment fields get a booking type of their own (Pro). Leads come in a file of their own
+	 * (Ff4LeadImport).
 	 *
 	 * @param object $data Decoded export.
 	 * @return array{ok:bool,code?:string,forms:array<int,array<string,mixed>>}
@@ -355,6 +362,7 @@ final class FormEditor {
 			)
 		);
 		$bookings  = Edition::pro( Bookings::class );
+		$media     = current_user_can( 'upload_files' ) ? new Ff4Media() : null;
 		$out       = array();
 		foreach ( $forms as $snapshot ) {
 			$result = $converter->convert( $snapshot );
@@ -381,6 +389,16 @@ final class FormEditor {
 							$document['nodes'][ $n ]['fields'][ $f ]['props']['bookingTypeRef'] = $ref;
 						}
 					}
+				}
+			}
+			if ( null !== $media ) {
+				// Files in the storage of Funnelforms 4 move into the media library; the note on
+				// them stays only while some still load from there.
+				$moved    = $media->move( $document );
+				$document = $moved['document'];
+				$notes    = array_values( array_diff( $notes, array( 'ff4_external_media' ) ) );
+				if ( $moved['left'] > 0 ) {
+					$notes[] = 'ff4_external_media';
 				}
 			}
 			$encoded = self::encode( $document );

@@ -333,6 +333,29 @@ describe( 'builder', () => {
 		expect( container.textContent ).toContain( 'Unsaved changes' );
 	} );
 
+	it( 'says after publishing when the pages still show the Funnelforms 3 version of a form', async () => {
+		const legacy = { ...summary, status: 'published' as const, renderer: 'legacy' as const, legacyId: 12, currentRevision: 2, hasDraft: false };
+		const stays = [ { title: 'No restore point yet', fix: 'Create a restore point. It takes a few seconds.', link: 'Go to the way back', url: 'admin.php?page=funnelforms-migration&tab=wayback' } ];
+		const api = fakeApi( {
+			get: vi.fn( async () => ( { ...legacy, hasDraft: true, document: blank(), lockTtl: 150 } ) ),
+			publish: vi.fn( async () => ( { revision: 3, renderer: 'legacy' as const, warnings: [ 'no_backup' ], stays, form: { ...legacy, currentRevision: 3 } } ) ),
+		} );
+		const store = createBuilderStore( api, 7, { autosaveMs: 60000 } );
+		await act( async () => root.render( <Builder api={ api } formId={ 7 } onBack={ () => undefined } store={ store } /> ) );
+		await settle();
+		await act( async () => ( container.querySelector( '[data-tour="publish"]' ) as HTMLButtonElement ).click() );
+		await settle();
+		await act( async () => button( 'Publish now' ).click() );
+		await settle();
+		const dialog = container.querySelector( 'dialog.ffxb-dialog' ) as HTMLElement;
+		expect( dialog.textContent ).toContain( 'Your pages still show the Funnelforms 3 version of this form' );
+		expect( dialog.textContent ).not.toContain( 'Visitors now see this version.' );
+		expect( dialog.textContent ).toContain( 'No restore point yet' );
+		expect( dialog.querySelector( 'a' )?.getAttribute( 'href' ) ).toBe( stays[ 0 ]?.url );
+		// The top bar keeps saying so.
+		expect( container.querySelector( '.ffxb-topbar__meta' )?.textContent ).toContain( 'Live on Funnelforms 3' );
+	} );
+
 	it( 'copies a step or field with Ctrl+C and pastes it with Ctrl+V', async () => {
 		const api = fakeApi();
 		const store = createBuilderStore( api, 7, { autosaveMs: 60000 } );

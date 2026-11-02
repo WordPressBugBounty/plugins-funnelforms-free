@@ -5,8 +5,10 @@
  * limit, popups, language links, save and continue later, downloads, videos, live results, phone
  * fields with a country picker, button shadows and capital headings of themes). The runtime loads
  * it for forms that use one of them (styles.ts); the plugin enqueues it for them as well
- * (Frontend\Renderer). Same layer as runtime.css.
+ * (Frontend\Renderer). Same layers as runtime.css, whose shield also covers the elements styled here.
  */
+@layer ffx, ffx-strong, ffx-custom;
+
 @layer ffx {
 	/* Slider: the value as a badge, a thick track filled up to the handle. */
 	.ffx-slider {
@@ -2035,7 +2037,7 @@
 
 /*
  * Theme options (Frontend\StyleTokens::classes()): a shadow of the main button of its own, and
- * headings in spaced capitals. The headings outside the layer, like their rules in runtime.css.
+ * headings in spaced capitals. The headings in the layer ffx-strong, like their rules in runtime.css.
  */
 @layer ffx {
 	.ffx-bshadow .ffx-button-primary:not(:disabled),
@@ -2044,32 +2046,33 @@
 	}
 }
 
-.ffx-form.ffx-upper :is(.ffx-heading, .ffx-question, .ffx-contact-title, .ffx-success-heading) {
-	letter-spacing: 0.04em;
-	text-transform: uppercase;
-}
+@layer ffx-strong {
+	.ffx-form.ffx-upper :is(.ffx-heading, .ffx-question, .ffx-contact-title, .ffx-success-heading) {
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
 
-/*
- * Headings in content blocks and thank-you texts take the font and colour of the form, not those of
- * the theme (a serif h3, or dark on a dark form). Outside the layer, like the form's own headings in
- * runtime.css, because themes style h2 to h4 with more than their element selector.
- */
-.ffx-form :is(.ffx-content, .ffx-success-text) :is(h1, h2, h3, h4, h5, h6) {
-	margin: 1em 0 0.4em;
-	color: var(--ffx-color-heading, inherit);
-	font-family: var(--ffx-font-heading, inherit);
-	font-size: 1.25em;
-	font-style: normal;
-	font-weight: var(--ffx-font-weight-heading, 700);
-	line-height: var(--ffx-line-heading, 1.25);
-	letter-spacing: -0.01em;
-	text-transform: none;
-}
+	/*
+	 * Headings in content blocks and thank-you texts take the font and colour of the form, not those of
+	 * the theme (a serif h3, or dark on a dark form), like the form's own headings in runtime.css.
+	 */
+	.ffx-form :is(.ffx-content, .ffx-success-text) :is(h1, h2, h3, h4, h5, h6) {
+		margin: 1em 0 0.4em;
+		color: var(--ffx-color-heading, inherit);
+		font-family: var(--ffx-font-heading, inherit);
+		font-size: 1.25em;
+		font-style: normal;
+		font-weight: var(--ffx-font-weight-heading, 700);
+		line-height: var(--ffx-line-heading, 1.25);
+		letter-spacing: -0.01em;
+		text-transform: none;
+	}
 
-.ffx-form :is(.ffx-content, .ffx-success-text) :is(h3, h4, h5, h6) {
-	font-size: 1.0625em;
-}
+	.ffx-form :is(.ffx-content, .ffx-success-text) :is(h3, h4, h5, h6) {
+		font-size: 1.0625em;
+	}
 
-.ffx-form :is(.ffx-content, .ffx-success-text) > :is(h1, h2, h3, h4, h5, h6):first-child {
-	margin-top: 0;
+	.ffx-form :is(.ffx-content, .ffx-success-text) > :is(h1, h2, h3, h4, h5, h6):first-child {
+		margin-top: 0;
+	}
 }

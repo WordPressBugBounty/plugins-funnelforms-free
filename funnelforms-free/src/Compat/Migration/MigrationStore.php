@@ -12,6 +12,7 @@ namespace Funnelforms\Compat\Migration;
 use Funnelforms\Compat\Legacy\LegacyRepository;
 use Funnelforms\Infrastructure\Crypto\SecretBox;
 use Funnelforms\Infrastructure\Database\Schema;
+use Funnelforms\Infrastructure\PageCache;
 use Funnelforms\Infrastructure\Repository\ConnectionRepository;
 use Funnelforms\Infrastructure\Repository\FormRepository;
 
@@ -291,6 +292,10 @@ class MigrationStore {
 				)
 			);
 			$update['current_revision_id'] = (int) $wpdb->insert_id;
+			if ( null !== $form['current_revision_id'] ) {
+				// A form already shown changed in 3.x and was imported again.
+				PageCache::changed( 'import' );
+			}
 		}
 		$wpdb->update( $forms, $update, array( 'id' => $form_id ) );
 		return $form_id;

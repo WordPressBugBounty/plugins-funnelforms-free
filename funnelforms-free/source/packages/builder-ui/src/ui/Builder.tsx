@@ -436,6 +436,8 @@ function PublishDialog( { note: initialNote = '', onClose, onEmbed }: { note?: s
 	const busy = 'publishing' === publishing.state;
 	const done = 'published' === publishing.state;
 	const blocked = problems.length > 0 || missingRights.length > 0;
+	const stays = publishing.stays ?? [];
+	const onLegacy = 'legacy' === form?.renderer && stays.length > 0;
 
 	useEffect( () => {
 		// Show the state of the current draft, not of an earlier attempt.
@@ -469,7 +471,22 @@ function PublishDialog( { note: initialNote = '', onClose, onEmbed }: { note?: s
 				)
 			}
 		>
-			{ done ? (
+			{ done && onLegacy ? (
+				<>
+					{ /* A form from 3.x that could not move: the pages keep showing the 3.x form, only the preview shows this version. */ }
+					<Notice tone="warning" title={ __( 'Your pages still show the Funnelforms 3 version of this form', 'funnelforms-pro' ) }>
+						<p>{ __( 'The new version is published and the preview shows it. Visitors see it once the form runs on Funnelforms 5, and for that this is missing:', 'funnelforms-pro' ) }</p>
+						<ul>
+							{ stays.map( ( stay ) => (
+								<li key={ stay.title }>
+									<strong>{ stay.title }</strong> { stay.fix } { stay.url && stay.link ? <a href={ stay.url }>{ stay.link }</a> : null }
+								</li>
+							) ) }
+						</ul>
+					</Notice>
+					{ form ? <code className="ffxb-code">{ form.shortcode }</code> : null }
+				</>
+			) : done ? (
 				<>
 					<p>{ __( 'Visitors now see this version. Embed it with the shortcode, the block or the Elementor widget:', 'funnelforms-pro' ) }</p>
 					{ form ? <code className="ffxb-code">{ form.shortcode }</code> : null }

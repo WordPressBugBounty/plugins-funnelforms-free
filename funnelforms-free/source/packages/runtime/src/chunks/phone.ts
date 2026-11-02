@@ -11,6 +11,7 @@
 import type { ContactField, PhoneCountries, PhoneField } from '@funnelforms/form-schema';
 import { h, uniqueId } from '../dom';
 import { checkPhone, COUNTRIES, country, e164, flag, formatInternational, formatTyped, parsePhone, startCountry } from '../phone';
+import { send as sendTo } from '../transport';
 import type { RuntimeConfig } from '../types';
 
 interface Ctx {
@@ -429,11 +430,8 @@ function verification( input: HTMLInputElement, field: AnyField, ctx: Ctx, confi
 	};
 
 	const post = async ( path: string, body: Record<string, unknown> ): Promise<{ ok?: boolean; code?: string; proof?: string }> => {
-		const request = ( route: string, data: Record<string, unknown> ): Promise<Response> => fetch( `${ config?.endpoint ?? '' }${ route }`, {
-			method: 'POST',
-			headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+		const request = ( route: string, data: Record<string, unknown> ): Promise<Response> => sendTo( config ?? { endpoint: '' }, route, {
 			body: JSON.stringify( config?.unlock ? { ...data, unlock: config.unlock } : data ),
-			credentials: 'omit',
 		} );
 		const token = ( await ( await request( '/token', {} ) ).json() as { token?: string; code?: string } );
 		if ( ! token.token ) {

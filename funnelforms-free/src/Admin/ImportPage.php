@@ -81,7 +81,7 @@ final class ImportPage {
 	 * What the import of Funnelforms files takes.
 	 */
 	public static function funnelforms_lead(): string {
-		return __( 'Forms exported from Funnelforms: a form file of Funnelforms 5 (.json), an export of the online version Funnelforms 4 (.json) or an export of Funnelforms 3 (.zip). Each form becomes a draft; nothing goes live.', 'funnelforms-free' );
+		return __( 'Forms exported from Funnelforms: a form file of Funnelforms 5 (.json), an export of the online version Funnelforms 4 (.json) or an export of Funnelforms 3 (.zip). Each form becomes a draft; nothing goes live. The leads of Funnelforms 4 come in files of their own; import them after their forms.', 'funnelforms-free' );
 	}
 
 	/**
@@ -141,6 +141,7 @@ final class ImportPage {
 			'nonce'      => wp_create_nonce( 'wp_rest' ),
 			'userLocale' => get_user_locale(),
 			'builderUrl' => admin_url( 'admin.php?page=' . BuilderPage::SLUG ),
+			'entriesUrl' => current_user_can( Capabilities::VIEW_ENTRIES ) ? admin_url( 'admin.php?page=' . EntriesPage::SLUG ) : null,
 			'maxBytes'   => FormEditor::MAX_IMPORT_BYTES,
 			// Each import points to the other one for files it does not take.
 			'importUrl'  => self::url(),

@@ -54,9 +54,13 @@ final class Sender {
 
 	/**
 	 * Plans the weekly report at a random time while diagnostics are on, and removes it when they
-	 * are off.
+	 * are off. On a Pro site without a stored choice it first turns them on (Consent::start_by_default())
+	 * and plans the first report within six hours, so new installations do not all arrive at once.
 	 */
 	public static function schedule(): void {
+		if ( Consent::start_by_default() ) {
+			self::soon( wp_rand( 5 * MINUTE_IN_SECONDS, 6 * HOUR_IN_SECONDS ) );
+		}
 		if ( Consent::enabled() ) {
 			if ( false === wp_next_scheduled( self::HOOK ) ) {
 				wp_schedule_event( time() + wp_rand( HOUR_IN_SECONDS, WEEK_IN_SECONDS ), 'weekly', self::HOOK );

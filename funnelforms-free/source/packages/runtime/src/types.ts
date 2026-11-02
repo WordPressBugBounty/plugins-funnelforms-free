@@ -17,6 +17,8 @@ export interface PublicDocument extends Pick<FormDocument, 'schemaVersion' | 'id
 export interface RuntimeConfig {
 	uid: string;
 	endpoint: string;
+	/** Address of the admin-ajax.php bridge of the form's routes (Http\FormBridge), for sites that refuse the REST API to visitors. */
+	bridge?: string;
 	locale: string;
 	strings: Record<string, string>;
 	document: PublicDocument;
@@ -51,7 +53,7 @@ export interface PaymentStart {
 }
 
 /** A password-protected form before the password: no document yet. */
-export interface LockedConfig extends Pick<RuntimeConfig, 'uid' | 'endpoint' | 'locale' | 'strings' | 'unlock'> {
+export interface LockedConfig extends Pick<RuntimeConfig, 'uid' | 'endpoint' | 'bridge' | 'locale' | 'strings' | 'unlock'> {
 	locked: true;
 }
 

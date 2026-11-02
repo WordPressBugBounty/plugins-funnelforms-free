@@ -805,7 +805,7 @@ final class SetupPage {
 		$user = wp_get_current_user();
 		$name = '' !== $user->first_name ? $user->first_name : $user->display_name;
 		/* translators: %s: first name. */
-		self::head( sprintf( __( 'Welcome to Funnelforms 5, %s', 'funnelforms-free' ), $name ), __( 'In a few steps your forms move to Funnelforms 5. You decide what to keep and see every form before it goes live.', 'funnelforms-free' ) );
+		self::head( sprintf( __( 'Welcome to Funnelforms 5, %s', 'funnelforms-free' ), $name ), __( 'Forms that pass the check move to Funnelforms 5 on their own. In a few steps you see every form and decide what to keep.', 'funnelforms-free' ) );
 		echo '<div class="ffx-setup__tiles">';
 		self::tile( 'layers', __( 'A new form builder', 'funnelforms-free' ), __( 'Steps, answers and logic on one canvas, with a live preview for desktop and phone.', 'funnelforms-free' ) );
 		self::tile( 'rocket', __( 'Faster forms', 'funnelforms-free' ), __( 'A lighter runtime that loads quickly, works without jQuery and is accessible.', 'funnelforms-free' ) );
@@ -1002,7 +1002,7 @@ final class SetupPage {
 		$choices = $state['choices'];
 		$forms   = SetupFlow::imported_forms();
 		$ready   = count( SetupFlow::chosen( array( 'forms' => 'verified' ) + $choices ) );
-		self::head( __( 'What to keep', 'funnelforms-free' ), __( 'A few questions, then you see each form before anything goes live.', 'funnelforms-free' ) );
+		self::head( __( 'What to keep', 'funnelforms-free' ), __( 'A few questions, then you compare each form old and new.', 'funnelforms-free' ) );
 		?>
 		<fieldset class="ffx-setup__group">
 			<legend><?php esc_html_e( 'Which forms move to Funnelforms 5?', 'funnelforms-free' ); ?></legend>

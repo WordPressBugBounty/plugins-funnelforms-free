@@ -13,12 +13,14 @@ namespace Funnelforms\Admin;
 use Funnelforms\Application\Telemetry\Consent;
 use Funnelforms\Application\Telemetry\Report;
 use Funnelforms\Application\Telemetry\Sender;
+use Funnelforms\Edition\Edition;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * The same fields in both places: the main choice (a toggle in the settings, off by default; yes or
- * no without a preselection in the assistant, so it is a choice someone made) and, only while it
+ * The same fields in both places: the main choice (a toggle in the settings, off by default in
+ * Free and on by default in Pro; yes or no in the assistant, preselected only while diagnostics
+ * are already on, in Pro by default) and, only while it
  * is yes, the industry and the toggle for the site's address. The report a site would send now is shown as
  * it is, escaped, in a folded block. Only administrators (manage_options) change the choice or
  * send a report, because it sends data of the site to Funnelforms.
@@ -159,6 +161,14 @@ final class TelemetrySection {
 	 * What the report holds and what happens when it is turned off.
 	 */
 	public static function description(): string {
+		$text = self::base_description();
+		return Edition::is_pro() ? __( 'Funnelforms Pro sends diagnostic data by default, as set out in the terms of use. You can turn it off here at any time. Your website\'s address is only included if you tick that box.', 'funnelforms-free' ) . ' ' . $text : $text;
+	}
+
+	/**
+	 * What the report holds, the same in both editions.
+	 */
+	private static function base_description(): string {
 		return __( 'Once a week the plugin sends a report with the plugin, WordPress and PHP versions, server environment, features and question types in use, counts (forms, entries, views), drop-off per question type and the times entries come in. It never sends texts, answers, entries, email or IP addresses of your visitors, form IDs or page addresses. The report carries a random installation ID that is not linked to your license. Funnelforms keeps reports for 13 months. If you turn this off, sending stops and the reports of the current installation ID are deleted; reports under an earlier ID end after the 13 months.', 'funnelforms-free' );
 	}
 

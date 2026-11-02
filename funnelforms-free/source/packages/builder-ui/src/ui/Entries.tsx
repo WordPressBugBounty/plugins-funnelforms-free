@@ -1641,6 +1641,7 @@ function EntryPanel( props: { api: EntriesApi; id: number; assignees: UserRef[];
 							{ 'partial' === entry.status ? <Badge tone="warning">{ __( 'Incomplete', 'funnelforms-pro' ) }</Badge> : null }
 							{ abandonBadge( entry ) }
 							{ entry.imported ? <Badge>{ __( 'From Funnelforms 3', 'funnelforms-pro' ) }</Badge> : null }
+							{ entry.importedFf4 ? <Badge>{ __( 'From Funnelforms 4', 'funnelforms-pro' ) }</Badge> : null }
 							{ entry.archived ? <Badge>{ __( 'Archived', 'funnelforms-pro' ) }</Badge> : null }
 							{ 'free' !== process.env.FUNNELFORMS_EDITION && entry.public ? <Badge tone="success">{ __( 'Shown on the website', 'funnelforms-pro' ) }</Badge> : null }
 							{ entry.optIn ? <Badge tone={ 'confirmed' === entry.optIn.status ? 'success' : 'warning' }>{ 'confirmed' === entry.optIn.status ? __( 'E-mail address confirmed', 'funnelforms-pro' ) : __( 'Waiting for confirmation', 'funnelforms-pro' ) }</Badge> : null }

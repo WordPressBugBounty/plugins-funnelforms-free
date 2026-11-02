@@ -17,6 +17,7 @@ use Funnelforms\Domain\Form\PhoneNumbers;
 use Funnelforms\Domain\Form\PublicDocument;
 use Funnelforms\Edition\Edition;
 use Funnelforms\Http\Captcha;
+use Funnelforms\Http\FormBridge;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -116,6 +117,7 @@ final class Renderer {
 			? array(
 				'uid'      => $form['uid'],
 				'endpoint' => self::endpoint( $form ),
+				'bridge'   => FormBridge::url( (string) $form['uid'] ),
 				'locale'   => $locale,
 				'strings'  => self::strings(),
 				'locked'   => true,
@@ -198,6 +200,7 @@ final class Renderer {
 		$config   = array(
 			'uid'      => $form['uid'],
 			'endpoint' => self::endpoint( $form ),
+			'bridge'   => FormBridge::url( (string) $form['uid'] ),
 			'locale'   => $locale,
 			'strings'  => UiLocale::run( $locale, static fn() => self::strings( $document ) ),
 			'document' => TrackingCode::add( self::with_site_keys( PublicDocument::from( $document, TrackingCode::allowed() ), $document ), $document ),
@@ -572,6 +575,12 @@ final class Renderer {
 	 * The form's own CSS (style.css), once per form and page. Only users with unfiltered_html may
 	 * add or change it (Domain\Form\SensitiveChanges); "<" is escaped so it cannot end the element.
 	 *
+	 * Printed twice: as written, for what it styles elsewhere on the page, and in the cascade layer
+	 * ffx-custom, where it wins over the form's own rules. On the form's elements the shield of
+	 * runtime.css sets aside every rule outside a layer (theme CSS, and so the first copy) unless it
+	 * is more specific than the shield or has !important. The order of the layers comes first, as this
+	 * element can stand before runtime.css on the page.
+	 *
 	 * @param array<string,mixed> $form     Form row.
 	 * @param array<string,mixed> $document Form document.
 	 */
@@ -583,7 +592,10 @@ final class Renderer {
 			return '';
 		}
 		self::$printed[ $key ] = true;
-		return '<style class="ffx-custom-css">' . str_replace( array( '<', "\0" ), array( '\3c ', '' ), substr( $css, 0, self::MAX_CSS ) ) . '</style>';
+
+		$css = str_replace( array( '<', "\0" ), array( '\3c ', '' ), substr( $css, 0, self::MAX_CSS ) );
+		return '<style class="ffx-custom-css">' . $css . '</style>'
+			. '<style class="ffx-custom-css-layer">@layer ffx, ffx-strong, ffx-custom;@layer ffx-custom{' . $css . "\n}</style>";
 	}
 
 	/**

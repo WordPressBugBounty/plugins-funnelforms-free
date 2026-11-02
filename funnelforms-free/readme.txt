@@ -4,7 +4,7 @@ Tags: contact form, multi step form, form builder, lead generation, conversation
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 5.0.2
+Stable tag: 5.0.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -221,6 +221,16 @@ If you set up a mail server under Funnelforms > Settings > E-mail, the mails of 
 The scripts in assets/builder and assets/runtime are built and minified from TypeScript. The sources, with the build scripts, are in the folder source/ of this plugin. To build them: `pnpm install` and `pnpm -r build` in that folder (Node.js 20 or newer).
 
 == Changelog ==
+
+= 5.0.4 =
+* Editor: "Cookie check failed" no longer blocks opening, editing and previewing forms. On sites whose site address and WordPress address differ (www or not, a subfolder) or whose server cache drops the login cookie outside wp-admin, the admin screens reach the plugin through admin-ajax.php.
+* Forms on pages built with Elementor, Divi and other themes look as designed again: the styles of the theme and the page builder no longer reach into the form.
+* Builder: a form that still runs on Funnelforms Free 3 has the button "Switch to Funnelforms 5" right at the notice in "Embed". If something keeps it on the old version, the notice says what and how to solve it.
+* Entries: a salutation field added in the Funnelforms 5 builder no longer refuses the salutation the visitor picks ("Please choose one of the options."). Such forms could not be sent at all once a salutation was chosen; forms moved from Funnelforms 3 were not affected.
+* Entries: mails, webhooks and the other actions of a new entry go out right after the entry is saved and no longer wait for WP-Cron. On sites where WP-Cron does not run, entries were saved but nobody was notified. The background job stays as a safety net.
+* Forms: on sites that refuse the REST API to visitors (security plugins, firewall rules of the host), forms send their entries through admin-ajax.php.
+* Forms: publishing a form, unpublishing it or moving it between Funnelforms 3 and 5 empties the page cache of the site (WP Rocket, LiteSpeed Cache, W3 Total Cache, WP Super Cache, SiteGround, WP Engine, Kinsta and others), so visitors no longer get the old form from the cache.
+* Builder: a form moved from Funnelforms 3 that cannot switch to Funnelforms 5 yet no longer reports "Visitors now see this version" after publishing. The dialog says that the pages still show the Funnelforms 3 version, why, and where to fix it.
 
 = 5.0.2 =
 * After 10 complete entries, Funnelforms Free asks once for a review on wordpress.org; "No, thanks" or the review ends it for good. Only users who may change the settings see it.

@@ -21,7 +21,7 @@ export function showLock( root: HTMLElement, config: LockedConfig, open: ( confi
 		h( 'div', { class: 'ffx-nav' }, button )
 	);
 	// A form for members sends the key of the signed-in visitor along.
-	const api = new Api( config.endpoint, config.unlock );
+	const api = new Api( config.endpoint, config.unlock, config.bridge );
 	form.addEventListener( 'submit', ( event ) => {
 		event.preventDefault();
 		if ( input.value === '' || button.disabled ) {

@@ -3,6 +3,7 @@
  * and the calendar in the site's time zone, filters and counts. ui/Appointments.tsx shows it.
  */
 import { ApiError, type Appointment } from './api';
+import { restFetch } from './rest-bridge';
 
 /** An appointment as GET appointments lists it. */
 export interface AppointmentItem extends Omit<Appointment, 'visitor'> {
@@ -69,13 +70,17 @@ export interface MailSettings {
 /** The routes of Http\AppointmentsController, with the REST nonce of the page. */
 export class AppointmentsClient {
 	private nonce: string;
+	private readonly fetcher: typeof fetch;
 
 	constructor(
 		private readonly root: string,
 		nonce: string,
-		private readonly fetcher: typeof fetch = ( input, init ) => fetch( input, init )
+		fetcher: typeof fetch = ( input, init ) => fetch( input, init ),
+		ajax?: string | null
 	) {
 		this.nonce = nonce;
+		// Through admin-ajax.php where the login cookie does not reach /wp-json/ (rest-bridge.ts).
+		this.fetcher = restFetch( root, fetcher, ajax );
 	}
 
 	list( from: string, to: string ): Promise<AppointmentItem[]> {

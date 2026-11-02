@@ -1501,9 +1501,7 @@ final class MigrationPage {
 				</label>
 				<button type="submit" class="ffx-btn ffx-btn--sm"><?php esc_html_e( 'Save', 'funnelforms-free' ); ?></button>
 			</form>
-			<?php if ( $on && 'assistant' === $waiting ) : ?>
-				<p class="ffx-mig-status is-info"><?php esc_html_e( 'Waits while the setup assistant is open: there you choose the forms yourself.', 'funnelforms-free' ); ?></p>
-			<?php elseif ( $on && 'rollback' === $waiting ) : ?>
+			<?php if ( $on && 'rollback' === $waiting ) : ?>
 				<p class="ffx-mig-status is-info"><?php esc_html_e( 'Paused while your forms run on Funnelforms 3 again.', 'funnelforms-free' ); ?></p>
 			<?php endif; ?>
 		</section>

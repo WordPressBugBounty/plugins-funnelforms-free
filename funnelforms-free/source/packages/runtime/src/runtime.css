@@ -1,8 +1,13 @@
 /*
- * Funnelforms runtime. Everything sits in one cascade layer, so theme styles override it without !important.
+ * Funnelforms runtime. The rules sit in cascade layers: ffx (the form), ffx-strong (the few rules that must
+ * win over ffx whatever their selector) and ffx-custom (the form's own CSS, Frontend\Renderer::custom_css()).
+ * Theme and page builder CSS (Elementor, Divi, ...) sits outside any layer and would beat every layered rule,
+ * so the shield at the end of this file takes it back on the form's own elements (see there).
  * Colours come from the form's tokens (Frontend\StyleTokens); tints mix them with transparency or with
  * the text colour, so they work on light and dark backgrounds alike.
  */
+@layer ffx, ffx-strong, ffx-custom;
+
 @layer ffx {
 	.ffx-form {
 		--ffx-color-primary: #6a30f5;
@@ -50,6 +55,13 @@
 		box-shadow: var(--ffx-shadow);
 		scroll-margin-top: 100px;
 		-webkit-font-smoothing: antialiased;
+		/* Not inherited from a theme's wrapper (capitals and spacing of an Elementor or Divi module). */
+		font-style: normal;
+		letter-spacing: normal;
+		text-indent: 0;
+		text-shadow: none;
+		text-transform: none;
+		word-spacing: normal;
 	}
 
 	/* A form with a background of its own is a card that lifts off the page. */
@@ -1213,45 +1225,66 @@ html:has(.ffx-popup[open]) {
 }
 
 /*
- * Headings outside the layer: themes style h2 and h3 with more than their element selector, and
- * a form's headings should look the same on every theme. Sizes come from the layer (--ffx-hs).
+ * Rules that win over the layer ffx whatever its selectors, and still lose to the form's own CSS
+ * (ffx-custom). Until 5.0.4 they sat outside the layers to beat theme CSS; the shield below does that now.
  */
-.ffx-form :is(.ffx-heading, .ffx-question, .ffx-contact-title, .ffx-success-heading) {
-	margin: 0 0 var(--ffx-hm, 0);
-	color: var(--ffx-color-heading, inherit);
-	font-family: var(--ffx-font-heading, inherit);
-	font-size: var(--ffx-hs);
-	font-style: normal;
-	font-weight: var(--ffx-hw, var(--ffx-font-weight-heading, 700));
-	line-height: var(--ffx-line-heading, 1.25);
-	letter-spacing: -0.01em;
-	text-transform: none;
+@layer ffx-strong {
+	/* Headings look the same on every theme. Sizes come from the layer ffx (--ffx-hs). */
+	.ffx-form :is(.ffx-heading, .ffx-question, .ffx-contact-title, .ffx-success-heading) {
+		margin: 0 0 var(--ffx-hm, 0);
+		color: var(--ffx-color-heading, inherit);
+		font-family: var(--ffx-font-heading, inherit);
+		font-size: var(--ffx-hs);
+		font-style: normal;
+		font-weight: var(--ffx-hw, var(--ffx-font-weight-heading, 700));
+		line-height: var(--ffx-line-heading, 1.25);
+		letter-spacing: -0.01em;
+		text-transform: none;
+	}
+
+	.ffx-form .ffx-success-answers h3 {
+		margin: 0 0 8px;
+		font-size: 1em;
+		font-weight: 700;
+		letter-spacing: normal;
+	}
+
+	/*
+	 * Headings, steps and the success text get focus from the script (tabindex -1), never from the
+	 * keyboard: no ring, also not the one of :focus-visible in the layer ffx.
+	 */
+	.ffx-form [tabindex="-1"]:focus {
+		outline: none;
+	}
+
+	/* Links drawn as buttons (login, success button) keep the button's colours. */
+	.ffx-form a.ffx-button-primary,
+	.ffx-form a.ffx-button-primary:is(:visited, :hover, :focus) {
+		color: var(--ffx-color-on-button, var(--ffx-color-on-primary));
+		text-decoration: none;
+	}
 }
 
-.ffx-form .ffx-success-answers h3 {
-	margin: 0 0 8px;
-	font-size: 1em;
-	font-weight: 700;
-	letter-spacing: normal;
-}
-
-/*
- * Headings, steps and the success text get focus from the script (tabindex -1), never from the
- * keyboard. Outside the layer, because themes that draw a ring on every :focus would win over it.
- */
-.ffx-form [tabindex="-1"]:focus {
-	outline: none;
-}
-
-/* Icon font glyphs (Font Awesome sets display unlayered) sit in the middle of their circle. */
+/* Icon font glyphs (Font Awesome sets display outside a layer) sit in the middle of their circle. */
 .ffx-form i.ffx-option-icon {
 	display: inline-grid;
 }
 
-/* Links drawn as buttons (login, success button) keep the button's colours. Outside the layer,
- * because themes style every link, also on the form's own page. */
-.ffx-form a.ffx-button-primary,
-.ffx-form a.ffx-button-primary:is(:visited, :hover, :focus) {
-	color: var(--ffx-color-on-button, var(--ffx-color-on-primary));
-	text-decoration: none;
+/*
+ * Shield against theme and page builder CSS. Their rules sit outside any layer, so each of them beat
+ * every rule above, however specific: Elementor's kit (post-<id>.css) gave answer tiles and buttons
+ * its button colours, paddings and capitals, Divi gave lists of the form bullets, indents and 23px
+ * below. On the form's own elements this rule sets every property back to what the layers say
+ * (revert-layer: the layer ffx, ffx-strong and the form's own CSS in ffx-custom); where they say
+ * nothing, the browser's default applies as on a page without theme CSS. :not() with two IDs makes
+ * it more specific than theme selectors (Divi's #page-container, #et-boc .et-l). Theme rules with
+ * !important still win, and so do inline styles of the script.
+ * Left out: icon font glyphs (<i>, styled by Font Awesome outside a layer) and the parts of SVG icons.
+ */
+:is(.ffx-form, .ffx-popup):not(#ffx-shield#ffx-shield) :not(i, svg, svg *),
+:is(.ffx-form, .ffx-popup):not(#ffx-shield#ffx-shield) :not(i, svg, svg *)::before,
+:is(.ffx-form, .ffx-popup):not(#ffx-shield#ffx-shield) :not(i, svg, svg *)::after,
+:is(.ffx-form, .ffx-popup):not(#ffx-shield#ffx-shield) :is(input, textarea)::placeholder,
+.ffx-widget:not(#ffx-shield#ffx-shield) {
+	all: revert-layer;
 }

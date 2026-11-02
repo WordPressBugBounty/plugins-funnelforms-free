@@ -1037,6 +1037,8 @@ final class EntriesController {
 			'payment'      => self::payment( $entry ),
 			'assignedTo'   => self::user( $entry['assigned_to'] ?? null ),
 			'imported'     => isset( $entry['meta']['legacy'] ),
+			// Imported from Funnelforms 4, the online version.
+			'importedFf4'  => isset( $entry['meta']['ff4'] ),
 			'legacyLeadId' => null === $entry['legacy_post_id'] ? null : (int) $entry['legacy_post_id'],
 			'locale'       => (string) $entry['locale'],
 			'createdAt'    => self::time( $entry['created_at'] ),

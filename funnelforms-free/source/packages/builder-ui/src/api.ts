@@ -71,14 +71,39 @@ export interface SaveResult {
 	form: FormSummary;
 }
 
+/** Why a published form still shows as its Funnelforms 3 version (MigrationTexts::blocker()). */
+export interface PublishStay {
+	title: string;
+	fix: string;
+	link: string;
+	url: string;
+}
+
 export interface PublishResult {
 	revision: number;
 	renderer: 'legacy' | 'v5';
 	/** Why the new renderer cannot show the form yet. */
 	warnings: string[];
+	/**
+	 * A form from Funnelforms 3 that stays on the 3.x renderer: the pages keep showing the 3.x form.
+	 * Why, in words, with what to do and where. Empty when visitors see the published version.
+	 */
+	stays?: PublishStay[];
 	form: FormSummary;
 	/** The dates the plugin keeps of each A/B test, by test id (Pro). */
 	experiments?: Record<string, Partial<Pick<Experiment, 'startedAt' | 'pausedAt' | 'pausedDays' | 'extended' | 'endedAt' | 'outcome' | 'suggested'>>>;
+}
+
+/** Answer of moving a form from Funnelforms 3 to the new renderer. */
+export interface MoveResult {
+	renderer: 'legacy' | 'v5';
+	/** Codes of what keeps the form on Funnelforms 3 (FormRenderer::blockers()); empty when it moved. */
+	blockers: string[];
+	/** The same in words: what it is and how to solve it. */
+	reasons: Array<{ title: string; fix: string }>;
+	/** Page of the form under Migration that explains the reasons; empty without one or without the right. */
+	detailsUrl: string;
+	form: FormSummary;
 }
 
 export interface Revision {
@@ -479,6 +504,20 @@ export interface ImportedForm {
 	/** The notes in words, when the import describes them. */
 	messages?: string[];
 	errors?: string[];
+	/** Leads of Funnelforms 4 imported into the form (a leads file); the form is not new then. */
+	entries?: ImportedEntries;
+}
+
+/** What the import of a leads file of Funnelforms 4 did for one form. */
+export interface ImportedEntries {
+	imported: number;
+	/** Imported before (same lead), left as they are. */
+	skipped: number;
+	failed: number;
+	/** Files copied into the site. */
+	files: number;
+	/** Files still in Funnelforms 4; the next import of the same file copies them. */
+	filesLeft: number;
 }
 
 /** Elements of an icon on a 24 × 24 grid: [element, attributes]. */
@@ -547,6 +586,11 @@ export interface FormsApi {
 	saveDraft( id: number, document: FormDocument ): Promise<SaveResult>;
 	dropDraft( id: number ): Promise<FormDetail>;
 	publish( id: number, note?: string ): Promise<PublishResult>;
+	/**
+	 * Moves a form that still runs on Funnelforms 3 to the new renderer; it stays there when
+	 * something keeps it (blockers). Missing where the host has no Funnelforms 3.
+	 */
+	moveToV5?( id: number ): Promise<MoveResult>;
 	revisions( id: number ): Promise<Revision[]>;
 	revision( id: number, revision: number ): Promise<Revision & { document: FormDocument }>;
 	restore( id: number, revision: number ): Promise<FormDetail>;
@@ -776,6 +820,8 @@ export interface EntrySummary {
 	payment: EntryPayment | null;
 	assignedTo: UserRef | null;
 	imported: boolean;
+	/** Imported from Funnelforms 4, the online version. */
+	importedFf4?: boolean;
 	legacyLeadId: number | null;
 	locale: string;
 	createdAt: string | null;

@@ -406,8 +406,10 @@ final class AnswerValidator {
 				if ( null === $answer || '' === $answer ) {
 					return $required ? self::error( 'required' ) : self::ok( '' );
 				}
-				$allowed = array_filter( (array) ( $props['allow'] ?? array() ) );
-				if ( ! is_string( $answer ) || ! isset( self::SALUTATIONS[ $answer ] ) || ! isset( $allowed[ $answer ] ) ) {
+				// As the runtime shows them: every salutation unless switched off (allow.<id> = false).
+				// The builder writes no allow at all, so a field made in 5.0 offers all four.
+				$allow = (array) ( $props['allow'] ?? array() );
+				if ( ! is_string( $answer ) || ! isset( self::SALUTATIONS[ $answer ] ) || false === ( $allow[ $answer ] ?? true ) ) {
 					return self::error( 'invalid_option' );
 				}
 				return self::ok( self::SALUTATIONS[ $answer ] );

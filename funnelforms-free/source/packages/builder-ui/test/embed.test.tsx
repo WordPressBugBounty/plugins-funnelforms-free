@@ -103,8 +103,9 @@ afterEach( () => {
 	setEdition( undefined );
 } );
 
-async function open( embed: EmbedConfig | null = CONFIG ): Promise<FormsApi> {
+async function open( embed: EmbedConfig | null = CONFIG, prepare?: ( api: FormsApi ) => void ): Promise<FormsApi> {
 	const api = fakeApi();
+	prepare?.( api );
 	const store = createBuilderStore( api, 7, { autosaveMs: 60000 } );
 	await act( async () => root.render( <Builder api={ api } formId={ 7 } onBack={ () => undefined } store={ store } view="embed" embed={ embed } /> ) );
 	await act( async () => {
@@ -206,6 +207,48 @@ describe( 'embed workspace', () => {
 		} finally {
 			vi.unstubAllGlobals();
 		}
+	} );
+
+	it( 'moves a form that still runs on Funnelforms 3 from the notice', async () => {
+		const legacy = { ...summary, renderer: 'legacy' as const, legacyId: 41 };
+		const api = await open( CONFIG, ( a ) => {
+			vi.mocked( a.get ).mockImplementation( async () => ( { ...legacy, document: blank(), lockTtl: 150 } ) );
+			vi.mocked( a.moveToV5 as NonNullable<FormsApi[ 'moveToV5' ]> ).mockImplementation( async () => ( { renderer: 'v5', blockers: [], reasons: [], detailsUrl: '', form: { ...legacy, renderer: 'v5' } } ) );
+		} );
+		await choose( 'link' );
+		const notice = container.querySelector( '.ffxb-notice--warning' );
+		expect( notice?.textContent ).toContain( 'This form still runs on Funnelforms 3. Its own page appears once it uses the new renderer.' );
+		const button = notice?.querySelector<HTMLButtonElement>( '.ffxb-notice__action button' );
+		expect( button?.textContent ).toBe( 'Switch to Funnelforms 5' );
+		await act( async () => button?.click() );
+		expect( api.moveToV5 ).toHaveBeenCalledWith( 7 );
+		expect( container.querySelector( '.ffxb-notice--warning' ) ).toBeNull();
+		expect( container.querySelector( '.ffxb-notice--success' )?.textContent ).toBe( 'The form runs on Funnelforms 5 now. Your pages and shortcodes stay as they are.' );
+		// The other ways no longer warn either.
+		await choose( 'widget' );
+		expect( container.textContent ).not.toContain( 'still runs on Funnelforms 3' );
+	} );
+
+	it( 'says why a form stays on Funnelforms 3 and links to its page under Migration', async () => {
+		const legacy = { ...summary, renderer: 'legacy' as const, legacyId: 41 };
+		const details = 'https://example.org/wp-admin/admin.php?page=funnelforms-migration&tab=forms&form=7';
+		await open( CONFIG, ( a ) => {
+			vi.mocked( a.get ).mockImplementation( async () => ( { ...legacy, document: blank(), lockTtl: 150 } ) );
+			vi.mocked( a.moveToV5 as NonNullable<FormsApi[ 'moveToV5' ]> ).mockImplementation( async () => ( {
+				renderer: 'legacy',
+				blockers: [ 'needs_review' ],
+				reasons: [ { title: 'The comparison found differences', fix: 'Read what was found and compare both versions side by side.' } ],
+				detailsUrl: details,
+				form: legacy,
+			} ) );
+		} );
+		await choose( 'external' );
+		await act( async () => container.querySelector<HTMLButtonElement>( '.ffxb-notice__action button' )?.click() );
+		expect( container.querySelector( '.ffxb-notice--warning' ) ).not.toBeNull();
+		const why = container.querySelector( '.ffxb-notice--danger' );
+		expect( why?.querySelector( '.ffxb-notice__title' )?.textContent ).toBe( 'Why it stays on Funnelforms 3 for now' );
+		expect( why?.querySelector( 'li' )?.textContent ).toBe( 'The comparison found differences Read what was found and compare both versions side by side.' );
+		expect( why?.querySelector( 'a' )?.getAttribute( 'href' ) ).toBe( details );
 	} );
 
 	it( 'names the Pro ways in Funnelforms Free without their code', async () => {

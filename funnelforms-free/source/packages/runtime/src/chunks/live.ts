@@ -26,6 +26,7 @@ import type { CalculationFormat, ResultField, ResultLine } from '@funnelforms/fo
 import type { FormApp } from '../app';
 import { h, trusted } from '../dom';
 import { take } from './hub';
+import { send } from '../transport';
 
 /** How long the input rests before the results are asked for, in ms. */
 export const DELAY = 250;
@@ -275,11 +276,8 @@ export class Live {
 		const request = ( this.request = new AbortController() );
 		this.loading( true );
 		try {
-			const response = await fetch( app.config.endpoint + '/calculations', {
-				method: 'POST',
-				headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+			const response = await send( app.config, '/calculations', {
 				body: JSON.stringify( { answers, ids: [ ...ids ], live: true, locale: app.config.locale, ...( app.config.unlock ? { unlock: app.config.unlock } : {} ) } ),
-				credentials: 'omit',
 				signal: request.signal,
 			} );
 			const data = ( await response.json() ) as Answer;

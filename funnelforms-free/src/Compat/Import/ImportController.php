@@ -141,7 +141,7 @@ final class ImportController {
 			return true;
 		}
 		$data = json_decode( $contents );
-		return is_object( $data ) && ( \Funnelforms\Application\FormEditor::FORMAT === ( $data->format ?? null ) || \Funnelforms\Compat\Ff4\Ff4Export::recognizes( $data ) );
+		return is_object( $data ) && ( \Funnelforms\Application\FormEditor::FORMAT === ( $data->format ?? null ) || \Funnelforms\Compat\Ff4\Ff4Export::recognizes( $data ) || \Funnelforms\Compat\Ff4\Ff4Responses::recognizes( $data ) );
 	}
 
 	/**

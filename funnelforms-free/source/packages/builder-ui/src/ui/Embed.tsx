@@ -10,6 +10,7 @@ import { useBuilder, useEnv } from './context';
 import { CodeBox, Steps, type EmbedMethod } from './EmbedParts';
 import { EmbedProPanel } from './EmbedPro';
 import { __, sprintf } from './i18n';
+import { LegacyNotice } from './LegacyNotice';
 import { addressOf, cleanSlug, PageAddressHint } from './Settings';
 import { Button, Notice, ProBadge, ProList, TextInput } from './ui';
 
@@ -215,7 +216,7 @@ function LinkPanel() {
 		<>
 			<div className="ffxb-embed__settings">
 				{ error ? <Notice tone="danger">{ error }</Notice> : null }
-				{ 'legacy' === form.renderer ? <Notice tone="warning">{ __( 'This form still runs on Funnelforms 3. Its own page appears once it uses the new renderer.', 'funnelforms-pro' ) }</Notice> : null }
+				<LegacyNotice text={ __( 'This form still runs on Funnelforms 3. Its own page appears once it uses the new renderer.', 'funnelforms-pro' ) } />
 				<div className="ffxb-inline ffxb-own-page">
 					<TextInput label={ __( 'Address', 'funnelforms-pro' ) } value={ slug } placeholder="angebot" onChange={ setSlug } hint={ cleaned ? addressOf( form, cleaned ) : __( 'Letters, digits and dashes.', 'funnelforms-pro' ) } />
 					<Button size="sm" variant="primary" disabled={ readOnly || busy || '' === cleaned || cleaned === saved } onClick={ () => void save() }>

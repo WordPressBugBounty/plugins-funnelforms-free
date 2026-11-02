@@ -109,7 +109,7 @@ export class FormApp {
 		this.variants = assignVariants( this.doc, random, forced );
 		this.start = startNode( this.doc, this.variants );
 		this.progress = progressMap( { ...this.doc, start: this.start } );
-		this.api = new Api( config.endpoint, config.unlock );
+		this.api = new Api( config.endpoint, config.unlock, config.bridge );
 		this.stats = new Stats( this.api, root.closest( '[inert]' ) === null && ! config.preview );
 		// Only drawn variants of running tests count; a preview link would skew the figures.
 		for ( const experiment of this.doc.experiments ?? [] ) {

@@ -105,11 +105,18 @@ export function FormsList( { api, onOpen, importUrl, importOwn, ai }: { api: For
 	const upload = async ( file: File ): Promise<void> => {
 		setBusy( true );
 		try {
-			const forms: ImportedForm[] = await api.importFile( file, file.name );
+			const result: ImportedForm[] = await api.importFile( file, file.name );
+			// Leads of Funnelforms 4 go into forms imported before; the import page reports them in detail.
+			const forms = result.filter( ( f ) => ! f.entries && ! f.errors?.includes( 'ff4_form_missing' ) );
 			const ok = forms.filter( ( f ) => null !== f.id ).length;
 			const failed = forms.length - ok;
+			const missing = result.find( ( f ) => f.errors?.includes( 'ff4_form_missing' ) );
 			setNotice(
-				failed
+				missing
+					? { tone: 'warning', text: sprintf( /* translators: title of the form in Funnelforms 4, or the file name */ __( '%s: the form of these leads is not imported yet. Import the forms file of Funnelforms 4 first, then this file again.', 'funnelforms-pro' ), missing.title || file.name ) }
+					: 0 === forms.length && result.some( ( f ) => f.entries )
+					? { tone: 'success', text: __( 'The leads were imported. Imported leads send no e-mails or webhooks.', 'funnelforms-pro' ) }
+					: failed
 					? { tone: 'warning', text: sprintf( __( '%1$d forms imported as drafts, %2$d could not be converted.', 'funnelforms-pro' ), ok, failed ) }
 					: { tone: 'success', text: sprintf( __( '%d forms imported as drafts. Check them and publish.', 'funnelforms-pro' ), ok ) }
 			);
@@ -471,7 +478,11 @@ export function StatusBadge( { form }: { form: FormSummary } ) {
 		return <Badge tone="danger">{ __( 'In the trash', 'funnelforms-pro' ) }</Badge>;
 	}
 	if ( 'published' === form.status ) {
-		return form.hasDraft ? <Badge tone="warning">{ __( 'Published, with changes', 'funnelforms-pro' ) }</Badge> : <Badge tone="success">{ __( 'Published', 'funnelforms-pro' ) }</Badge>;
+		if ( form.hasDraft ) {
+			return <Badge tone="warning">{ __( 'Published, with changes', 'funnelforms-pro' ) }</Badge>;
+		}
+		// A form from 3.x the pages still show with Funnelforms 3: changes published here do not show there yet.
+		return 'legacy' === form.renderer ? <Badge tone="warning">{ __( 'Live on Funnelforms 3', 'funnelforms-pro' ) }</Badge> : <Badge tone="success">{ __( 'Published', 'funnelforms-pro' ) }</Badge>;
 	}
 	return <Badge>{ __( 'Draft', 'funnelforms-pro' ) }</Badge>;
 }

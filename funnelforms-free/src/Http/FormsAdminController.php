@@ -9,13 +9,18 @@ declare(strict_types=1);
 
 namespace Funnelforms\Http;
 
+use Funnelforms\Admin\MigrationPage;
+use Funnelforms\Admin\MigrationTexts;
 use Funnelforms\Application\Capabilities;
 use Funnelforms\Application\FontLibrary;
 use Funnelforms\Application\GoogleFonts;
 use Funnelforms\Application\FormEditor;
 use Funnelforms\Application\FormPreview;
+use Funnelforms\Application\FormRenderer;
 use Funnelforms\Application\FormTemplates;
 use Funnelforms\Application\StyleLibrary;
+use Funnelforms\Compat\Migration\AutoRenderer;
+use Funnelforms\Compat\Migration\MigrationStore;
 use Funnelforms\Edition\Edition;
 use Funnelforms\Infrastructure\Crypto\SecretBox;
 use Funnelforms\Infrastructure\Repository\ConnectionRepository;
@@ -34,6 +39,7 @@ defined( 'ABSPATH' ) || exit;
  *   PUT    admin/forms/<id>/draft              saves the draft (document)
  *   DELETE admin/forms/<id>/draft              drops the draft
  *   POST   admin/forms/<id>/publish            publishes the draft (note)
+ *   POST   admin/forms/<id>/renderer           moves a form from Funnelforms 3 to the new renderer
  *   GET    admin/forms/<id>/revisions          published versions
  *   GET    admin/forms/<id>/revisions/<rev>    one version with its document
  *   POST   admin/forms/<id>/revisions/<rev>/restore  makes a version the draft
@@ -45,7 +51,7 @@ defined( 'ABSPATH' ) || exit;
  *   GET    admin/forms/templates               templates for new forms (Application\FormTemplates)
  *   GET    admin/forms/templates/<id>/preview  page of the preview frame for a template
  *   POST   admin/forms/templates/<id>          new draft form from a template
- *   POST   admin/forms/import                  file: own export (JSON) or 3.x export (ZIP)
+ *   POST   admin/forms/import                  file: own export (JSON), export or leads of Funnelforms 4 (JSON), 3.x export (ZIP)
  * Changing the draft, publishing and restoring need the edit lock; a free lock is taken on the
  * way. Publishing changes of actions or entry settings also needs the right to see entries, and
  * tracking code or scripts need unfiltered_html (Domain\Form\SensitiveChanges). See
@@ -172,6 +178,7 @@ final class FormsAdminController {
 		);
 		$route( self::ID . '/draft', 'DELETE', 'drop_draft' );
 		$route( self::ID . '/publish', 'POST', 'publish', array( 'note' => $text( 255 ) ) );
+		$route( self::ID . '/renderer', 'POST', 'move_to_v5' );
 		$route( self::ID . '/revisions', 'GET', 'revisions' );
 		$route( self::ID . '/revisions/(?P<rev>\d+)', 'GET', 'revision' );
 		$route( self::ID . '/revisions/(?P<rev>\d+)/restore', 'POST', 'restore' );
@@ -690,11 +697,91 @@ final class FormsAdminController {
 				'revision'    => $result['revision'],
 				'renderer'    => $result['renderer'],
 				'warnings'    => $result['warnings'],
+				'stays'       => self::stays( $result, (int) $form['id'] ),
 				'experiments' => (object) $result['experiments'],
 				'form'        => self::summary( (array) ( new FormRepository() )->by_id( (int) $form['id'] ), null ),
 			),
 			200
 		);
+	}
+
+	/**
+	 * POST admin/forms/<id>/renderer: moves a form that still runs on Funnelforms 3 to the new
+	 * renderer, like "Move to Funnelforms 5" under Migration → Forms. What keeps it on 3.x comes
+	 * back as blockers (codes) and reasons (title and fix in words, MigrationTexts::blocker()); the
+	 * form then stays where it is.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 */
+	public static function move_to_v5( \WP_REST_Request $request ): \WP_REST_Response {
+		$form = self::form( $request );
+		if ( null === $form ) {
+			return self::not_found();
+		}
+		if ( 'trashed' === $form['status'] ) {
+			return self::error( 'trashed', __( 'Restore the form from the trash first.', 'funnelforms-free' ), 409 );
+		}
+		$id        = (int) $form['id'];
+		$forms     = new FormRepository();
+		$blockers  = ( new FormRenderer( $forms, new MigrationStore( SecretBox::for_site() ) ) )->switch_to( $id, FormRepository::RENDERER_V5 );
+		$blockers  = array_values( array_unique( $blockers ) );
+		$reasons   = array();
+		$described = array();
+		foreach ( $blockers as $code ) {
+			$item = MigrationTexts::blocker( (string) $code, $id );
+			if ( isset( $described[ $item['title'] ] ) ) {
+				continue;
+			}
+			$described[ $item['title'] ] = true;
+			$reasons[]                   = array(
+				'title' => $item['title'],
+				'fix'   => $item['fix'],
+			);
+		}
+		if ( array() === $blockers ) {
+			// Moved by hand: a form kept on Funnelforms 3 before is no longer kept there.
+			AutoRenderer::unpin( $id );
+		}
+		FormRepository::flush();
+		// The page of the form under Migration explains every reason with the comparison of old and new.
+		$details = array() !== $blockers && null !== $form['legacy_post_id'] && current_user_can( Capabilities::MANAGE_SETTINGS )
+			? MigrationPage::url(
+				array(
+					'tab'  => 'forms',
+					'form' => $id,
+				)
+			)
+			: '';
+		return new \WP_REST_Response(
+			array(
+				'renderer'   => (string) ( $forms->by_id( $id )['renderer'] ?? '' ),
+				'blockers'   => $blockers,
+				'reasons'    => $reasons,
+				'detailsUrl' => $details,
+				'form'       => self::summary( (array) $forms->by_id( $id ), null ),
+			),
+			200
+		);
+	}
+
+	/**
+	 * A form from 3.x that stays on the 3.x renderer after publishing: the pages still show the 3.x
+	 * form, only the preview shows the published version. Why, with what to do, in words.
+	 *
+	 * @param array<string,mixed> $result  Result of FormEditor::publish().
+	 * @param int                 $form_id Form ID.
+	 * @return list<array{title:string,fix:string,link:string,url:string}>
+	 */
+	private static function stays( array $result, int $form_id ): array {
+		if ( FormRepository::RENDERER_LEGACY !== $result['renderer'] ) {
+			return array();
+		}
+		$out = array();
+		foreach ( array_unique( (array) $result['warnings'] ) as $code ) {
+			$text  = MigrationTexts::blocker( (string) $code, $form_id );
+			$out[] = array_intersect_key( $text, array_flip( array( 'title', 'fix', 'link', 'url' ) ) );
+		}
+		return $out;
 	}
 
 	/**
@@ -892,6 +979,8 @@ final class FormsAdminController {
 				'zip_unavailable'    => __( 'This server cannot open ZIP files (PHP extension zip).', 'funnelforms-free' ),
 				'no_forms'           => __( 'The file holds no forms.', 'funnelforms-free' ),
 				'upload_failed'      => __( 'The file could not be uploaded.', 'funnelforms-free' ),
+				'no_entries'         => __( 'The file holds no leads.', 'funnelforms-free' ),
+				'no_entry_rights'    => __( 'Importing leads needs the right to see entries.', 'funnelforms-free' ),
 			);
 			return self::error( $result['code'], $messages[ $result['code'] ] ?? __( 'The file is no Funnelforms export.', 'funnelforms-free' ), 400 );
 		}

@@ -76,6 +76,7 @@ use Funnelforms\Http\FormsAdminController;
 use Funnelforms\Http\FormsController;
 use Funnelforms\Http\PaymentsController;
 use Funnelforms\Http\PreviewController;
+use Funnelforms\Http\RestBridge;
 use Funnelforms\Http\RolesController;
 use Funnelforms\Http\StatsController;
 use Funnelforms\Infrastructure\Database\Schema;
@@ -156,6 +157,7 @@ final class Plugin {
 			LegacyRestore::class,
 			ActionQueue::class,
 			FormsController::class,
+			\Funnelforms\Http\FormBridge::class,
 			EntriesController::class,
 			AppController::class,
 			\Funnelforms\Application\AppPush::class,
@@ -215,6 +217,7 @@ final class Plugin {
 		return array(
 			Ui::class,
 			Menu::class,
+			RestBridge::class,
 			MigrationPage::class,
 			SettingsPage::class,
 			BuilderPage::class,

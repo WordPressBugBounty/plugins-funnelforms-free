@@ -52,7 +52,8 @@ final class EntryRepository {
 		foreach ( self::JSON_COLUMNS as $column ) {
 			$row[ $column ] = (string) wp_json_encode( $row[ $column ] ?? null, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 		}
-		$row['uid']                 = wp_generate_uuid4();
+		// A given uid stays (an import keeps the id of the lead it came from); new entries get one.
+		$row['uid']                 = is_string( $row['uid'] ?? null ) && '' !== $row['uid'] ? substr( $row['uid'], 0, 40 ) : wp_generate_uuid4();
 		$row['form_id']             = $form_id;
 		$row['legacy_form_post_id'] = $legacy_form_id;
 		$ok                         = $wpdb->insert( Schema::table( 'entries' ), $row );
@@ -204,6 +205,16 @@ final class EntryRepository {
 			$row[ $column ] = is_string( $row[ $column ] ) ? json_decode( $row[ $column ], true ) : null;
 		}
 		return $row;
+	}
+
+	/**
+	 * ID of the entry with a uid, 0 when there is none.
+	 *
+	 * @param string $uid Uid.
+	 */
+	public function id_by_uid( string $uid ): int {
+		global $wpdb;
+		return (int) $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE uid = %s', Schema::table( 'entries' ), $uid ) );
 	}
 
 	/**

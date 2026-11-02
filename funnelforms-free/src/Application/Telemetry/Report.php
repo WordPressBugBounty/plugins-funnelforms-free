@@ -9,11 +9,14 @@ declare(strict_types=1);
 
 namespace Funnelforms\Application\Telemetry;
 
+use Funnelforms\Application\FormRenderer;
 use Funnelforms\Application\FormStats;
 use Funnelforms\Application\FormTemplates;
 use Funnelforms\Application\PrivacyMode;
 use Funnelforms\Application\SetupFlow;
 use Funnelforms\Application\StatsPeriod;
+use Funnelforms\Compat\Legacy\LegacyCode;
+use Funnelforms\Compat\Migration\AutoRenderer;
 use Funnelforms\Compat\Migration\FormVerifier;
 use Funnelforms\Compat\Migration\MigrationStore;
 use Funnelforms\Compat\Legacy\LegacyRepository;
@@ -217,6 +220,9 @@ final class Report {
 				'verified'        => max( 0, (int) ( $migrate['verified'] ?? 0 ) ),
 				'failed'          => max( 0, (int) ( $migrate['failed'] ?? 0 ) ),
 				'on_new_renderer' => max( 0, (int) ( $migrate['on_new_renderer'] ?? 0 ) ),
+				'on_legacy'       => self::map( self::reasons( (array) ( $migrate['on_legacy'] ?? array() ) ) ),
+				'assistant_open'  => ! empty( $migrate['assistant_open'] ),
+				'legacy_code'     => in_array( $migrate['legacy_code'] ?? '', array( 'forms', 'connection', 'rollback' ), true ) ? (string) $migrate['legacy_code'] : 'none',
 			),
 			'forms'       => $forms['summary'] + array(
 				'embeds' => array(
@@ -839,20 +845,81 @@ final class Report {
 	}
 
 	/**
-	 * Forms of Funnelforms 3: imported, checked, failed and running on the new renderer.
+	 * Forms of Funnelforms 3: imported, checked, failed and running on the new renderer; why the
+	 * others stay on 3.x, whether the update assistant is still open and why the 3.x code loads.
 	 *
-	 * @return array<string,int>
+	 * @return array<string,mixed>
 	 */
 	private static function migration(): array {
 		global $wpdb;
-		$summary = ( new MigrationStore( SecretBox::for_site() ) )->summary();
+		$store   = new MigrationStore( SecretBox::for_site() );
+		$summary = $store->summary();
 		$forms   = (array) ( $summary[ LegacyRepository::FORM ] ?? array() );
+		$setup   = SetupFlow::state();
 		return array(
 			'forms_total'     => array_sum( array_map( 'intval', $forms ) ),
 			'verified'        => (int) ( $forms[ FormVerifier::VERIFIED ] ?? 0 ),
 			'failed'          => (int) ( $forms[ FormVerifier::FAILED ] ?? 0 ),
 			'on_new_renderer' => (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE legacy_post_id IS NOT NULL AND renderer = %s AND status <> %s', Schema::table( 'forms' ), FormRepository::RENDERER_V5, 'trashed' ) ),
+			'on_legacy'       => self::legacy_reasons( $store ),
+			'assistant_open'  => 'update' === $setup['path'] && 'open' === $setup['status'],
+			'legacy_code'     => LegacyCode::reason(),
 		);
+	}
+
+	/**
+	 * Imported forms still on 3.x, counted per reason (FormRenderer::blockers(), "pinned" for a form
+	 * someone kept there, "auto_off" while forms do not move on their own). A form with several
+	 * reasons counts for each.
+	 *
+	 * @param MigrationStore $store Migration records.
+	 * @return array<string,int>
+	 */
+	private static function legacy_reasons( MigrationStore $store ): array {
+		$repo      = new FormRepository();
+		$renderers = new FormRenderer( $repo, $store );
+		$pinned    = AutoRenderer::pinned();
+		$auto      = AutoRenderer::enabled();
+		$out       = array();
+		foreach ( $repo->with_legacy_ids() as $row ) {
+			if ( FormRepository::RENDERER_V5 === $row['renderer'] ) {
+				continue;
+			}
+			$form = $repo->by_id( (int) $row['id'] );
+			if ( null === $form || 'trashed' === $form['status'] ) {
+				continue;
+			}
+			$reasons = $renderers->blockers( $form );
+			if ( in_array( (int) $row['id'], $pinned, true ) ) {
+				$reasons[] = 'pinned';
+			}
+			if ( array() === $reasons ) {
+				$reasons[] = $auto ? 'waiting' : 'auto_off';
+			}
+			foreach ( array_unique( $reasons ) as $reason ) {
+				$out[ $reason ] = ( $out[ $reason ] ?? 0 ) + 1;
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * Reasons as the Brain takes them: keys of letters, digits, "_", ":" and "-", at most 40
+	 * characters, at most 40 keys (the most frequent).
+	 *
+	 * @param array<mixed> $reasons Reason => forms.
+	 * @return array<string,int>
+	 */
+	public static function reasons( array $reasons ): array {
+		$out = array();
+		foreach ( $reasons as $key => $count ) {
+			$key = substr( (string) preg_replace( '/[^A-Za-z0-9_:-]/', '_', (string) $key ), 0, 40 );
+			if ( '' !== $key && (int) $count > 0 ) {
+				$out[ $key ] = ( $out[ $key ] ?? 0 ) + (int) $count;
+			}
+		}
+		arsort( $out );
+		return array_slice( $out, 0, 40, true );
 	}
 
 	/**
