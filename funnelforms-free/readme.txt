@@ -4,7 +4,7 @@ Tags: contact form, multi step form, form builder, lead generation, conversation
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 5.0.4
+Stable tag: 5.0.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -221,6 +221,10 @@ If you set up a mail server under Funnelforms > Settings > E-mail, the mails of 
 The scripts in assets/builder and assets/runtime are built and minified from TypeScript. The sources, with the build scripts, are in the folder source/ of this plugin. To build them: `pnpm install` and `pnpm -r build` in that folder (Node.js 20 or newer).
 
 == Changelog ==
+
+= 5.0.5 =
+* Editor: the preview and saving no longer fail with "Your WordPress login could not be confirmed" while you are logged in. Some server caches (REST API caching of LiteSpeed Cache and others, Cloudflare and other CDNs) hand out old answers with an outdated security token, and the editor used it for the next request. The editor now gets a fresh token from WordPress and tries once more, as the WordPress block editor does.
+* Forms moved from Funnelforms 3: icons in contact fields sit centred before the text again instead of over it, and "Hide icons" of a question hides its answer icons again.
 
 = 5.0.4 =
 * Editor: "Cookie check failed" no longer blocks opening, editing and previewing forms. On sites whose site address and WordPress address differ (www or not, a subfolder) or whose server cache drops the login cookie outside wp-admin, the admin screens reach the plugin through admin-ajax.php.

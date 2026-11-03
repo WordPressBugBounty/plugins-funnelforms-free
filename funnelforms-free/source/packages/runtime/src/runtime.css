@@ -1265,9 +1265,14 @@ html:has(.ffx-popup[open]) {
 	}
 }
 
-/* Icon font glyphs (Font Awesome sets display outside a layer) sit in the middle of their circle. */
-.ffx-form i.ffx-option-icon {
-	display: inline-grid;
+/*
+ * Icon font glyphs (3.x forms, settings.iconFont): Font Awesome sets display: inline-block outside a layer,
+ * which beat every display of the layer. Answer icons were not centred in their circle and showed although
+ * the question hides its icons; icons in contact inputs sat in the top corner of the input. They take the
+ * layer's display again: centred, hidden with "hide icons", hidden beside a country picker.
+ */
+.ffx-form i:is(.ffx-option-icon, .ffx-input-icon) {
+	display: revert-layer;
 }
 
 /*

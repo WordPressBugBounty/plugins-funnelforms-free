@@ -45,7 +45,7 @@ describe( 'styles', () => {
 			'@layer ffx',
 			'html:has(.ffx-popup[open])',
 			'@layer ffx-strong',
-			'.ffx-form i.ffx-option-icon',
+			'.ffx-form i:is(.ffx-option-icon, .ffx-input-icon)',
 			shield,
 		] );
 		expect( read( 'runtime.css' ) ).toMatch( /\{\s*all: revert-layer;\s*\}\s*$/ );

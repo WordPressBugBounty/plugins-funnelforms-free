@@ -18,7 +18,7 @@ msgstr ""
 msgid "Account"
 msgstr ""
 
-#: src/Admin/AccountPage.php:95 src/Admin/AccountPage.php:176 src/Admin/AppPage.php:101 src/Admin/AutomationTokens.php:65 src/Admin/EntriesExport.php:72 src/Admin/EntryPdfDownload.php:59 src/Admin/MailDiagnostics.php:50 src/Admin/MailServerSection.php:38 src/Admin/MigrationPage.php:103 src/Admin/MigrationPage.php:120 src/Admin/MigrationPage.php:146 src/Admin/MigrationPage.php:183 src/Admin/MigrationPage.php:216 src/Admin/NoticesView.php:93 src/Admin/ProSettings.php:120 src/Admin/RoleRights.php:36 src/Admin/SafetySection.php:1463 src/Admin/SettingsPage.php:178 src/Admin/SetupPage.php:164 src/Admin/StatsExport.php:75 src/Admin/SupportAccessSection.php:74 src/Admin/SupportPage.php:126 src/Admin/SupportPage.php:219 src/Admin/TelemetrySection.php:49 src/Admin/TelemetrySection.php:63 src/Compat/Legacy/LegacyLicense.php:174 src/Edition/ReviewNotice.php:104 src/Frontend/LegacyPreview.php:58
+#: src/Admin/AccountPage.php:95 src/Admin/AccountPage.php:176 src/Admin/AppPage.php:101 src/Admin/AutomationTokens.php:65 src/Admin/EntriesExport.php:72 src/Admin/EntryPdfDownload.php:59 src/Admin/MailDiagnostics.php:50 src/Admin/MailServerSection.php:38 src/Admin/MigrationPage.php:103 src/Admin/MigrationPage.php:120 src/Admin/MigrationPage.php:146 src/Admin/MigrationPage.php:183 src/Admin/MigrationPage.php:216 src/Admin/NoticesView.php:93 src/Admin/ProSettings.php:120 src/Admin/RoleRights.php:36 src/Admin/SafetySection.php:108 src/Admin/SafetySection.php:1460 src/Admin/SettingsPage.php:178 src/Admin/SetupPage.php:164 src/Admin/StatsExport.php:75 src/Admin/SupportAccessSection.php:72 src/Admin/SupportPage.php:126 src/Admin/SupportPage.php:217 src/Admin/TelemetrySection.php:49 src/Admin/TelemetrySection.php:63 src/Compat/Legacy/LegacyLicense.php:174 src/Edition/ReviewNotice.php:104 src/Frontend/LegacyPreview.php:58
 msgid "You are not allowed to do this."
 msgstr ""
 
@@ -374,7 +374,7 @@ msgstr ""
 msgid "Updates and services"
 msgstr ""
 
-#: src/Admin/AccountPage.php:633 src/Admin/SiteHealth.php:182 src/Admin/SupportAccessSection.php:106 src/Admin/SupportPage.php:462
+#: src/Admin/AccountPage.php:633 src/Admin/SiteHealth.php:182 src/Admin/SupportAccessSection.php:104 src/Admin/SupportPage.php:460
 msgid "On"
 msgstr ""
 
@@ -391,7 +391,7 @@ msgstr ""
 msgid "Confirmed until %s"
 msgstr ""
 
-#: src/Admin/AccountPage.php:645 src/Admin/SupportPage.php:430 packages/builder-ui/src/ui/Actions.tsx:533 packages/builder-ui/src/ui/CrmAction.tsx:165
+#: src/Admin/AccountPage.php:645 src/Admin/SupportPage.php:428 packages/builder-ui/src/ui/Actions.tsx:533 packages/builder-ui/src/ui/CrmAction.tsx:165
 msgid "Connection"
 msgstr ""
 
@@ -479,7 +479,7 @@ msgstr ""
 msgid "Choose a larger plan"
 msgstr ""
 
-#: src/Admin/AccountPage.php:768 src/Admin/NoticesView.php:158 src/Admin/ReferPage.php:335 src/Admin/SettingsPage.php:456 src/Admin/SetupPage.php:962 src/Admin/SupportPage.php:99 src/Admin/SupportPage.php:397 src/Admin/SupportPage.php:504 src/Admin/Ui.php:71 src/Edition/UpgradePage.php:442 packages/builder-ui/src/ui/Entries.tsx:1776 packages/builder-ui/src/ui/Settings.tsx:1000
+#: src/Admin/AccountPage.php:768 src/Admin/NoticesView.php:158 src/Admin/ReferPage.php:335 src/Admin/SettingsPage.php:456 src/Admin/SetupPage.php:962 src/Admin/SupportPage.php:99 src/Admin/SupportPage.php:395 src/Admin/SupportPage.php:502 src/Admin/Ui.php:71 src/Edition/UpgradePage.php:442 packages/builder-ui/src/ui/Entries.tsx:1776 packages/builder-ui/src/ui/Settings.tsx:1000
 msgid "(opens in a new tab)"
 msgstr ""
 
@@ -856,7 +856,7 @@ msgstr ""
 msgid "You may not download the diagnostics."
 msgstr ""
 
-#: src/Admin/Diagnostics.php:358 src/Admin/SupportPage.php:467 src/Admin/SupportPage.php:575
+#: src/Admin/Diagnostics.php:358 src/Admin/SupportPage.php:465 src/Admin/SupportPage.php:573
 msgid "Diagnostics"
 msgstr ""
 
@@ -1386,7 +1386,7 @@ msgstr ""
 msgid "%s points"
 msgstr ""
 
-#: src/Admin/FormStatsPage.php:43 src/Admin/MigrationTexts.php:473 src/Admin/OverviewPage.php:343 src/Admin/OverviewPage.php:409 src/Admin/SafetySection.php:935 src/Admin/SafetySection.php:1171 src/Admin/SetupPage.php:922 src/Admin/SetupPage.php:1022 src/Admin/SetupPage.php:1200 src/Admin/SetupPage.php:1312 src/Admin/StatsPage.php:308 src/Admin/StatsPage.php:546
+#: src/Admin/FormStatsPage.php:43 src/Admin/MigrationTexts.php:473 src/Admin/OverviewPage.php:343 src/Admin/OverviewPage.php:409 src/Admin/SafetySection.php:933 src/Admin/SafetySection.php:1169 src/Admin/SetupPage.php:922 src/Admin/SetupPage.php:1022 src/Admin/SetupPage.php:1200 src/Admin/SetupPage.php:1312 src/Admin/StatsPage.php:308 src/Admin/StatsPage.php:546
 msgid "(no title)"
 msgstr ""
 
@@ -1993,7 +1993,7 @@ msgstr ""
 msgid "Funnelforms 5"
 msgstr ""
 
-#: src/Admin/Menu.php:89 src/Admin/Menu.php:89 src/Admin/MigrationPage.php:1435 src/Admin/SafetySection.php:375 src/Admin/SafetySection.php:537
+#: src/Admin/Menu.php:89 src/Admin/Menu.php:89 src/Admin/MigrationPage.php:1435 src/Admin/SafetySection.php:373 src/Admin/SafetySection.php:535
 msgid "Back to Funnelforms 5"
 msgstr ""
 
@@ -2029,7 +2029,7 @@ msgstr ""
 msgid "Saving a restore point of Funnelforms 3 …"
 msgstr ""
 
-#: src/Admin/MigrationPage.php:265 src/Admin/SafetySection.php:320 src/Admin/SafetySection.php:341
+#: src/Admin/MigrationPage.php:265 src/Admin/SafetySection.php:318 src/Admin/SafetySection.php:339
 msgid "Done."
 msgstr ""
 
@@ -2111,7 +2111,7 @@ msgstr ""
 msgid "Your forms and leads from Funnelforms 3, copied into Funnelforms 5 and checked. The data of Funnelforms 3 stays untouched."
 msgstr ""
 
-#: src/Admin/MigrationPage.php:353 src/Admin/MigrationPage.php:392 src/Admin/SafetySection.php:858 src/Admin/SafetySection.php:1052 src/Admin/SafetySection.php:1180 src/Admin/SafetySection.php:1227 src/Admin/SafetySection.php:1267 src/Admin/SafetySection.php:1335
+#: src/Admin/MigrationPage.php:353 src/Admin/MigrationPage.php:392 src/Admin/SafetySection.php:856 src/Admin/SafetySection.php:1050 src/Admin/SafetySection.php:1178 src/Admin/SafetySection.php:1225 src/Admin/SafetySection.php:1265 src/Admin/SafetySection.php:1333
 msgid "Way back"
 msgstr ""
 
@@ -2193,7 +2193,7 @@ msgstr ""
 msgid "Where your forms run"
 msgstr ""
 
-#: src/Admin/MigrationPage.php:561 src/Admin/SafetySection.php:1167
+#: src/Admin/MigrationPage.php:561 src/Admin/SafetySection.php:1165
 msgid "See all forms"
 msgstr ""
 
@@ -2333,7 +2333,7 @@ msgstr ""
 msgid "Checked"
 msgstr ""
 
-#: src/Admin/MigrationPage.php:794 src/Admin/SafetySection.php:828
+#: src/Admin/MigrationPage.php:794 src/Admin/SafetySection.php:826
 msgid "Complete"
 msgstr ""
 
@@ -2472,7 +2472,7 @@ msgstr ""
 msgid "Show"
 msgstr ""
 
-#: src/Admin/MigrationPage.php:1030 src/Admin/SafetySection.php:473
+#: src/Admin/MigrationPage.php:1030 src/Admin/SafetySection.php:471
 msgid "All forms back to Funnelforms 3"
 msgstr ""
 
@@ -2492,7 +2492,7 @@ msgstr ""
 msgid "Choose another filter above."
 msgstr ""
 
-#: src/Admin/MigrationPage.php:1046 src/Admin/SafetySection.php:708 packages/builder-ui/src/ui/Canvas.tsx:124
+#: src/Admin/MigrationPage.php:1046 src/Admin/SafetySection.php:706 packages/builder-ui/src/ui/Canvas.tsx:124
 msgid "Check"
 msgstr ""
 
@@ -2504,7 +2504,7 @@ msgstr ""
 msgid "Runs on"
 msgstr ""
 
-#: src/Admin/MigrationPage.php:1049 src/Admin/SafetySection.php:709 packages/builder-ui/src/ui/Actions.tsx:236 packages/builder-ui/src/ui/FormsList.tsx:312
+#: src/Admin/MigrationPage.php:1049 src/Admin/SafetySection.php:707 packages/builder-ui/src/ui/Actions.tsx:236 packages/builder-ui/src/ui/FormsList.tsx:312
 msgid "Actions"
 msgstr ""
 
@@ -3378,7 +3378,7 @@ msgstr ""
 msgid "View entries"
 msgstr ""
 
-#: src/Admin/OverviewPage.php:259 src/Admin/SupportPage.php:395 src/Edition/UpgradePage.php:361
+#: src/Admin/OverviewPage.php:259 src/Admin/SupportPage.php:393 src/Edition/UpgradePage.php:361
 msgid "Help center"
 msgstr ""
 
@@ -3940,7 +3940,7 @@ msgstr ""
 msgid "Join the partner program"
 msgstr ""
 
-#: src/Admin/ReferPage.php:149 src/Admin/SupportPage.php:67 src/Admin/SupportPage.php:340 src/Admin/SupportPage.php:707
+#: src/Admin/ReferPage.php:149 src/Admin/SupportPage.php:67 src/Admin/SupportPage.php:338 src/Admin/SupportPage.php:687
 msgid "Support"
 msgstr ""
 
@@ -4080,740 +4080,736 @@ msgstr ""
 msgid "Save rights"
 msgstr ""
 
-#: src/Admin/SafetySection.php:110
-msgid "The support access cannot download restore points: they hold the leads of the site."
-msgstr ""
-
 #. translators:1: rows compared, 2: all rows.
-#: src/Admin/SafetySection.php:289
+#: src/Admin/SafetySection.php:287
 msgid "Comparing … %1$s of %2$s rows"
 msgstr ""
 
-#: src/Admin/SafetySection.php:309
+#: src/Admin/SafetySection.php:307
 msgid "Saving the current state first, so this restore can be undone too …"
 msgstr ""
 
 #. translators:1: rows looked at, 2: all rows.
-#: src/Admin/SafetySection.php:315
+#: src/Admin/SafetySection.php:313
 msgid "Restoring … %1$s of %2$s rows looked at"
 msgstr ""
 
 #. translators:%s: number of rows.
-#: src/Admin/SafetySection.php:353
+#: src/Admin/SafetySection.php:351
 msgid "Saving a restore point … %s rows so far"
 msgstr ""
 
-#: src/Admin/SafetySection.php:374
+#: src/Admin/SafetySection.php:372
 msgid "Your forms run on Funnelforms 3 again. The data of Funnelforms 3 is unchanged."
 msgstr ""
 
-#: src/Admin/SafetySection.php:419
+#: src/Admin/SafetySection.php:417
 msgid "The restore point is being written. This page shows when it is done."
 msgstr ""
 
 #. translators:%d: number of forms.
-#: src/Admin/SafetySection.php:436 src/Admin/SafetySection.php:1147
+#: src/Admin/SafetySection.php:434 src/Admin/SafetySection.php:1145
 msgid "You are on Funnelforms 3 again"
 msgstr ""
 
-#: src/Admin/SafetySection.php:436
+#: src/Admin/SafetySection.php:434
 msgid "Back to Funnelforms 3 with one click"
 msgstr ""
 
-#: src/Admin/SafetySection.php:442
+#: src/Admin/SafetySection.php:440
 msgid "Your forms from Funnelforms 3 run on Funnelforms 3. One click brings them back to Funnelforms 5."
 msgstr ""
 
 #. translators:%s: date and time.
-#: src/Admin/SafetySection.php:444
+#: src/Admin/SafetySection.php:442
 msgid "Since %s your forms from Funnelforms 3 run on Funnelforms 3. One click brings them back to Funnelforms 5."
 msgstr ""
 
-#: src/Admin/SafetySection.php:447
+#: src/Admin/SafetySection.php:445
 msgid "If something does not work as before, your forms go back to Funnelforms 3, all at once or one by one. The data of Funnelforms 3 was never changed, so everything is where it was. One more click brings you forward again."
 msgstr ""
 
-#: src/Admin/SafetySection.php:452
+#: src/Admin/SafetySection.php:450
 msgid "Funnelforms 3 active"
 msgstr ""
 
-#: src/Admin/SafetySection.php:452
+#: src/Admin/SafetySection.php:450
 msgid "Funnelforms 5 active"
 msgstr ""
 
-#: src/Admin/SafetySection.php:460
+#: src/Admin/SafetySection.php:458
 msgid "The copy in Funnelforms 5 keeps in step with Funnelforms 3 every hour, so new leads are there too"
 msgstr ""
 
-#: src/Admin/SafetySection.php:480
+#: src/Admin/SafetySection.php:478
 msgid "Choose one form"
 msgstr ""
 
-#: src/Admin/SafetySection.php:482
+#: src/Admin/SafetySection.php:480
 msgid "No form from Funnelforms 3 runs on Funnelforms 5 at the moment, so there is nothing to take back."
 msgstr ""
 
-#: src/Admin/SafetySection.php:513
+#: src/Admin/SafetySection.php:511
 msgid "Nothing is deleted: leads, appointments and settings of both versions stay where they are"
 msgstr ""
 
-#: src/Admin/SafetySection.php:554
+#: src/Admin/SafetySection.php:552
 msgid "Your restore point"
 msgstr ""
 
-#: src/Admin/SafetySection.php:555
+#: src/Admin/SafetySection.php:553
 msgid "A copy of all your Funnelforms 3 data, exactly as it is stored. If the data of Funnelforms 3 gets damaged, for example by another plugin or a mistake in the database, the restore point brings it back."
 msgstr ""
 
-#: src/Admin/SafetySection.php:556
+#: src/Admin/SafetySection.php:554
 msgid "It holds the forms, questions, contact forms, leads, appointments and settings of Funnelforms 3. What you build in Funnelforms 5 is not in it: the form builder keeps every published version of a form under Versions."
 msgstr ""
 
-#: src/Admin/SafetySection.php:562
+#: src/Admin/SafetySection.php:560
 msgid "There is no restore point yet. Funnelforms writes one before it copies your data; you can also create one below."
 msgstr ""
 
 #. translators:%s: date and time.
-#: src/Admin/SafetySection.php:569
+#: src/Admin/SafetySection.php:567
 msgid "The very first restore point, from %s before the move, is kept as well."
 msgstr ""
 
-#: src/Admin/SafetySection.php:579
+#: src/Admin/SafetySection.php:577
 msgid "Check Funnelforms 3 against it"
 msgstr ""
 
-#: src/Admin/SafetySection.php:581 src/Admin/SafetySection.php:834 packages/builder-ui/src/ui/Entries.tsx:1413 packages/builder-ui/src/ui/Entries.tsx:1916 packages/builder-ui/src/ui/FormsList.tsx:437
+#: src/Admin/SafetySection.php:579 src/Admin/SafetySection.php:832 packages/builder-ui/src/ui/Entries.tsx:1413 packages/builder-ui/src/ui/Entries.tsx:1916 packages/builder-ui/src/ui/FormsList.tsx:437
 msgid "Restore"
 msgstr ""
 
-#: src/Admin/SafetySection.php:583 src/Admin/SafetySection.php:832
+#: src/Admin/SafetySection.php:581 src/Admin/SafetySection.php:830
 msgid "Download"
 msgstr ""
 
-#: src/Admin/SafetySection.php:599 src/Admin/SafetySection.php:705
+#: src/Admin/SafetySection.php:597 src/Admin/SafetySection.php:703
 msgid "Created"
 msgstr ""
 
-#: src/Admin/SafetySection.php:600 src/Admin/SafetySection.php:706
+#: src/Admin/SafetySection.php:598 src/Admin/SafetySection.php:704
 msgid "Occasion"
 msgstr ""
 
-#: src/Admin/SafetySection.php:601
+#: src/Admin/SafetySection.php:599
 msgid "Size"
 msgstr ""
 
-#: src/Admin/SafetySection.php:602
+#: src/Admin/SafetySection.php:600
 msgid "State"
 msgstr ""
 
-#: src/Admin/SafetySection.php:602
+#: src/Admin/SafetySection.php:600
 msgid "Complete and unchanged"
 msgstr ""
 
-#: src/Admin/SafetySection.php:604 src/Admin/SafetySection.php:707
+#: src/Admin/SafetySection.php:602 src/Admin/SafetySection.php:705
 msgid "Content"
 msgstr ""
 
-#: src/Admin/SafetySection.php:636
+#: src/Admin/SafetySection.php:634
 msgid "The check is running."
 msgstr ""
 
-#: src/Admin/SafetySection.php:636 src/Admin/SafetySection.php:691
+#: src/Admin/SafetySection.php:634 src/Admin/SafetySection.php:689
 msgid "Show progress"
 msgstr ""
 
 #. translators:%s: date and time.
-#: src/Admin/SafetySection.php:652
+#: src/Admin/SafetySection.php:650
 msgid "Checked %s: everything of the restore point is still there, unchanged."
 msgstr ""
 
 #. translators:1: date and time, 2: rows missing, 3: rows changed.
-#: src/Admin/SafetySection.php:658
+#: src/Admin/SafetySection.php:656
 msgid "Checked %1$s: %2$s rows are missing and %3$s were changed since the restore point."
 msgstr ""
 
-#: src/Admin/SafetySection.php:663
+#: src/Admin/SafetySection.php:661
 msgid "See the report"
 msgstr ""
 
-#: src/Admin/SafetySection.php:678
+#: src/Admin/SafetySection.php:676
 msgid "All restore points"
 msgstr ""
 
-#: src/Admin/SafetySection.php:679
+#: src/Admin/SafetySection.php:677
 msgid "Funnelforms writes one before the move to Funnelforms 5 and before every restore, and keeps the first one and the newest one. A restore puts back what was changed or deleted and keeps everything that came in later."
 msgstr ""
 
-#: src/Admin/SafetySection.php:684
+#: src/Admin/SafetySection.php:682
 msgid "Create a restore point"
 msgstr ""
 
-#: src/Admin/SafetySection.php:691
+#: src/Admin/SafetySection.php:689
 msgid "A restore is running."
 msgstr ""
 
-#: src/Admin/SafetySection.php:699
+#: src/Admin/SafetySection.php:697
 msgid "There is no restore point yet."
 msgstr ""
 
-#: src/Admin/SafetySection.php:720
+#: src/Admin/SafetySection.php:718
 msgid "Delete restore points"
 msgstr ""
 
-#: src/Admin/SafetySection.php:740
+#: src/Admin/SafetySection.php:738
 msgid "Kept in"
 msgstr ""
 
-#: src/Admin/SafetySection.php:741
+#: src/Admin/SafetySection.php:739
 msgid "Protection"
 msgstr ""
 
-#: src/Admin/SafetySection.php:745
+#: src/Admin/SafetySection.php:743
 msgid "No access from the web. The files are encrypted with the key of your site, so a copy is of no use elsewhere."
 msgstr ""
 
-#: src/Admin/SafetySection.php:746
+#: src/Admin/SafetySection.php:744
 msgid "No access from the web. Older restore points are not encrypted yet; new ones are."
 msgstr ""
 
-#: src/Admin/SafetySection.php:750
+#: src/Admin/SafetySection.php:748
 msgid "Kept for"
 msgstr ""
 
 #. translators:%d: number of days.
-#: src/Admin/SafetySection.php:773
+#: src/Admin/SafetySection.php:771
 msgid "(today)"
 msgstr ""
 
-#: src/Admin/SafetySection.php:785
+#: src/Admin/SafetySection.php:783
 msgid "Cannot be read: the key of the site changed"
 msgstr ""
 
-#: src/Admin/SafetySection.php:786
+#: src/Admin/SafetySection.php:784
 msgid "Damaged or missing"
 msgstr ""
 
 #. translators:%s: date.
-#: src/Admin/SafetySection.php:800
+#: src/Admin/SafetySection.php:798
 msgid "Your move is complete, so the restore points were deleted on %s, as planned. The data of Funnelforms 3 is still there, and the way back keeps working."
 msgstr ""
 
 #. translators:%s: date.
-#: src/Admin/SafetySection.php:802
+#: src/Admin/SafetySection.php:800
 msgid "You deleted the restore points on %s. The data of Funnelforms 3 is still there, and the way back keeps working."
 msgstr ""
 
-#: src/Admin/SafetySection.php:886
+#: src/Admin/SafetySection.php:884
 msgid "You are on Funnelforms 3 already"
 msgstr ""
 
-#: src/Admin/SafetySection.php:886
+#: src/Admin/SafetySection.php:884
 msgid "Your forms from Funnelforms 3 run on Funnelforms 3. Go forward again whenever you like."
 msgstr ""
 
-#: src/Admin/SafetySection.php:892
+#: src/Admin/SafetySection.php:890
 msgid "All forms back to Funnelforms 3?"
 msgstr ""
 
-#: src/Admin/SafetySection.php:892
+#: src/Admin/SafetySection.php:890
 msgid "Your visitors see the Funnelforms 3 version of every form again, and the menu of Funnelforms 3 comes back. You can go forward again with one click."
 msgstr ""
 
-#: src/Admin/SafetySection.php:896
+#: src/Admin/SafetySection.php:894
 msgid "What happens"
 msgstr ""
 
-#: src/Admin/SafetySection.php:901
+#: src/Admin/SafetySection.php:899
 msgid "Pages and shortcodes stay as they are: they show the Funnelforms 3 version"
 msgstr ""
 
-#: src/Admin/SafetySection.php:902
+#: src/Admin/SafetySection.php:900
 msgid "The menu of Funnelforms 3 is back, with all its forms, leads and settings"
 msgstr ""
 
-#: src/Admin/SafetySection.php:903
+#: src/Admin/SafetySection.php:901
 msgid "New leads in Funnelforms 3 are copied to Funnelforms 5 every hour, so nothing is missing when you go forward"
 msgstr ""
 
-#: src/Admin/SafetySection.php:908
+#: src/Admin/SafetySection.php:906
 msgid "Your data"
 msgstr ""
 
-#: src/Admin/SafetySection.php:918
+#: src/Admin/SafetySection.php:916
 msgid "Yes, back to Funnelforms 3"
 msgstr ""
 
-#: src/Admin/SafetySection.php:919 src/Admin/SafetySection.php:975 src/Admin/SafetySection.php:1040 src/Admin/SafetySection.php:1089 packages/builder-ui/src/ui/Actions.tsx:682 packages/builder-ui/src/ui/Actions.tsx:726 packages/builder-ui/src/ui/Actions.tsx:774 packages/builder-ui/src/ui/Answers.tsx:262 packages/builder-ui/src/ui/BookingTypes.tsx:363 packages/builder-ui/src/ui/BookingTypes.tsx:1028 packages/builder-ui/src/ui/BrandingImport.tsx:108 packages/builder-ui/src/ui/Builder.tsx:465 packages/builder-ui/src/ui/CalculationsPlus.tsx:192 packages/builder-ui/src/ui/ColorPick.tsx:243 packages/builder-ui/src/ui/CrmAction.tsx:241 packages/builder-ui/src/ui/CrmConnections.tsx:178 packages/builder-ui/src/ui/Design.tsx:899 packages/builder-ui/src/ui/EndProps.tsx:476 packages/builder-ui/src/ui/Entries.tsx:1223 packages/builder-ui/src/ui/Entries.tsx:1428 packages/builder-ui/src/ui/Entries.tsx:1932 packages/builder-ui/src/ui/Integrations.tsx:302 packages/builder-ui/src/ui/IntegrationsHub.tsx:768 packages/builder-ui/src/ui/IntegrationsHub.tsx:860 packages/builder-ui/src/ui/MailEditor.tsx:200 packages/builder-ui/src/ui/Prediction.tsx:402 packages/builder-ui/src/ui/PredictionApply.tsx:235 packages/builder-ui/src/ui/Settings.tsx:143 packages/builder-ui/src/ui/SiteDesign.tsx:78 packages/builder-ui/src/ui/WhatsAppTemplates.tsx:283
+#: src/Admin/SafetySection.php:917 src/Admin/SafetySection.php:973 src/Admin/SafetySection.php:1038 src/Admin/SafetySection.php:1087 packages/builder-ui/src/ui/Actions.tsx:682 packages/builder-ui/src/ui/Actions.tsx:726 packages/builder-ui/src/ui/Actions.tsx:774 packages/builder-ui/src/ui/Answers.tsx:262 packages/builder-ui/src/ui/BookingTypes.tsx:363 packages/builder-ui/src/ui/BookingTypes.tsx:1028 packages/builder-ui/src/ui/BrandingImport.tsx:108 packages/builder-ui/src/ui/Builder.tsx:465 packages/builder-ui/src/ui/CalculationsPlus.tsx:192 packages/builder-ui/src/ui/ColorPick.tsx:243 packages/builder-ui/src/ui/CrmAction.tsx:241 packages/builder-ui/src/ui/CrmConnections.tsx:178 packages/builder-ui/src/ui/Design.tsx:899 packages/builder-ui/src/ui/EndProps.tsx:476 packages/builder-ui/src/ui/Entries.tsx:1223 packages/builder-ui/src/ui/Entries.tsx:1428 packages/builder-ui/src/ui/Entries.tsx:1932 packages/builder-ui/src/ui/Integrations.tsx:302 packages/builder-ui/src/ui/IntegrationsHub.tsx:768 packages/builder-ui/src/ui/IntegrationsHub.tsx:860 packages/builder-ui/src/ui/MailEditor.tsx:200 packages/builder-ui/src/ui/Prediction.tsx:402 packages/builder-ui/src/ui/PredictionApply.tsx:235 packages/builder-ui/src/ui/Settings.tsx:143 packages/builder-ui/src/ui/SiteDesign.tsx:78 packages/builder-ui/src/ui/WhatsAppTemplates.tsx:283
 msgid "Cancel"
 msgstr ""
 
 #. translators:%s: form title.
-#: src/Admin/SafetySection.php:940
+#: src/Admin/SafetySection.php:938
 msgid "\"%s\" runs on Funnelforms 3"
 msgstr ""
 
 #. translators:%s: form title.
-#: src/Admin/SafetySection.php:940
+#: src/Admin/SafetySection.php:938
 msgid "This form already shows its Funnelforms 3 version, so there is nothing to take back."
 msgstr ""
 
-#: src/Admin/SafetySection.php:941 src/Admin/SafetySection.php:1174
+#: src/Admin/SafetySection.php:939 src/Admin/SafetySection.php:1172
 msgid "To the form"
 msgstr ""
 
 #. translators:%s: form title.
-#: src/Admin/SafetySection.php:945
+#: src/Admin/SafetySection.php:943
 msgid "Put \"%s\" back on Funnelforms 3?"
 msgstr ""
 
 #. translators:%s: form title.
-#: src/Admin/SafetySection.php:945
+#: src/Admin/SafetySection.php:943
 msgid "Only this form switches back; all other forms stay where they are. You can move it to Funnelforms 5 again at any time."
 msgstr ""
 
-#: src/Admin/SafetySection.php:948
+#: src/Admin/SafetySection.php:946
 msgid "What happens to its data"
 msgstr ""
 
-#: src/Admin/SafetySection.php:951
+#: src/Admin/SafetySection.php:949
 msgid "Visitors see the Funnelforms 3 version of the form again, on the same pages"
 msgstr ""
 
 #. translators:%s: number of leads.
-#: src/Admin/SafetySection.php:953
+#: src/Admin/SafetySection.php:951
 msgid "%s leads from Funnelforms 3 stay in both versions"
 msgstr ""
 
 #. translators:1: entries, 2: of those, in the Funnelforms 3 lead list.
-#: src/Admin/SafetySection.php:958
+#: src/Admin/SafetySection.php:956
 msgid "%1$s entries that came in on Funnelforms 5 stay in Funnelforms 5 → Entries; %2$s of them are in the Funnelforms 3 lead list too"
 msgstr ""
 
 #. translators:%s: number of entries.
-#: src/Admin/SafetySection.php:960
+#: src/Admin/SafetySection.php:958
 msgid "%s entries that came in on Funnelforms 5 stay in Funnelforms 5 → Entries"
 msgstr ""
 
-#: src/Admin/SafetySection.php:964
+#: src/Admin/SafetySection.php:962
 msgid "Your changes in the form builder are kept and come back when the form moves again"
 msgstr ""
 
-#: src/Admin/SafetySection.php:966
+#: src/Admin/SafetySection.php:964
 msgid "Nothing is deleted"
 msgstr ""
 
-#: src/Admin/SafetySection.php:974
+#: src/Admin/SafetySection.php:972
 msgid "Yes, put this form back"
 msgstr ""
 
 #. translators:%s: date and time.
-#: src/Admin/SafetySection.php:994
+#: src/Admin/SafetySection.php:992
 msgid "Restore the state of %s?"
 msgstr ""
 
 #. translators:%s: date and time.
-#: src/Admin/SafetySection.php:994
+#: src/Admin/SafetySection.php:992
 msgid "The data of Funnelforms 3 gets the state of this restore point back: what is missing is put back and what was changed is changed back. Everything that came in later stays."
 msgstr ""
 
-#: src/Admin/SafetySection.php:1015
+#: src/Admin/SafetySection.php:1013
 msgid "What the restore changes"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1025
+#: src/Admin/SafetySection.php:1023
 msgid "To be safe"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1028
+#: src/Admin/SafetySection.php:1026
 msgid "First a new restore point of the state now is written, so the restore can be undone too"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1029
+#: src/Admin/SafetySection.php:1027
 msgid "Nothing is deleted: leads and forms that came in after the restore point stay"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1030
+#: src/Admin/SafetySection.php:1028
 msgid "Funnelforms 5 is not touched; it takes over the restored data with its next copy"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1038
+#: src/Admin/SafetySection.php:1036
 msgid "Yes, restore this state"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1039
+#: src/Admin/SafetySection.php:1037
 msgid "Restore now"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1051
+#: src/Admin/SafetySection.php:1049
 msgid "There are no restore points"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1051
+#: src/Admin/SafetySection.php:1049
 msgid "There is nothing to delete."
 msgstr ""
 
-#: src/Admin/SafetySection.php:1057
+#: src/Admin/SafetySection.php:1055
 msgid "Delete all restore points?"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1057
+#: src/Admin/SafetySection.php:1055
 msgid "The restore points are copies of your Funnelforms 3 data, with its leads and API keys. Delete them once you no longer need to put Funnelforms 3 back to an earlier state."
 msgstr ""
 
-#: src/Admin/SafetySection.php:1064
+#: src/Admin/SafetySection.php:1062
 msgid "What is deleted"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1069
+#: src/Admin/SafetySection.php:1067
 msgid "A restore to an earlier state is no longer possible"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1070
+#: src/Admin/SafetySection.php:1068
 msgid "Funnelforms does not write new ones on its own any more; you can still create one by hand"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1075
+#: src/Admin/SafetySection.php:1073
 msgid "What stays"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1078
+#: src/Admin/SafetySection.php:1076
 msgid "All data of Funnelforms 3 and Funnelforms 5: forms, leads, appointments and settings"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1079
+#: src/Admin/SafetySection.php:1077
 msgid "The way back to Funnelforms 3, for all forms or one by one"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1087
+#: src/Admin/SafetySection.php:1085
 msgid "Yes, delete all restore points"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1088
+#: src/Admin/SafetySection.php:1086
 msgid "Delete now"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1116
+#: src/Admin/SafetySection.php:1114
 msgid "Checking the Funnelforms 3 data"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1116
+#: src/Admin/SafetySection.php:1114
 msgid "Every form, question, lead and setting of the restore point is looked up as it is now. This only reads; nothing is changed."
 msgstr ""
 
-#: src/Admin/SafetySection.php:1128
+#: src/Admin/SafetySection.php:1126
 msgid "Restoring your Funnelforms 3 data"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1128
+#: src/Admin/SafetySection.php:1126
 msgid "You can leave this page; the restore goes on in the background."
 msgstr ""
 
-#: src/Admin/SafetySection.php:1149
+#: src/Admin/SafetySection.php:1147
 msgid "The data of Funnelforms 3 is unchanged"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1150
+#: src/Admin/SafetySection.php:1148
 msgid "Entries from Funnelforms 5 are still in Funnelforms 5 → Entries"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1151
+#: src/Admin/SafetySection.php:1149
 msgid "New leads in Funnelforms 3 keep being copied to Funnelforms 5"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1156
+#: src/Admin/SafetySection.php:1154
 msgid "Open Funnelforms 3"
 msgstr ""
 
 #. translators:%d: number of forms.
-#: src/Admin/SafetySection.php:1162
+#: src/Admin/SafetySection.php:1160
 msgid "Welcome back on Funnelforms 5"
 msgstr ""
 
 #. translators:%s: form title.
-#: src/Admin/SafetySection.php:1173
+#: src/Admin/SafetySection.php:1171
 msgid "\"%s\" runs on Funnelforms 3 again"
 msgstr ""
 
 #. translators:%s: form title.
-#: src/Admin/SafetySection.php:1173
+#: src/Admin/SafetySection.php:1171
 msgid "Visitors see its Funnelforms 3 version again. Its entries stay where they are, and its version in the form builder is kept."
 msgstr ""
 
 #. translators:%s: number of restore points.
-#: src/Admin/SafetySection.php:1179
+#: src/Admin/SafetySection.php:1177
 msgid "Restore points deleted"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1198
+#: src/Admin/SafetySection.php:1196
 msgid "The restore did not finish"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1199
+#: src/Admin/SafetySection.php:1197
 msgid "Nothing was deleted. Rows already put back stay put back; you can start the restore again."
 msgstr ""
 
-#: src/Admin/SafetySection.php:1207
+#: src/Admin/SafetySection.php:1205
 msgid "Your Funnelforms 3 data is restored"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1207
+#: src/Admin/SafetySection.php:1205
 msgid "Funnelforms 5 takes over the restored data with its next copy, within the hour."
 msgstr ""
 
-#: src/Admin/SafetySection.php:1211
+#: src/Admin/SafetySection.php:1209
 msgid "rows put back"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1212
+#: src/Admin/SafetySection.php:1210
 msgid "rows changed back"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1213
+#: src/Admin/SafetySection.php:1211
 msgid "rows were fine"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1214
+#: src/Admin/SafetySection.php:1212
 msgid "rows left alone (their place is used by other data)"
 msgstr ""
 
 #. translators:%s: date and time.
-#: src/Admin/SafetySection.php:1218
+#: src/Admin/SafetySection.php:1216
 msgid "Finished %s. A restore point of the state before was written first; you find it under All restore points."
 msgstr ""
 
-#: src/Admin/SafetySection.php:1225
+#: src/Admin/SafetySection.php:1223
 msgid "Check the result"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1243
+#: src/Admin/SafetySection.php:1241
 msgid "The check did not finish"
 msgstr ""
 
 #. translators:%s: date and time.
-#: src/Admin/SafetySection.php:1251 src/Admin/SafetySection.php:1254
+#: src/Admin/SafetySection.php:1249 src/Admin/SafetySection.php:1252
 msgid "Your Funnelforms 3 data is complete"
 msgstr ""
 
 #. translators:%s: date and time.
-#: src/Admin/SafetySection.php:1251
+#: src/Admin/SafetySection.php:1249
 msgid "Everything of the restore point of %s is still there, unchanged. There is nothing to restore."
 msgstr ""
 
 #. translators:%s: date and time.
-#: src/Admin/SafetySection.php:1254
+#: src/Admin/SafetySection.php:1252
 msgid "Nothing of the restore point of %s is missing. Some rows were changed since, which is normal while Funnelforms 3 is in use (for example lead status or counters)."
 msgstr ""
 
 #. translators:%s: date and time.
-#: src/Admin/SafetySection.php:1257
+#: src/Admin/SafetySection.php:1255
 msgid "Some Funnelforms 3 data is missing"
 msgstr ""
 
 #. translators:%s: date and time.
-#: src/Admin/SafetySection.php:1257
+#: src/Admin/SafetySection.php:1255
 msgid "Rows of the restore point of %s are no longer there. If you did not delete them on purpose, restore them: only what is missing or changed is put back."
 msgstr ""
 
-#: src/Admin/SafetySection.php:1265
+#: src/Admin/SafetySection.php:1263
 msgid "Restore what is missing"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1285
+#: src/Admin/SafetySection.php:1283
 msgid "Everything of the restore point is still there, unchanged: the restore would change nothing."
 msgstr ""
 
 #. translators:1: rows put back, 2: rows changed back.
-#: src/Admin/SafetySection.php:1288
+#: src/Admin/SafetySection.php:1286
 msgid "The restore puts back %1$s missing rows and changes back %2$s changed rows."
 msgstr ""
 
-#: src/Admin/SafetySection.php:1301
+#: src/Admin/SafetySection.php:1299
 msgid "Data"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1302 packages/builder-ui/src/ui/Actions.tsx:792 packages/builder-ui/src/ui/IntegrationsHub.tsx:851
+#: src/Admin/SafetySection.php:1300 packages/builder-ui/src/ui/Actions.tsx:792 packages/builder-ui/src/ui/IntegrationsHub.tsx:851
 msgid "Unchanged"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1303 packages/builder-ui/src/ui/Appointments.tsx:842
+#: src/Admin/SafetySection.php:1301 packages/builder-ui/src/ui/Appointments.tsx:842
 msgid "Changed"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1304
+#: src/Admin/SafetySection.php:1302
 msgid "Missing"
 msgstr ""
 
 #. translators:%s: number of rows.
-#: src/Admin/SafetySection.php:1323
+#: src/Admin/SafetySection.php:1321
 msgid "%s rows are left alone: their place in the database now holds other data, which is never overwritten."
 msgstr ""
 
-#: src/Admin/SafetySection.php:1334
+#: src/Admin/SafetySection.php:1332
 msgid "Nothing to do here"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1334
+#: src/Admin/SafetySection.php:1332
 msgid "This step is no longer available, for example because it already finished."
 msgstr ""
 
-#: src/Admin/SafetySection.php:1417
+#: src/Admin/SafetySection.php:1414
 msgid "Before the move to Funnelforms 5"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1418
+#: src/Admin/SafetySection.php:1415
 msgid "Before a restore"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1419
+#: src/Admin/SafetySection.php:1416
 msgid "Created by hand"
 msgstr ""
 
-#: src/Admin/SafetySection.php:1430
+#: src/Admin/SafetySection.php:1427
 msgid "This restore point is no longer there."
 msgstr ""
 
-#: src/Admin/SafetySection.php:1431
+#: src/Admin/SafetySection.php:1428
 msgid "This restore point is damaged; it was not used."
 msgstr ""
 
-#: src/Admin/SafetySection.php:1432
+#: src/Admin/SafetySection.php:1429
 msgid "This restore point cannot be read: the key of the site changed since it was written (FFX_SECRET_KEY or the salts in wp-config.php). Put the old key back to use it."
 msgstr ""
 
-#: src/Admin/SafetySection.php:1433
+#: src/Admin/SafetySection.php:1430
 msgid "A restore point is being written, checked or restored right now. Try again in a moment."
 msgstr ""
 
-#: src/Admin/SafetySection.php:1434
+#: src/Admin/SafetySection.php:1431
 msgid "Please confirm the restore."
 msgstr ""
 
-#: src/Admin/SafetySection.php:1435
+#: src/Admin/SafetySection.php:1432
 msgid "The restore point could not be written: the uploads folder is not writable. Forms from Funnelforms 3 stay on Funnelforms 3 until a restore point exists."
 msgstr ""
 
-#: src/Admin/SafetySection.php:1436
+#: src/Admin/SafetySection.php:1433
 msgid "The restore did not start: the restore point of the current state could not be written first. Make sure the uploads folder is writable."
 msgstr ""
 
-#: src/Admin/SafetySection.php:1437
+#: src/Admin/SafetySection.php:1434
 msgid "The restore point could not be written. Forms from Funnelforms 3 stay on Funnelforms 3 until a restore point exists."
 msgstr ""
 
 #. translators:%d: number of forms.
-#: src/Admin/SafetySection.php:459
+#: src/Admin/SafetySection.php:457
 msgid "%d form goes back to Funnelforms 5 when you go forward"
 msgid_plural "%d forms go back to Funnelforms 5 when you go forward"
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators:%d: number of forms.
-#: src/Admin/SafetySection.php:463
+#: src/Admin/SafetySection.php:461
 msgid "%d form from Funnelforms 3 runs on Funnelforms 5"
 msgid_plural "%d forms from Funnelforms 3 run on Funnelforms 5"
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators:1: entries, 2: of those, in the Funnelforms 3 lead list.
-#: src/Admin/SafetySection.php:500
+#: src/Admin/SafetySection.php:498
 msgid "%1$s entry came in on Funnelforms 5: it stays in Funnelforms 5 → Entries, and %2$s of them are in the Funnelforms 3 lead list too"
 msgid_plural "%1$s entries came in on Funnelforms 5: they stay in Funnelforms 5 → Entries, and %2$s of them are in the Funnelforms 3 lead list too"
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators:%s: number of entries.
-#: src/Admin/SafetySection.php:502
+#: src/Admin/SafetySection.php:500
 msgid "%s entry came in on Funnelforms 5: it stays in Funnelforms 5 → Entries"
 msgid_plural "%s entries came in on Funnelforms 5: they stay in Funnelforms 5 → Entries"
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators:%d: number of forms.
-#: src/Admin/SafetySection.php:507
+#: src/Admin/SafetySection.php:505
 msgid "%d form was changed in the form builder: the change is kept for the way forward"
 msgid_plural "%d forms were changed in the form builder: the changes are kept for the way forward"
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators:%d: number of forms.
-#: src/Admin/SafetySection.php:511
+#: src/Admin/SafetySection.php:509
 msgid "%d form made in Funnelforms 5 keeps running, it has no Funnelforms 3 version"
 msgid_plural "%d forms made in Funnelforms 5 keep running, they have no Funnelforms 3 version"
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators:%d: number of days.
-#: src/Admin/SafetySection.php:755
+#: src/Admin/SafetySection.php:753
 msgid "Your move is complete: restore points are deleted on their own once they are older than %d day."
 msgid_plural "Your move is complete: restore points are deleted on their own once they are older than %d days."
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators:%d: number of days.
-#: src/Admin/SafetySection.php:757
+#: src/Admin/SafetySection.php:755
 msgid "Until your move is complete. After that, restore points are deleted on their own once they are older than %d day."
 msgid_plural "Until your move is complete. After that, restore points are deleted on their own once they are older than %d days."
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators:%d: number of days.
-#: src/Admin/SafetySection.php:773
+#: src/Admin/SafetySection.php:771
 msgid "(%d day old)"
 msgid_plural "(%d days old)"
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators:%d: number of forms.
-#: src/Admin/SafetySection.php:822
+#: src/Admin/SafetySection.php:820
 msgid "%d form"
 msgid_plural "%d forms"
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators:%d: number of leads.
-#: src/Admin/SafetySection.php:824
+#: src/Admin/SafetySection.php:822
 msgid "%d lead"
 msgid_plural "%d leads"
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators:%d: number of forms.
-#: src/Admin/SafetySection.php:900
+#: src/Admin/SafetySection.php:898
 msgid "%d form switches back to Funnelforms 3"
 msgid_plural "%d forms switch back to Funnelforms 3"
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators:1: number of restore points, 2: size, 3: folder.
-#: src/Admin/SafetySection.php:1068
+#: src/Admin/SafetySection.php:1066
 msgid "%1$s restore point (%2$s) in %3$s"
 msgid_plural "%1$s restore points (%2$s) in %3$s"
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators:%d: number of forms.
-#: src/Admin/SafetySection.php:1147
+#: src/Admin/SafetySection.php:1145
 msgid "%d form runs on Funnelforms 3 again, and its menu is back."
 msgid_plural "%d forms run on Funnelforms 3 again, and their menu is back."
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators:%d: number of forms.
-#: src/Admin/SafetySection.php:1162
+#: src/Admin/SafetySection.php:1160
 msgid "%d form runs on Funnelforms 5 again."
 msgid_plural "%d forms run on Funnelforms 5 again."
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators:%d: number of forms.
-#: src/Admin/SafetySection.php:1165
+#: src/Admin/SafetySection.php:1163
 msgid "%d form stays on Funnelforms 3 for now; the migration report says why."
 msgid_plural "%d forms stay on Funnelforms 3 for now; the migration report says why."
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators:%s: number of restore points.
-#: src/Admin/SafetySection.php:1179
+#: src/Admin/SafetySection.php:1177
 msgid "%s restore point was deleted. The data of Funnelforms 3 and Funnelforms 5 is untouched, and the way back keeps working."
 msgid_plural "%s restore points were deleted. The data of Funnelforms 3 and Funnelforms 5 is untouched, and the way back keeps working."
 msgstr[0] ""
@@ -4831,7 +4827,7 @@ msgstr ""
 msgid "Entries and spam"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:113 src/Admin/SupportAccessSection.php:170 src/Admin/SupportPage.php:603
+#: src/Admin/SettingsPage.php:113
 msgid "Rights"
 msgstr ""
 
@@ -5994,7 +5990,7 @@ msgstr ""
 msgid "Diagnostic data for Funnelforms"
 msgstr ""
 
-#: src/Admin/SiteHealth.php:182 src/Admin/SupportAccessSection.php:106 src/Admin/SupportPage.php:462
+#: src/Admin/SiteHealth.php:182 src/Admin/SupportAccessSection.php:104 src/Admin/SupportPage.php:460
 msgid "Off"
 msgstr ""
 
@@ -6760,109 +6756,78 @@ msgstr ""
 msgid "Times, devices, numbers and calculation results come from the entries themselves and are shown only as counts and averages of at least three entries. Events are deleted after 400 days."
 msgstr ""
 
-#: src/Admin/SupportAccessSection.php:103
+#: src/Admin/SupportAccessSection.php:101
 msgid "Access for support"
 msgstr ""
 
-#: src/Admin/SupportAccessSection.php:104
+#: src/Admin/SupportAccessSection.php:102
 msgid "Let the Funnelforms team look at the problem on your website, safely and for a limited time."
 msgstr ""
 
 #. translators:%s: date and time.
-#: src/Admin/SupportAccessSection.php:112
+#: src/Admin/SupportAccessSection.php:110
 msgid "Done. Funnelforms support can now log in until %s. You can end it here at any time."
 msgstr ""
 
-#: src/Admin/SupportAccessSection.php:124
+#: src/Admin/SupportAccessSection.php:122
 msgid "Administrator"
 msgstr ""
 
-#: src/Admin/SupportAccessSection.php:124
+#: src/Admin/SupportAccessSection.php:122
 msgid "Funnelforms only"
 msgstr ""
 
 #. translators:%s: ticket number.
-#: src/Admin/SupportAccessSection.php:127
+#: src/Admin/SupportAccessSection.php:125
 msgid "for ticket %s"
 msgstr ""
 
 #. translators:%s: date and time.
-#: src/Admin/SupportAccessSection.php:131
+#: src/Admin/SupportAccessSection.php:129
 msgid "Valid until %s"
 msgstr ""
 
-#: src/Admin/SupportAccessSection.php:135 src/Admin/SupportAccessSection.php:138
+#: src/Admin/SupportAccessSection.php:133 src/Admin/SupportAccessSection.php:136
 msgid "Last login:"
 msgstr ""
 
-#: src/Admin/SupportAccessSection.php:135
+#: src/Admin/SupportAccessSection.php:133
 msgid "Not yet"
 msgstr ""
 
-#: src/Admin/SupportAccessSection.php:147
+#: src/Admin/SupportAccessSection.php:145
 msgid "End now"
 msgstr ""
 
-#: src/Admin/SupportAccessSection.php:160
+#: src/Admin/SupportAccessSection.php:155
 msgid "Give access for 48 hours"
 msgstr ""
 
-#: src/Admin/SupportAccessSection.php:161
-msgid "Funnelforms only: forms, entries and settings."
-msgstr ""
-
-#: src/Admin/SupportAccessSection.php:165
-msgid "Other rights or duration"
-msgstr ""
-
-#: src/Admin/SupportAccessSection.php:165
-msgid "Give another access"
-msgstr ""
-
-#: src/Admin/SupportAccessSection.php:172 src/Admin/SupportPage.php:605
-msgid "Funnelforms only (forms, entries, settings)"
-msgstr ""
-
-#: src/Admin/SupportAccessSection.php:173 src/Admin/SupportPage.php:606
-msgid "Administrator (the whole website)"
-msgstr ""
-
-#: src/Admin/SupportAccessSection.php:177 src/Admin/SupportPage.php:608
-msgid "Ends after"
-msgstr ""
-
-#: src/Admin/SupportAccessSection.php:189
-msgid "Grant access"
+#: src/Admin/SupportAccessSection.php:156
+msgid "Administrator for the whole website, so support can also change pages and the theme."
 msgstr ""
 
 #. translators:%s: link to the account page.
-#: src/Admin/SupportAccessSection.php:196
+#: src/Admin/SupportAccessSection.php:162
 msgid "Support can log in once you %s."
 msgstr ""
 
 #. translators:%s: link to the account page.
-#: src/Admin/SupportAccessSection.php:196
+#: src/Admin/SupportAccessSection.php:162
 msgid "connect this website with Funnelforms"
 msgstr ""
 
-#: src/Admin/SupportAccessSection.php:201
+#: src/Admin/SupportAccessSection.php:167
 msgid "A user of its own, never your password; nothing to copy or send."
 msgstr ""
 
-#: src/Admin/SupportAccessSection.php:202
+#: src/Admin/SupportAccessSection.php:168
 msgid "Ends by itself; you can end it here at any time."
 msgstr ""
 
-#: src/Admin/SupportAccessSection.php:203
-msgid "No users, plugins or themes can be changed, even as administrator. Every login is recorded."
+#: src/Admin/SupportAccessSection.php:169
+msgid "Support works as an administrator of the whole website. Every login is recorded."
 msgstr ""
-
-#. translators:%d: number of hours.
-#: src/Admin/SupportAccessSection.php:183
-msgid "%d hour"
-msgid_plural "%d hours"
-msgstr[0] ""
-msgstr[1] ""
 
 #: src/Admin/SupportPage.php:90
 msgid "Looking in the help center…"
@@ -6872,11 +6837,11 @@ msgstr ""
 msgid "Writing a short answer from these articles…"
 msgstr ""
 
-#: src/Admin/SupportPage.php:92 src/Admin/SupportPage.php:496
+#: src/Admin/SupportPage.php:92 src/Admin/SupportPage.php:494
 msgid "Short answer from the help center (AI)"
 msgstr ""
 
-#: src/Admin/SupportPage.php:93 src/Admin/SupportPage.php:493
+#: src/Admin/SupportPage.php:93 src/Admin/SupportPage.php:491
 msgid "This might help"
 msgstr ""
 
@@ -6884,11 +6849,11 @@ msgstr ""
 msgid "No article fits this question. Write to us, we answer by e-mail."
 msgstr ""
 
-#: src/Admin/SupportPage.php:95 src/Admin/SupportPage.php:410
+#: src/Admin/SupportPage.php:95 src/Admin/SupportPage.php:408
 msgid "The help center cannot be reached right now. Write to us directly, we answer by e-mail."
 msgstr ""
 
-#: src/Admin/SupportPage.php:96 src/Admin/SupportPage.php:514
+#: src/Admin/SupportPage.php:96 src/Admin/SupportPage.php:512
 msgid "That helped"
 msgstr ""
 
@@ -6896,297 +6861,290 @@ msgstr ""
 msgid "Write to support"
 msgstr ""
 
-#: src/Admin/SupportPage.php:98 src/Admin/SupportPage.php:357
+#: src/Admin/SupportPage.php:98 src/Admin/SupportPage.php:355
 msgid "Glad it helped!"
 msgstr ""
 
-#: src/Admin/SupportPage.php:199
+#: src/Admin/SupportPage.php:197
 msgid "Your answer is on its way. We answer here and by e-mail."
 msgstr ""
 
-#: src/Admin/SupportPage.php:209
+#: src/Admin/SupportPage.php:207
 msgid "The ticket is closed. If the problem comes back, just answer here."
 msgstr ""
 
-#: src/Admin/SupportPage.php:246 packages/builder-ui/src/ui/Entries.tsx:532
+#: src/Admin/SupportPage.php:244 packages/builder-ui/src/ui/Entries.tsx:532
 msgid "Open"
 msgstr ""
 
-#: src/Admin/SupportPage.php:247
+#: src/Admin/SupportPage.php:245
 msgid "Waiting for your answer"
 msgstr ""
 
-#: src/Admin/SupportPage.php:248
+#: src/Admin/SupportPage.php:246
 msgid "Solved"
 msgstr ""
 
-#: src/Admin/SupportPage.php:260
+#: src/Admin/SupportPage.php:258
 msgid "Something does not work"
 msgstr ""
 
-#: src/Admin/SupportPage.php:261
+#: src/Admin/SupportPage.php:259
 msgid "My forms stopped working"
 msgstr ""
 
-#: src/Admin/SupportPage.php:262
+#: src/Admin/SupportPage.php:260
 msgid "Question about using Funnelforms"
 msgstr ""
 
-#: src/Admin/SupportPage.php:263
+#: src/Admin/SupportPage.php:261
 msgid "License, plan or invoice"
 msgstr ""
 
-#: src/Admin/SupportPage.php:264
+#: src/Admin/SupportPage.php:262
 msgid "Idea or wish"
 msgstr ""
 
-#: src/Admin/SupportPage.php:265
+#: src/Admin/SupportPage.php:263
 msgid "Report a security issue"
 msgstr ""
 
-#: src/Admin/SupportPage.php:288
+#: src/Admin/SupportPage.php:286
 msgid "E-mails of a form do not arrive"
 msgstr ""
 
-#: src/Admin/SupportPage.php:289
+#: src/Admin/SupportPage.php:287
 msgid "Connect Google Calendar"
 msgstr ""
 
-#: src/Admin/SupportPage.php:290
+#: src/Admin/SupportPage.php:288
 msgid "Show a form on my website"
 msgstr ""
 
-#: src/Admin/SupportPage.php:291
+#: src/Admin/SupportPage.php:289
 msgid "Move forms from Funnelforms 3"
 msgstr ""
 
-#: src/Admin/SupportPage.php:341
+#: src/Admin/SupportPage.php:339
 msgid "Answers in seconds, a direct line to the Funnelforms team and safe access for support."
 msgstr ""
 
 #. translators:%s: ticket number.
-#: src/Admin/SupportPage.php:351
+#: src/Admin/SupportPage.php:349
 msgid "Thank you! Your ticket %s has arrived at Funnelforms support. We answer by e-mail."
 msgstr ""
 
-#: src/Admin/SupportPage.php:396
+#: src/Admin/SupportPage.php:394
 msgid "How can we help?"
 msgstr ""
 
-#: src/Admin/SupportPage.php:397
+#: src/Admin/SupportPage.php:395
 msgid "Ask in your own words. Answers from the help center appear while you type; if they do not solve it, write to us."
 msgstr ""
 
-#: src/Admin/SupportPage.php:397
+#: src/Admin/SupportPage.php:395
 msgid "Open the help center"
 msgstr ""
 
-#: src/Admin/SupportPage.php:402
+#: src/Admin/SupportPage.php:400
 msgid "For example: How do I connect Google Calendar?"
 msgstr ""
 
-#: src/Admin/SupportPage.php:404
+#: src/Admin/SupportPage.php:402
 msgid "Find help"
 msgstr ""
 
-#: src/Admin/SupportPage.php:413
+#: src/Admin/SupportPage.php:411
 msgid "Popular questions"
 msgstr ""
 
-#: src/Admin/SupportPage.php:419
+#: src/Admin/SupportPage.php:417
 msgid "Urgent?"
 msgstr ""
 
-#: src/Admin/SupportPage.php:426
+#: src/Admin/SupportPage.php:424
 msgid "Your support"
 msgstr ""
 
-#: src/Admin/SupportPage.php:432 packages/builder-ui/src/ui/Integrations.tsx:398 packages/builder-ui/src/ui/IntegrationsHub.tsx:183 packages/builder-ui/src/ui/IntegrationsHub.tsx:183 packages/builder-ui/src/ui/IntegrationsHub.tsx:711
+#: src/Admin/SupportPage.php:430 packages/builder-ui/src/ui/Integrations.tsx:398 packages/builder-ui/src/ui/IntegrationsHub.tsx:183 packages/builder-ui/src/ui/IntegrationsHub.tsx:183 packages/builder-ui/src/ui/IntegrationsHub.tsx:711
 msgid "Connected"
 msgstr ""
 
-#: src/Admin/SupportPage.php:434 packages/builder-ui/src/ui/BookingTypes.tsx:1051 packages/builder-ui/src/ui/IntegrationsHub.tsx:864
+#: src/Admin/SupportPage.php:432 packages/builder-ui/src/ui/BookingTypes.tsx:1051 packages/builder-ui/src/ui/IntegrationsHub.tsx:864
 msgid "Connect"
 msgstr ""
 
-#: src/Admin/SupportPage.php:439
+#: src/Admin/SupportPage.php:437
 msgid "Open tickets"
 msgstr ""
 
-#: src/Admin/SupportPage.php:454
+#: src/Admin/SupportPage.php:452
 msgid "Support access"
 msgstr ""
 
 #. translators:%s: date.
-#: src/Admin/SupportPage.php:457
+#: src/Admin/SupportPage.php:455
 msgid "until %s"
 msgstr ""
 
-#: src/Admin/SupportPage.php:468
+#: src/Admin/SupportPage.php:466
 msgid "Only when you add them"
 msgstr ""
 
-#: src/Admin/SupportPage.php:515
+#: src/Admin/SupportPage.php:513
 msgid "Continue to support"
 msgstr ""
 
-#: src/Admin/SupportPage.php:536
+#: src/Admin/SupportPage.php:534
 msgid "Ask support"
 msgstr ""
 
-#: src/Admin/SupportPage.php:537
+#: src/Admin/SupportPage.php:535
 msgid "Your message goes straight to the Funnelforms team. We answer by e-mail."
 msgstr ""
 
-#: src/Admin/SupportPage.php:543
+#: src/Admin/SupportPage.php:541
 msgid "Try the help center first; most answers are there in seconds. Did not find it? Write to us."
 msgstr ""
 
-#: src/Admin/SupportPage.php:544
+#: src/Admin/SupportPage.php:542
 msgid "Write a ticket"
 msgstr ""
 
-#: src/Admin/SupportPage.php:553
+#: src/Admin/SupportPage.php:551
 msgid "What is it about?"
 msgstr ""
 
-#: src/Admin/SupportPage.php:562 packages/builder-ui/src/ui/Actions.tsx:944 packages/builder-ui/src/ui/Appointments.tsx:1140 packages/builder-ui/src/ui/Settings.tsx:276 packages/builder-ui/src/ui/Settings.tsx:438
+#: src/Admin/SupportPage.php:560 packages/builder-ui/src/ui/Actions.tsx:944 packages/builder-ui/src/ui/Appointments.tsx:1140 packages/builder-ui/src/ui/Settings.tsx:276 packages/builder-ui/src/ui/Settings.tsx:438
 msgid "Subject"
 msgstr ""
 
-#: src/Admin/SupportPage.php:566
+#: src/Admin/SupportPage.php:564
 msgid "Describe the problem"
 msgstr ""
 
-#: src/Admin/SupportPage.php:567
+#: src/Admin/SupportPage.php:565
 msgid "What did you do, what did you expect, what happened? Which form and page?"
 msgstr ""
 
-#: src/Admin/SupportPage.php:570
+#: src/Admin/SupportPage.php:568
 msgid "Answer to"
 msgstr ""
 
 #. translators:1: WordPress version, 2: PHP version, 3: Funnelforms version, 4: number of forms, 5: failed deliveries.
-#: src/Admin/SupportPage.php:581
+#: src/Admin/SupportPage.php:579
 msgid "WordPress %1$s · PHP %2$s · Funnelforms %3$s · %4$s forms · %5$s failed deliveries in 30 days"
 msgstr ""
 
-#: src/Admin/SupportPage.php:591
+#: src/Admin/SupportPage.php:589
 msgid "Versions, settings, form structure and error codes, so support sees the problem at once. No entries, contact data or keys."
 msgstr ""
 
-#: src/Admin/SupportPage.php:598
+#: src/Admin/SupportPage.php:596
 msgid "Let support log in to look at the problem"
 msgstr ""
 
-#: src/Admin/SupportPage.php:599
-msgid "Support gets a login of its own that ends by itself. No password is sent; you can end it at any time, and every login is recorded."
+#: src/Admin/SupportPage.php:597
+msgid "Support gets an administrator login of its own for the whole website, for 48 hours. No password is sent; you can end it at any time, and every login is recorded."
 msgstr ""
 
-#: src/Admin/SupportPage.php:626
-msgid "Your request goes to Funnelforms support. We handle tickets in HubSpot, so your message, your e-mail address and anything you add above are stored there as recipient. They are kept as long as needed to handle your request."
+#: src/Admin/SupportPage.php:606
+msgid "Your request goes to Funnelforms support. Your message, your e-mail address and anything you add above are stored in our own support system. They are kept as long as needed to handle your request."
 msgstr ""
 
-#: src/Admin/SupportPage.php:629
+#: src/Admin/SupportPage.php:609
 msgid "Send to support"
 msgstr ""
 
-#: src/Admin/SupportPage.php:631
+#: src/Admin/SupportPage.php:611
 msgid "Sent with your e-mail address only, as this website is not connected."
 msgstr ""
 
-#: src/Admin/SupportPage.php:654
+#: src/Admin/SupportPage.php:634
 msgid "Your tickets"
 msgstr ""
 
 #. translators:%s: link to the account page.
-#: src/Admin/SupportPage.php:660
+#: src/Admin/SupportPage.php:640
 msgid "Tip: %s to see the status of your tickets here and to let support log in."
 msgstr ""
 
 #. translators:%s: link to the account page.
-#: src/Admin/SupportPage.php:660
+#: src/Admin/SupportPage.php:640
 msgid "Connect this website with Funnelforms"
 msgstr ""
 
-#: src/Admin/SupportPage.php:664
+#: src/Admin/SupportPage.php:644
 msgid "The status of your tickets cannot be loaded right now. Answers still reach you by e-mail."
 msgstr ""
 
-#: src/Admin/SupportPage.php:666
+#: src/Admin/SupportPage.php:646
 msgid "No tickets from this website yet."
 msgstr ""
 
 #. translators:%s: time since the last change, e.g. 2 hours.
-#: src/Admin/SupportPage.php:683
+#: src/Admin/SupportPage.php:663
 msgid "updated %s ago"
 msgstr ""
 
-#: src/Admin/SupportPage.php:714 src/Admin/SupportPage.php:726
+#: src/Admin/SupportPage.php:694 src/Admin/SupportPage.php:706
 msgid "Back to support"
 msgstr ""
 
-#: src/Admin/SupportPage.php:725
+#: src/Admin/SupportPage.php:705
 msgid "The ticket cannot be loaded right now. Answers still reach you by e-mail."
 msgstr ""
 
 #. translators:%s: time since the ticket was written, e.g. 2 hours.
-#: src/Admin/SupportPage.php:756
+#: src/Admin/SupportPage.php:736
 msgid "opened %s ago"
 msgstr ""
 
-#: src/Admin/SupportPage.php:762
+#: src/Admin/SupportPage.php:742
 msgid "Conversation"
 msgstr ""
 
-#: src/Admin/SupportPage.php:780
+#: src/Admin/SupportPage.php:760
 msgid "Your answer"
 msgstr ""
 
-#: src/Admin/SupportPage.php:784
+#: src/Admin/SupportPage.php:764
 msgid "Send answer"
 msgstr ""
 
-#: src/Admin/SupportPage.php:786
+#: src/Admin/SupportPage.php:766
 msgid "Your answer opens the ticket again."
 msgstr ""
 
-#: src/Admin/SupportPage.php:796
+#: src/Admin/SupportPage.php:776
 msgid "Problem solved by itself? Close the ticket. You can open it again at any time with an answer."
 msgstr ""
 
-#: src/Admin/SupportPage.php:797
+#: src/Admin/SupportPage.php:777
 msgid "Close ticket"
 msgstr ""
 
-#: src/Admin/SupportPage.php:814
+#: src/Admin/SupportPage.php:794
 msgid "You closed the ticket."
 msgstr ""
 
-#: src/Admin/SupportPage.php:819
+#: src/Admin/SupportPage.php:799
 msgid "You"
 msgstr ""
 
 #. translators:%s: first name of the person in the Funnelforms team.
-#: src/Admin/SupportPage.php:822
+#: src/Admin/SupportPage.php:802
 msgid "%s from Funnelforms"
 msgstr ""
 
-#: src/Admin/SupportPage.php:824 src/Application/SupportAccess.php:186
+#: src/Admin/SupportPage.php:804 src/Application/SupportAccess.php:156
 msgid "Funnelforms support"
 msgstr ""
 
 #. translators:%d: tickets waiting for an answer of the customer.
-#: src/Admin/SupportPage.php:445
+#: src/Admin/SupportPage.php:443
 msgid "%d waits for you"
 msgid_plural "%d wait for you"
-msgstr[0] ""
-msgstr[1] ""
-
-#. translators:%d: number of hours.
-#: src/Admin/SupportPage.php:614
-msgid "for %d hour"
-msgid_plural "for %d hours"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -7923,23 +7881,23 @@ msgstr ""
 msgid "An error occurred in the calculation!"
 msgstr ""
 
-#: src/Application/SupportAccess.php:156
+#: src/Application/SupportAccess.php:126
 msgid "This website does not use https yet. Support sees the access, but can open WordPress from Funnelforms only once the website runs on https."
 msgstr ""
 
-#: src/Application/SupportAccess.php:171
+#: src/Application/SupportAccess.php:141
 msgid "Choose the rights and how long the access runs."
 msgstr ""
 
-#: src/Application/SupportAccess.php:174 src/Application/SupportTickets.php:383
+#: src/Application/SupportAccess.php:144 src/Application/SupportTickets.php:383
 msgid "Support can only log in when this website is connected with Funnelforms. Connect it on the Account page first."
 msgstr ""
 
-#: src/Application/SupportAccess.php:234
+#: src/Application/SupportAccess.php:216
 msgid "Funnelforms could not be reached, so the access was not granted. Please try again later."
 msgstr ""
 
-#: src/Application/SupportAccess.php:456
+#: src/Application/SupportAccess.php:415
 msgid "Support users cannot log in with a password."
 msgstr ""
 

@@ -9,13 +9,11 @@ declare(strict_types=1);
 
 namespace Funnelforms\Admin;
 
-use Funnelforms\Application\SupportAccess;
 use Funnelforms\Compat\Legacy\LegacyRepository;
 use Funnelforms\Compat\Safety\LegacyBackup;
 use Funnelforms\Compat\Safety\LegacyCheck;
 use Funnelforms\Compat\Safety\LegacyRestore;
 use Funnelforms\Compat\Safety\Rollback;
-use Funnelforms\Edition\Edition;
 use Funnelforms\Infrastructure\Repository\FormRepository;
 
 defined( 'ABSPATH' ) || exit;
@@ -107,7 +105,7 @@ final class SafetySection {
 	public static function handle_download(): void {
 		self::check( self::DOWNLOAD );
 		if ( ! self::may_download() ) {
-			wp_die( esc_html__( 'The support access cannot download restore points: they hold the leads of the site.', 'funnelforms-free' ), 403 );
+			wp_die( esc_html__( 'You are not allowed to do this.', 'funnelforms-free' ), 403 );
 		}
 		$backup = LegacyBackup::find( isset( $_GET['backup'] ) ? sanitize_key( wp_unslash( $_GET['backup'] ) ) : '' ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- checked above.
 		if ( null === $backup || '' !== LegacyBackup::problem( $backup ) ) {
@@ -1381,12 +1379,11 @@ final class SafetySection {
 	}
 
 	/**
-	 * Whether the current user may take a restore point off the site. The support access may
-	 * check and restore, but the leads in a restore point stay on the site (DSGVO).
+	 * Whether the current user may take a restore point off the site: every administrator, the
+	 * support access too (it is a full administrator without locks, decision of 02.11.2026).
 	 */
 	public static function may_download(): bool {
-		$support = Edition::pro( SupportAccess::class );
-		return current_user_can( 'manage_options' ) && ( null === $support || ! $support::is_support( get_current_user_id() ) );
+		return current_user_can( 'manage_options' );
 	}
 
 	/**

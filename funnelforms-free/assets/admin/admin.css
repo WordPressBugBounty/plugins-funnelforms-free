@@ -1442,13 +1442,6 @@ body.ffx-screen #wpbody-content > .error {
 	font-weight: 400;
 }
 
-.ffx-access {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
-	margin: 6px 0 0 28px;
-}
-
 .ffx-dl {
 	display: grid;
 	grid-template-columns: max-content 1fr;
@@ -5170,14 +5163,6 @@ body.ffx-screen {
 	}
 }
 
-.ffx-ticket .ffx-access {
-	margin: 8px 0 0 40px;
-}
-
-.ffx-ticket .ffx-access[hidden] {
-	display: none;
-}
-
 .ffx-app .ffx-ticket__privacy {
 	display: flex;
 	align-items: flex-start;
@@ -5480,10 +5465,6 @@ body.ffx-screen {
 
 	.ffx-topics-pick {
 		grid-template-columns: 1fr 1fr;
-	}
-
-	.ffx-ticket .ffx-access {
-		margin-left: 0;
 	}
 
 	.ffx-diag__head,
