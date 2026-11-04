@@ -1,8 +1,9 @@
-import type { ContactField, ContactNode } from '@funnelforms/form-schema';
+import type { ContactField } from '@funnelforms/form-schema';
 import { loadWithConsent } from './consent';
 import { escapeHtml, h, trusted, uniqueId } from './dom';
 import { lucideIcon, type IconSet } from './icons';
 import { chunk } from './styles';
+import { isHiddenField } from './prefill';
 import { activateScripts } from './tracking';
 import { applyMask, maskSupported } from './validate';
 
@@ -71,37 +72,18 @@ function loadCaptcha( provider: Provider, chunk: unknown ): Promise<CaptchaApi> 
 }
 
 const SALUTATIONS = [ 'male', 'female', 'diverse', 'company' ] as const;
-/** Query values 3.x accepted to preselect a salutation. */
-const SALUTATION_QUERY: Record<string, string> = { herr: 'male', frau: 'female', divers: 'diverse', firma: 'company' };
 const AUTOCOMPLETE: Record<string, string> = { name: 'name', email: 'email', phone: 'tel' };
 const plain = ( html: string ): string => html.replace( /<[^>]*>/g, '' ).trim();
-
-/**
- * Fills contact fields from the page URL (?<3.x field id>=value) the first time the step shows,
- * as 3.x did; "+" stands for a space.
- */
-export function prefill( node: ContactNode, query: string, ctx: ContactContext ): void {
-	const params = new URLSearchParams( query );
-	for ( const field of node.fields ) {
-		const name = field.props.prefillFromQuery;
-		if ( typeof name !== 'string' || name === '' || ctx.get( field.id ) !== undefined || ! params.has( name ) ) {
-			continue;
-		}
-		const value = params.get( name ) ?? '';
-		if ( field.type === 'salutation' ) {
-			const id = SALUTATION_QUERY[ value.toLowerCase() ];
-			if ( id ) {
-				ctx.set( field.id, id );
-			}
-		} else if ( [ 'name', 'email', 'phone', 'text', 'textarea' ].includes( field.type ) ) {
-			ctx.set( field.id, value );
-		}
-	}
-}
 
 /** Renders one field of the contact step. */
 export function renderContactField( field: ContactField, ctx: ContactContext ): RenderedContactField {
 	const props = field.props as Record<string, unknown>;
+	if ( isHiddenField( field ) ) {
+		// Holds a value from the address (or the server's fixed value); nothing to show or check.
+		const el = h( 'div', { class: 'ffx-contact-hidden', hidden: true, 'data-field': field.id } );
+		el.style.display = 'none';
+		return { field, el, error: null, focus: null };
+	}
 	if ( field.type === 'html' ) {
 		const el = trusted( 'div', ctx.text( props.html as Record<string, string> ), { class: 'ffx-contact-html' } );
 		activateScripts( el );
@@ -184,6 +166,12 @@ export function renderContactField( field: ContactField, ctx: ContactContext ): 
 	if ( ctx.hideLabels && ! placeholder ) {
 		// The label moves into the input, so the field still says what it wants.
 		placeholder = plain( label );
+	}
+	if ( field.type.startsWith( 'phone' ) && ! placeholder && ! label ) {
+		// Phone fields from Funnelforms 3 often have neither: there the country picker showed what goes in. Without
+		// a text the field said only "*".
+		const text = ctx.t( 'phone_number' );
+		placeholder = text === 'phone_number' ? '' : text;
 	}
 	if ( field.required && ( ! label || ( ctx.hideLabels && placeholder ) ) ) {
 		placeholder += ' *';

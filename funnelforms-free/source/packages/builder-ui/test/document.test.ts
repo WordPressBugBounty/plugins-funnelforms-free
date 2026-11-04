@@ -1,7 +1,7 @@
 import { produce } from 'immer';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { checkReferences, validateDocument, type Field, type FormDocument } from '@funnelforms/form-schema';
-import { addContact, addEnd, addField, addRepeatField, moveRepeatField, removeRepeatField, REPEAT_FIELD_TYPES, setRepeatFieldType, addOption, addOptions, addStep, connect, CONTACT_FIELD_TYPES, duplicateField, duplicateNode, isClip, keyClash, pasteField, pasteNode, moveField, moveOption, nodeName, removeField, removeNode, removeOption, reorderEdge, setCondition, setRandom, splitOptionList, STEP_FIELD_TYPES, usedIds } from '../src/document';
+import { addContact, addEnd, addField, addRepeatField, moveRepeatField, removeRepeatField, REPEAT_FIELD_TYPES, setRepeatFieldType, addOption, addOptions, addStep, connect, CONTACT_FIELD_TYPES, CONTACT_PALETTE, duplicateField, duplicateNode, isClip, keyClash, pasteField, pasteNode, moveField, moveOption, nodeName, removeField, removeNode, removeOption, reorderEdge, setCondition, setRandom, splitOptionList, STEP_FIELD_TYPES, usedIds } from '../src/document';
 import { blank } from './blank';
 
 const ctx = { locale: 'de_DE', labels: { question: 'Neue Frage', option: 'Option %d' } };
@@ -52,6 +52,33 @@ describe( 'document changes', () => {
 		expect( validateDocument( doc ).errors ).toEqual( [] );
 		expect( doc.nodes ).toHaveLength( 2 + STEP_FIELD_TYPES.length );
 		expect( usedIds( doc ).size ).toBeGreaterThan( 40 );
+	} );
+
+	it( 'adds hidden fields and fields filled from the page address', () => {
+		let id: string | null = null;
+		let doc = produce( blank(), ( d ) => {
+			id = addField( d, 'contact', 'hidden', { ...ctx, labels: { ...ctx.labels, hidden: 'Verstecktes Feld' } } );
+		} );
+		const hidden = fields( doc, 'contact' ).find( ( f ) => f.id === id ) as unknown as { key: string; type: string; label: Record<string, string>; required: boolean; props: Record<string, unknown> };
+		expect( CONTACT_PALETTE ).toContain( 'hidden' );
+		expect( hidden ).toMatchObject( { type: 'text', required: false, label: { de_DE: 'Verstecktes Feld' }, props: { hidden: true, prefillFromQuery: hidden.key } } );
+		expect( validateDocument( doc ).errors ).toEqual( [] );
+
+		doc = produce( doc, ( d ) => {
+			addStep( d, 'choice', ctx, { after: d.start } );
+			const step = d.nodes.find( ( n ) => 'step' === n.type && n.fields[ 0 ]?.type === 'choice' );
+			if ( step && 'step' === step.type ) {
+				( at( step.fields, 0 ).props as Record<string, unknown> ).prefillFromQuery = 'produkt';
+			}
+		} );
+		expect( validateDocument( doc ).errors ).toEqual( [] );
+		const bad = produce( doc, ( d ) => {
+			const step = d.nodes.find( ( n ) => 'step' === n.type && n.fields[ 0 ]?.type === 'choice' );
+			if ( step && 'step' === step.type ) {
+				( at( step.fields, 0 ).props as Record<string, unknown> ).prefillFromQuery = 'kein name';
+			}
+		} );
+		expect( validateDocument( bad ).valid ).toBe( false );
 	} );
 
 	it( 'adds, changes, orders and removes the fields of a repeat group', () => {

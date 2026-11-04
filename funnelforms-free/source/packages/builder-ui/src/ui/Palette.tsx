@@ -4,7 +4,7 @@
  * type into a node.
  */
 import React, { useState } from 'react';
-import { addContact, addEnd, addField, addStep, defaultPlacement, findNode, CONTACT_FIELD_TYPES, STEP_FIELD_TYPES, type Placement, type StepFieldType } from '../document';
+import { addContact, addEnd, addField, addStep, defaultPlacement, findNode, CONTACT_PALETTE, STEP_FIELD_TYPES, type Placement, type StepFieldType } from '../document';
 import { isPro } from '../edition';
 import type { Selection } from '../store';
 import { DRAG_TYPE, type PaletteItem } from './Canvas';
@@ -112,7 +112,7 @@ export function Palette() {
 		);
 	}
 
-	const fieldTypes = fieldTarget ? ( 'contact' === fieldTarget.type ? CONTACT_FIELD_TYPES : STEP_FIELD_TYPES ).map( ( type ) => ( { type: type as string, label: 'contact' === fieldTarget.type ? contactFieldName( type ) : stepFieldName( type ) } ) ).filter( ( t ) => matches( t.label ) ) : [];
+	const fieldTypes = fieldTarget ? ( 'contact' === fieldTarget.type ? CONTACT_PALETTE : STEP_FIELD_TYPES ).map( ( type ) => ( { type: type as string, label: 'contact' === fieldTarget.type ? contactFieldName( type ) : stepFieldName( type ) } ) ).filter( ( t ) => matches( t.label ) ) : [];
 	const groups = GROUPS.map( ( g ) => ( { ...g, types: g.types.filter( ( type ) => matches( stepFieldName( type ) ) ) } ) ).filter( ( g ) => g.types.length > 0 );
 	const finish = [
 		{ item: { kind: 'contact' } as PaletteItem, label: __( 'Contact step', 'funnelforms-pro' ), icon: 'contact' },

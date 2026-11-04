@@ -2,6 +2,7 @@ import type { ContactField, DateField, Field, RepeatField } from '@funnelforms/f
 import { toFloat } from '@funnelforms/form-core';
 import { checkAddress } from './address';
 import { isBooking } from './booking';
+import { isHiddenField } from './prefill';
 import { chunk } from './styles';
 
 /**
@@ -208,7 +209,8 @@ export function isWebAddress( text: string ): boolean {
 }
 
 export function checkContactField( field: ContactField, value: unknown ): string | null {
-	if ( field.type === 'html' ) {
+	// Hidden fields hold what the address gave; the visitor cannot fix them, so nothing is checked.
+	if ( field.type === 'html' || isHiddenField( field ) ) {
 		return null;
 	}
 	if ( field.type === 'captcha' ) {

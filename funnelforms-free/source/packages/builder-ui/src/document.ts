@@ -14,6 +14,9 @@ export const STEP_FIELD_TYPES = [ 'choice', 'dropdown', 'text', 'textarea', 'ema
 /** Field types of contact steps. Phone verification follows with its sending route. */
 export const CONTACT_FIELD_TYPES = [ 'salutation', 'name', 'email', 'phone', 'text', 'textarea', 'select', 'checkbox', 'consent', 'html', 'captcha' ] as const satisfies readonly ContactFieldType[];
 
+/** What the palette offers in a contact step: the field types, and the hidden field (a text field with props.hidden). */
+export const CONTACT_PALETTE = [ 'salutation', 'name', 'email', 'phone', 'text', 'textarea', 'select', 'checkbox', 'consent', 'hidden', 'html', 'captcha' ] as const;
+
 export type StepFieldType = ( typeof STEP_FIELD_TYPES )[ number ];
 
 /** Default texts of new fields, in the form's language; English when missing. */
@@ -41,6 +44,7 @@ export interface Labels {
 	newsletter?: string;
 	liveResult?: string;
 	liveTotal?: string;
+	hidden?: string;
 }
 
 const ENGLISH: Required<Labels> = {
@@ -67,6 +71,7 @@ const ENGLISH: Required<Labels> = {
 	newsletter: 'Yes, send me news by e-mail.',
 	liveResult: 'Your estimate',
 	liveTotal: 'Total',
+	hidden: 'Hidden field',
 };
 
 export interface Context {
@@ -233,6 +238,15 @@ export function createContactField( doc: FormDocument, type: ( typeof CONTACT_FI
 	}
 }
 
+/**
+ * A hidden field: a text field of the contact step that is not shown and holds the URL parameter
+ * of its variable name (or a fixed value the server fills in).
+ */
+export function createHiddenField( doc: FormDocument, ctx: Context, taken: Set<string> = usedIds( doc ) ): ContactField {
+	const field = createContactField( doc, 'text', ctx, taken );
+	return { ...field, label: label( ctx, 'hidden' ), required: false, props: { hidden: true, prefillFromQuery: field.key } };
+}
+
 export interface Placement {
 	/** Node the new one follows: its default path leads to the new node, which leads on. */
 	after?: string;
@@ -365,6 +379,11 @@ export function addField( doc: FormDocument, nodeId: string, type: string, ctx: 
 		return null;
 	}
 	if ( 'contact' === node.type ) {
+		if ( 'hidden' === type ) {
+			const field = createHiddenField( doc, ctx );
+			node.fields.splice( index ?? node.fields.length, 0, field );
+			return field.id;
+		}
 		if ( ! ( CONTACT_FIELD_TYPES as readonly string[] ).includes( type ) ) {
 			return null;
 		}

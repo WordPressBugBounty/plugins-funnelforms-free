@@ -16,7 +16,7 @@ if ( defined( 'FUNNELFORMS_VERSION' ) ) {
 	return;
 }
 
-define( 'FUNNELFORMS_VERSION', '5.0.5' );
+define( 'FUNNELFORMS_VERSION', '5.0.6' );
 define( 'FUNNELFORMS_MIN_PHP', '8.1' );
 // Funnelforms Free defines the main file (and FUNNELFORMS_EDITION) before it loads this file.
 defined( 'FUNNELFORMS_PLUGIN_FILE' ) || define( 'FUNNELFORMS_PLUGIN_FILE', dirname( __DIR__ ) . '/Funnelforms-pro.php' );

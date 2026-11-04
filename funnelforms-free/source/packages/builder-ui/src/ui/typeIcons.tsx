@@ -32,6 +32,7 @@ const PATHS: Record<string, string> = {
 	consent: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM9 12l2 2 4-4',
 	html: 'M8 7l-5 5 5 5M16 7l5 5-5 5',
 	captcha: 'M6 11h12v10H6zM8 11V7a4 4 0 0 1 8 0v4',
+	hidden: 'M3 3l18 18M10.6 6.1A10 10 0 0 1 12 6c5 0 9 6 9 6a17 17 0 0 1-2.6 3.2M6.6 6.6C4.3 8.1 3 12 3 12s4 6 9 6a9 9 0 0 0 4.4-1.1M9.9 9.9a3 3 0 0 0 4.2 4.2',
 };
 
 /** The icon of a type; a plain square for types without one. */

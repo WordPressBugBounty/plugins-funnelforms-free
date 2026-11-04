@@ -195,6 +195,8 @@ export interface ChoiceField extends FieldBase {
 		size?: 's' | 'm' | 'l';
 		/** Images fill the width of their answer. */
 		imageFull?: boolean;
+		/** See PREFILL_STEP_TYPES (form-core): option ids, values or labels, comma-separated for several. */
+		prefillFromQuery?: string;
 	};
 }
 
@@ -210,6 +212,7 @@ export interface DropdownField extends FieldBase {
 		multiple?: boolean;
 		minChoices?: number;
 		maxChoices?: number;
+		prefillFromQuery?: string;
 	};
 }
 
@@ -222,6 +225,7 @@ export interface TextField extends FieldBase {
 		restrict?: 'letters' | 'digits' | 'birthday';
 		/** What the browser may fill in (HTML autocomplete). */
 		autocomplete?: AutocompleteToken;
+		prefillFromQuery?: string;
 	};
 }
 
@@ -247,7 +251,7 @@ export type AutocompleteToken =
 
 export interface TextareaField extends FieldBase {
 	type: 'textarea';
-	props: { placeholder: Text; minLength?: number; maxLength?: number; autocomplete?: AutocompleteToken };
+	props: { placeholder: Text; minLength?: number; maxLength?: number; autocomplete?: AutocompleteToken; prefillFromQuery?: string };
 }
 
 export interface DateField extends FieldBase {
@@ -349,7 +353,7 @@ export interface BookingField extends FieldBase {
 /** E-mail address as a step field (3.x had it only in the contact step). */
 export interface EmailField extends FieldBase {
 	type: 'email';
-	props: { placeholder: Text; b2bOnly?: boolean };
+	props: { placeholder: Text; b2bOnly?: boolean; prefillFromQuery?: string };
 }
 
 /**
@@ -358,7 +362,7 @@ export interface EmailField extends FieldBase {
  */
 export interface PhoneField extends FieldBase {
 	type: 'phone';
-	props: { placeholder: Text; country?: PhoneCountries };
+	props: { placeholder: Text; country?: PhoneCountries; prefillFromQuery?: string };
 }
 
 /**
@@ -390,7 +394,7 @@ export interface PhoneSms {
 /** Web address; https:// is added when the visitor leaves out the scheme. */
 export interface UrlField extends FieldBase {
 	type: 'url';
-	props: { placeholder: Text };
+	props: { placeholder: Text; prefillFromQuery?: string };
 }
 
 /** A number, usable in calculations and conditions like a slider. */
@@ -403,6 +407,7 @@ export interface NumberField extends FieldBase {
 		/** Step of the arrows in the browser; any number is accepted. */
 		step?: number;
 		unit?: { text: Text; position: 'before' | 'after' };
+		prefillFromQuery?: string;
 	};
 }
 
@@ -533,7 +538,12 @@ export interface ContactField {
 	key: string;
 	label: Text;
 	required: boolean;
-	/** Phone fields: `country` (PhoneCountries) and `sms` (PhoneSms) besides placeholder and icon. */
+	/**
+	 * Phone fields: `country` (PhoneCountries) and `sms` (PhoneSms) besides placeholder and icon.
+	 * Fields of PREFILL_CONTACT_TYPES (form-core): `prefillFromQuery`, the URL parameter that fills them when the
+	 * step shows. Text fields with `hidden: true` are not shown and never required; they hold the
+	 * parameter or `defaultValue`, which the server fills in and keeps out of the page.
+	 */
 	props: Record<string, unknown>;
 }
 

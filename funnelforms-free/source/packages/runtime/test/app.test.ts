@@ -268,6 +268,49 @@ describe( 'FormApp', () => {
 		} );
 	} );
 
+	it( 'fills questions and contact fields from the address and sends hidden fields', async () => {
+		const base = config();
+		const nodes = base.document.nodes as unknown as Array<{ id: string; fields: Array<{ id: string; props: Record<string, unknown> }> }>;
+		const field = ( id: string ) => nodes.flatMap( ( n ) => n.fields ?? [] ).find( ( f ) => f.id === id ) as { props: Record<string, unknown> };
+		field( 'q1' ).props.prefillFromQuery = 'zweck';
+		field( 'q3' ).props.prefillFromQuery = 'ort';
+		const contact = nodes.find( ( n ) => n.id === 'n4' ) as unknown as { fields: unknown[] };
+		contact.fields.push( { id: 'c_kdnr', key: 'kundennummer', type: 'text', label: de( 'Kundennummer' ), required: true, props: { placeholder: de( '' ), hidden: true, prefillFromQuery: 'kundennummer' } } );
+		const root = document.createElement( 'div' );
+		document.body.append( root );
+		const query = 'zweck=immobilie&ort=K%C3%B6ln&kundennummer=123456&name=Erika+Muster';
+		new FormApp( root, base, { url: 'https://example.org/seite/', query, title: 'Seite' } );
+
+		// Chosen by the label, ignoring case; no input of the visitor yet, so nothing went to the dataLayer.
+		expect( $( root, '.ffx-option[aria-pressed="true"]' ).textContent ).toBe( 'Immobilie' );
+		expect( window.dataLayer ).toEqual( [] );
+		clickOption( root, 'Immobilie' );
+		expect( $<HTMLInputElement>( root, '.ffx-field-text input' ).value ).toBe( 'Köln' );
+		// Changed by the visitor: going back and on again keeps the visitor's answer.
+		type( $<HTMLInputElement>( root, '.ffx-field-text input' ), 'Bonn' );
+		$( root, '.ffx-button-back' ).click();
+		clickOption( root, 'Immobilie' );
+		expect( $<HTMLInputElement>( root, '.ffx-field-text input' ).value ).toBe( 'Bonn' );
+		reply( '/calculations', 200, { ok: true, calculations: { c1: '1' } } );
+		next( root );
+		await vi.advanceTimersByTimeAsync( 0 );
+		$( root, '.ffx-content-button' ).click();
+
+		// The hidden field shows nothing and, though marked required, stops nobody.
+		const hidden = $( root, '.ffx-contact-hidden' );
+		expect( hidden.hidden ).toBe( true );
+		expect( hidden.querySelector( 'input' ) ).toBeNull();
+		expect( $<HTMLInputElement>( root, '.ffx-contact-name input' ).value ).toBe( 'Erika Muster' );
+		type( $<HTMLInputElement>( root, '.ffx-contact-email input' ), 'erika@example.org' );
+		$<HTMLInputElement>( root, '.ffx-contact-consent input' ).click();
+		reply( '/entries', 201, { ok: true, entry: 9, eventId: 'ffx-1-9', end: { success: { show: true, html: '<p>Danke!</p>', image: null }, redirect: null } } );
+		$( root, '.ffx-button-submit' ).click();
+		await vi.advanceTimersByTimeAsync( 4000 );
+		const entry = requests.find( ( r ) => r.path === '/entries' );
+		expect( entry?.body.answers ).toEqual( { q1: [ 'o1' ], q2: 50, q3: 'Bonn' } );
+		expect( entry?.body.contact ).toEqual( { c_name: 'Erika Muster', c_mail: 'erika@example.org', c_ok: true, c_kdnr: '123456' } );
+	} );
+
 	it( 'sends the Google Ads conversions of the answer through the Google tag', async () => {
 		const gtag = vi.fn();
 		window.gtag = gtag;
@@ -843,6 +886,26 @@ describe( 'appointments', () => {
 		expect( checkStepField( field, { start: '2026-11-03T13:00:00Z', duration: 30 } ) ).toBeNull();
 		expect( checkStepField( field, '2026-11-03' ) ).toBe( 'invalid_booking' );
 		expect( item( field, { start: '2026-11-03T13:00:00Z', duration: 90 }, () => '' ).answer ).toMatch( /2026.*\(1 h 30 min\)$/ );
+	} );
+} );
+
+describe( 'phone fields from Funnelforms 3', () => {
+	it( 'say what goes in when they have neither label nor placeholder', async () => {
+		const base = config();
+		const contact = ( base.document as unknown as { nodes: Array<{ id: string; fields: unknown[] }> } ).nodes.find( ( n ) => n.id === 'n4' );
+		contact?.fields.push(
+			{ id: 'c_tel', key: 'tel', type: 'phone', label: de( '' ), required: true, props: { placeholder: de( '' ), icon: 'fas fa-phone' } },
+			{ id: 'c_tel2', key: 'tel2', type: 'phone', label: de( '' ), required: false, props: { placeholder: de( 'Ihre Nummer' ) } }
+		);
+		base.strings.phone_number = 'Telefonnummer';
+		const root = document.createElement( 'div' );
+		document.body.append( root );
+		new FormApp( root, base, { url: '', query: '', title: '' } );
+		await toContact( root );
+
+		const inputs = [ ...root.querySelectorAll<HTMLInputElement>( '.ffx-contact-phone input' ) ];
+		expect( inputs.map( ( i ) => i.placeholder ) ).toEqual( [ 'Telefonnummer *', 'Ihre Nummer' ] );
+		expect( inputs[ 0 ]?.getAttribute( 'aria-label' ) ).toBe( 'Telefonnummer *' );
 	} );
 } );
 

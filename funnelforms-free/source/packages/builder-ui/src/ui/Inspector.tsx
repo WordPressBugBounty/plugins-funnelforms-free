@@ -37,6 +37,7 @@ import { AnswerInsert } from './AnswerInsert';
 import { editText } from '../languages';
 import { spamProtection } from '../spam';
 import { InputIcon } from './IconPicker';
+import { HiddenFieldProps, isHidden, PrefillProps } from './Prefill';
 import { contactFieldName, stepFieldName } from './catalog';
 import { useBuilder, useEnv, ViewContext, type View } from './context';
 import { put, TextProp } from './texts';
@@ -562,14 +563,16 @@ function FieldProps( { node, field }: { node: Extract<FormNode, { type: 'step' |
 			/>
 		</>
 	);
-	const name = contact ? contactFieldName( field.type ) : stepFieldName( field.type );
+	const hidden = isHidden( field, contact );
+	const name = hidden ? __( 'Hidden field', 'funnelforms-pro' ) : contact ? contactFieldName( field.type ) : stepFieldName( field.type );
 	const hasLabel = ! ( contact && [ 'consent', 'checkbox', 'html', 'captcha' ].includes( field.type ) );
 	return (
 		<Section title={ name } actions={ actions }>
 			{ hasLabel ? <TextProp label={ contact ? __( 'Label', 'funnelforms-pro' ) : 'result' === field.type ? __( 'Heading', 'funnelforms-pro' ) : __( 'Question', 'funnelforms-pro' ) } value={ field.label } onChange={ textOf( 'label' ) } /> : null }
 			{ hasLabel && ! contact && 'free' !== process.env.FUNNELFORMS_EDITION ? <AnswerInsert fieldId={ field.id } onInsert={ ( token ) => textOf( 'label' )( `${ editText( field.label, lang, ctx.locale ) } ${ token }`.trim() ) } /> : null }
 			{ ! contact && 'description' in field ? <TextProp label={ __( 'Description', 'funnelforms-pro' ) } value={ field.description } onChange={ textOf( 'description' ) } multiline /> : null }
-			{ 'placeholder' in props ? <TextProp label={ __( 'Placeholder', 'funnelforms-pro' ) } value={ props.placeholder as Text } onChange={ propText( 'placeholder' ) } /> : null }
+			{ contact && 'text' === field.type ? <HiddenFieldProps field={ field as ContactField } edit={ edit } readOnly={ readOnly } /> : null }
+			{ 'placeholder' in props && ! hidden ? <TextProp label={ __( 'Placeholder', 'funnelforms-pro' ) } value={ props.placeholder as Text } onChange={ propText( 'placeholder' ) } /> : null }
 			{ contact && ( 'consent' === field.type || 'checkbox' === field.type || 'html' === field.type ) ? (
 				<TextProp
 					label={ { consent: __( 'Consent text', 'funnelforms-pro' ), checkbox: __( 'Text next to the box', 'funnelforms-pro' ) }[ field.type as string ] ?? __( 'HTML', 'funnelforms-pro' ) }
@@ -581,7 +584,7 @@ function FieldProps( { node, field }: { node: Extract<FormNode, { type: 'step' |
 			) : null }
 			{ contact && 'select' === field.type ? <ContactOptions field={ field as ContactField } edit={ edit as ( recipe: ( f: ContactField ) => void, key?: string ) => void } /> : null }
 			{ contact && 'captcha' === field.type ? <CaptchaHint /> : null }
-			{ contact && api.icons && [ 'name', 'email', 'phone', 'phone_verification', 'text' ].includes( field.type ) ? (
+			{ contact && api.icons && ! hidden && [ 'name', 'email', 'phone', 'phone_verification', 'text' ].includes( field.type ) ? (
 				<InputIcon
 					value={ props.icon }
 					disabled={ readOnly }
@@ -606,11 +609,12 @@ function FieldProps( { node, field }: { node: Extract<FormNode, { type: 'step' |
 			{ contact && 'email' === field.type ? (
 				<Toggle label={ __( 'Business addresses only', 'funnelforms-pro' ) } checked={ true === props.b2bOnly } onChange={ ( v ) => edit( ( f ) => void ( ( f.props as Record<string, unknown> ).b2bOnly = v ) ) } />
 			) : null }
-			{ ! [ 'content', 'captcha', 'html', 'result' ].includes( field.type ) ? (
+			{ ! hidden && ! [ 'content', 'captcha', 'html', 'result' ].includes( field.type ) ? (
 				<Toggle label={ __( 'Required', 'funnelforms-pro' ) } checked={ field.required } onChange={ ( v ) => edit( ( f ) => void ( f.required = v ) ) } />
 			) : null }
 			{ 'step' === node.type ? <FieldVisibility node={ node } fieldId={ field.id } /> : null }
 			{ contact ? null : <StepFieldProps node={ node } field={ field as Field } edit={ edit } propText={ propText } /> }
+			<PrefillProps field={ field } contact={ contact } edit={ edit } readOnly={ readOnly } />
 			{ clash ? (
 				<Notice tone="warning">
 					{ sprintf( __( 'The variable name "%1$s" is used by "%2$s" as well. Calculations, placeholders and integrations then take only one of them; change it under Advanced.', 'funnelforms-pro' ), field.key, clash ) }

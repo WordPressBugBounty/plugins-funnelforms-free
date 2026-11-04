@@ -628,6 +628,7 @@ final class Renderer {
 			'step_of'                 => __( 'Step %1$d of %2$d', 'funnelforms-free' ),
 			'language'                => __( 'Language', 'funnelforms-free' ),
 			'choose'                  => __( 'Please choose', 'funnelforms-free' ),
+			'phone_number'            => __( 'Phone number', 'funnelforms-free' ),
 			'search'                  => __( 'Search', 'funnelforms-free' ),
 			'no_matches'              => __( 'No matches', 'funnelforms-free' ),
 			'quizRight'               => __( 'Right!', 'funnelforms-free' ),

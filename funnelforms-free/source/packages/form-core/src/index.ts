@@ -7,3 +7,4 @@ export { assignVariants, settledVariant, startNode, type Variants } from './expe
 export { toFloat, toInt, toText } from './numbers';
 export { pickText } from './text';
 export { progressMap } from './graph';
+export { PREFILL_CONTACT_TYPES, PREFILL_PARAM, PREFILL_STEP_TYPES } from './prefill';

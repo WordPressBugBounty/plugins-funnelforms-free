@@ -954,6 +954,51 @@ describe( 'builder', () => {
 		expect( contact().layout ).toBeUndefined();
 	} );
 
+	it( 'adds a hidden field and fills fields from the page address', async () => {
+		const api = fakeApi();
+		const store = createBuilderStore( api, 7, { autosaveMs: 60000 } );
+		await act( async () => root.render( <Builder api={ api } formId={ 7 } onBack={ () => undefined } store={ store } /> ) );
+		await settle();
+		const contact = (): Extract<FormNode, { type: 'contact' }> => store.getState().doc?.nodes.find( ( n ) => 'contact' === n.type ) as Extract<FormNode, { type: 'contact' }>;
+		const toggle = async ( label: string ): Promise<void> => {
+			const found = [ ...container.querySelectorAll( '.ffxb-toggle label' ) ].find( ( l ) => l.textContent === label ) as HTMLLabelElement | undefined;
+			if ( ! found ) {
+				throw new Error( 'No switch ' + label );
+			}
+			await act( async () => ( document.getElementById( found.htmlFor ) as HTMLInputElement ).click() );
+		};
+		await act( async () => store.getState().select( { node: contact().id } ) );
+		await act( async () => button( 'Hidden field' ).click() );
+		const hidden = (): ContactField => contact().fields.at( -1 ) as ContactField;
+		expect( hidden() ).toMatchObject( { type: 'text', required: false, props: { hidden: true, prefillFromQuery: hidden().key } } );
+		// No placeholder, icon or required switch: visitors never see the field.
+		expect( () => labelled( 'Placeholder' ) ).toThrow();
+		expect( [ ...container.querySelectorAll( '.ffxb-toggle label' ) ].map( ( l ) => l.textContent ) ).not.toContain( 'Required' );
+		await fill( 'Label', 'Kundennummer' );
+		await fill( 'URL parameter', 'kunden nummer' );
+		await fill( 'Fixed value', 'unbekannt' );
+		expect( hidden().props ).toEqual( { hidden: true, prefillFromQuery: 'kunden_nummer', defaultValue: 'unbekannt' } );
+		expect( container.querySelector( '.ffxb-prefill code' )?.textContent ).toBe( '?kunden_nummer=…' );
+		expect( container.textContent ).toContain( `{{field:${ hidden().key }}}` );
+		expect( validateDocument( store.getState().doc ).errors ).toEqual( [] );
+
+		// A visible field: off by default, on with its variable name.
+		const name = contact().fields.find( ( f ) => 'name' === f.type ) as ContactField;
+		await act( async () => store.getState().select( { node: contact().id, field: name.id } ) );
+		expect( labelled<HTMLInputElement>( 'Placeholder' ) ).toBeTruthy();
+		await toggle( 'Fill from the page address' );
+		expect( ( contact().fields.find( ( f ) => f.id === name.id ) as ContactField ).props.prefillFromQuery ).toBe( name.key );
+		expect( container.querySelector( '.ffxb-prefill code' )?.textContent ).toBe( `?${ name.key }=Max+Muster` );
+		await toggle( 'Fill from the page address' );
+		expect( ( contact().fields.find( ( f ) => f.id === name.id ) as ContactField ).props ).not.toHaveProperty( 'prefillFromQuery' );
+
+		// The hidden field turned back into a text field loses its fixed value.
+		await act( async () => store.getState().select( { node: contact().id, field: hidden().id } ) );
+		await toggle( 'Hidden field' );
+		expect( hidden().props ).toEqual( { prefillFromQuery: 'kunden_nummer', placeholder: { de_DE: '' } } );
+		expect( labelled<HTMLInputElement>( 'Placeholder' ) ).toBeTruthy();
+	} );
+
 	it( 'sets custom code on the contact step and points to it from the thank-you page', async () => {
 		const api = fakeApi();
 		const store = createBuilderStore( api, 7, { autosaveMs: 60000 } );

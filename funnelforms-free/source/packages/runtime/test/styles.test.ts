@@ -46,9 +46,14 @@ describe( 'styles', () => {
 			'html:has(.ffx-popup[open])',
 			'@layer ffx-strong',
 			'.ffx-form i:is(.ffx-option-icon, .ffx-input-icon)',
+			':is(.ffx-form, .ffx-popup):not(#ffx-shield#ffx-shield)',
 			shield,
 		] );
 		expect( read( 'runtime.css' ) ).toMatch( /\{\s*all: revert-layer;\s*\}\s*$/ );
+		// The form's own box gets its look back (a CSS reset on div took padding and font), not its place.
+		const box = read( 'runtime.css' ).match( /\n:is\(\.ffx-form, \.ffx-popup\):not\(#ffx-shield#ffx-shield\) \{([^}]*)\}/ )?.[ 1 ] ?? '';
+		expect( box ).toMatch( /padding: revert-layer;[\s\S]*font: revert-layer;/ );
+		expect( box ).not.toMatch( /\b(all|margin|width|max-width|display|position):/ );
 		// The second sheet can load first (styles.ts): it names the order of the layers as well.
 		expect( topLevel( read( 'runtime-more.css' ) ) ).toEqual( [ '@layer ffx, ffx-strong, ffx-custom;', '@layer ffx', '@layer ffx', '@layer ffx-strong' ] );
 	} );

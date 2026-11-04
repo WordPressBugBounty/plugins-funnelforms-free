@@ -4,7 +4,8 @@ import { Api, type ErrorBody } from './api';
 import { sendAdsConversions, type AdsConversion } from './ads';
 import { languageSwitch, languageTag } from './languages';
 import { setPrivacy, trackingInfo } from './consent';
-import { renderContactField, prefill, type ContactContext, type RenderedContactField } from './contact';
+import { renderContactField, type ContactContext, type RenderedContactField } from './contact';
+import { contactPrefill, stepPrefill } from './prefill';
 import { escapeHtml, h, textOf, trusted } from './dom';
 import { countdown, successPage } from './end';
 import { renderField, type FieldContext, type RenderedField, type UploadedFile } from './fields';
@@ -59,7 +60,8 @@ export class FormApp {
 	private busy = false;
 	/** Uploads running on the current step. */
 	private uploads = 0;
-	private prefilled = false;
+	/** Fields the page address filled already (or had nothing for): each is filled once per page view. */
+	private readonly prefilled = new Set<string>();
 	private rendered: RenderedField[] = [];
 	private renderedContact: RenderedContactField[] = [];
 	private partial: Promise<void> = Promise.resolve();
@@ -536,6 +538,7 @@ export class FormApp {
 		};
 		this.uploads = 0;
 		this.nextButton.disabled = false;
+		this.prefill( node );
 		const wrap = h( 'div', { class: 'ffx-step', 'data-node': node.id } );
 		let marked = false;
 		for ( const field of node.fields ) {
@@ -608,6 +611,32 @@ export class FormApp {
 		return this.noteAt === id ? h( 'p', { class: 'ffx-required-note' }, this.t( 'required_note' ) ) : '';
 	}
 
+	/**
+	 * Fills the fields of a step from the page address (props.prefillFromQuery) the first time the
+	 * step shows. Such values are no input of the visitor: no statistics, no live update.
+	 */
+	private prefill( node: StepNode | ContactNode ): void {
+		const params = new URLSearchParams( this.page.query );
+		const label = ( o: { label: Record<string, string> } ): string => this.text( o.label );
+		for ( const field of node.fields ) {
+			if ( this.prefilled.has( field.id ) ) {
+				continue;
+			}
+			this.prefilled.add( field.id );
+			if ( 'contact' === node.type ) {
+				const value = this.contact[ field.id ] === undefined ? contactPrefill( field as ContactNode[ 'fields' ][ number ], params, label ) : undefined;
+				if ( value !== undefined ) {
+					this.contact[ field.id ] = value;
+				}
+			} else {
+				const value = this.values[ field.id ] === undefined ? stepPrefill( field as StepNode[ 'fields' ][ number ], params, label ) : undefined;
+				if ( value !== undefined ) {
+					this.values[ field.id ] = value;
+				}
+			}
+		}
+	}
+
 	private renderContact( node: ContactNode ): HTMLElement {
 		const ctx: ContactContext = {
 			text: ( v ) => this.piped( v ),
@@ -622,10 +651,7 @@ export class FormApp {
 			icons: this.config.icons,
 			hideLabels: node.layout?.hideLabels === true,
 		};
-		if ( ! this.prefilled ) {
-			this.prefilled = true;
-			prefill( node, this.page.query, ctx );
-		}
+		this.prefill( node );
 		const title = this.piped( node.title );
 		const description = this.piped( node.description );
 		const layout = node.layout ?? {};

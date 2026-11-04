@@ -223,6 +223,7 @@ final class BuilderPage {
 			'newsletter'   => __( 'Yes, send me news by e-mail.', 'funnelforms-free' ),
 			'liveResult'   => __( 'Your estimate', 'funnelforms-free' ),
 			'liveTotal'    => __( 'Total', 'funnelforms-free' ),
+			'hidden'       => __( 'Hidden field', 'funnelforms-free' ),
 		);
 	}
 

@@ -242,6 +242,11 @@ final class SettingsPage {
 					$pro::render();
 				}
 				break;
+			case 'version':
+				if ( null !== $pro ) {
+					$pro::render_version();
+				}
+				break;
 			case 'rights':
 				echo '<div class="ffx-card">';
 				RoleRights::render();

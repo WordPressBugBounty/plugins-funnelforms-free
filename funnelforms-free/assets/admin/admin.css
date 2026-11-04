@@ -5215,6 +5215,110 @@ body.ffx-screen {
 	text-decoration: underline;
 }
 
+/* Support: ideas and wishes of customers, with one vote per idea and license */
+
+.ffx-idea .notice.inline {
+	margin: 0 0 16px;
+}
+
+.ffx-ideas__list > li {
+	align-items: flex-start;
+	scroll-margin-top: 48px;
+	border-radius: 8px;
+	transition: background-color 0.3s ease;
+}
+
+.ffx-ideas__list > li.is-target,
+.ffx-ideas__list > li:target {
+	background: var(--ffb-brand-50);
+	box-shadow: 0 0 0 8px var(--ffb-brand-50);
+}
+
+.ffx-ideas__list .ffx-rows__title {
+	white-space: normal;
+	overflow-wrap: anywhere;
+}
+
+.ffx-ideas__text {
+	display: block;
+	margin: 4px 0;
+	color: var(--ffb-text-muted);
+	white-space: pre-line;
+	overflow-wrap: anywhere;
+}
+
+.ffx-ideas__list .ffx-rows__meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+
+.ffx-ideas__votes {
+	display: flex;
+	flex: 0 0 auto;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 8px;
+}
+
+.ffx-ideas__count {
+	display: flex;
+	gap: 12px;
+	font-size: 12.5px;
+	font-variant-numeric: tabular-nums;
+}
+
+.ffx-ideas__up {
+	color: var(--ffb-success-fg);
+}
+
+.ffx-ideas__down {
+	color: var(--ffb-danger-fg);
+}
+
+.ffx-ideas__vote {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.ffx-ideas__result {
+	display: block;
+	margin-top: 6px;
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.ffx-ideas__result.is-ok {
+	color: var(--ffb-success-fg);
+}
+
+.ffx-ideas__result.is-error {
+	color: var(--ffb-danger-fg);
+}
+
+.ffx-ideas__mine-title {
+	margin: 24px 0 4px;
+	font-size: 14px;
+}
+
+@media (max-width: 782px) {
+	.ffx-ideas__list > li {
+		flex-direction: column;
+	}
+
+	.ffx-ideas__votes {
+		align-items: flex-start;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ffx-ideas__list > li {
+		transition: none;
+	}
+}
+
 /* Support: one ticket with its conversation */
 
 .ffx-thread__list {

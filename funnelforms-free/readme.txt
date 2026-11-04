@@ -4,7 +4,7 @@ Tags: contact form, multi step form, form builder, lead generation, conversation
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 5.0.5
+Stable tag: 5.0.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -221,6 +221,11 @@ If you set up a mail server under Funnelforms > Settings > E-mail, the mails of 
 The scripts in assets/builder and assets/runtime are built and minified from TypeScript. The sources, with the build scripts, are in the folder source/ of this plugin. To build them: `pnpm install` and `pnpm -r build` in that folder (Node.js 20 or newer).
 
 == Changelog ==
+
+= 5.0.6 =
+* Forms: fields can be filled from the page address (for example `?kundennummer=123`): switch "Fill from the page address" on text, e-mail, phone, number, choice and dropdown questions and on contact fields. New hidden field in the contact step for values from the link or a fixed value that is saved with the entry.
+* Display: on themes with a CSS reset (for example OceanWP) the form keeps its inner spacing, its font and its font size.
+* Forms moved from Funnelforms 3: a phone field without label and placeholder shows "Phone number" instead of only "*".
 
 = 5.0.5 =
 * Editor: the preview and saving no longer fail with "Your WordPress login could not be confirmed" while you are logged in. Some server caches (REST API caching of LiteSpeed Cache and others, Cloudflare and other CDNs) hand out old answers with an outdated security token, and the editor used it for the next request. The editor now gets a fresh token from WordPress and tries once more, as the WordPress block editor does.

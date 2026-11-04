@@ -42,6 +42,7 @@ import { AnalyticsLegend, AnalyticsPanel, edgeFigures, NodeAnalyticsView, useAna
 import { PredictionPanel, usePrediction } from './Prediction';
 import { createPlayback, planPlayback, PlaybackContext, PlaybackControl, PlaybackLayer, usePlayedShare, type PlaybackBox } from './PredictionPlayback';
 import { contactFieldName, stepFieldName } from './catalog';
+import { isHidden, prefillParam } from './Prefill';
 import { SHORTCUTS_EVENT, useBuilder, useEnv } from './context';
 import { describeCondition, edgeLabel, fieldIndex } from './describe';
 import { hintText, useHints } from './Hints';
@@ -95,7 +96,7 @@ const NodeView = memo( function NodeView( { data, selected }: NodeProps<CanvasNo
 	// While the visitors of the prediction play, its figures count up with the dots.
 	const played = 'free' === process.env.FUNNELFORMS_EDITION ? null : usePlayedShare( node.id );
 	const name = nodeName( node, locale );
-	const fields = 'fields' in node ? ( node.fields as Array<{ id: string; type: string; label: Record<string, string>; showWhen?: unknown }> ) : [];
+	const fields = 'fields' in node ? ( node.fields as Array<{ id: string; type: string; label: Record<string, string>; showWhen?: unknown; props?: unknown }> ) : [];
 	return (
 		<div
 			className={
@@ -142,6 +143,16 @@ const NodeView = memo( function NodeView( { data, selected }: NodeProps<CanvasNo
 								{ 'showWhen' in f && f.showWhen ? (
 									<span className="ffxb-node__field-if" title={ __( 'Shown only on certain answers', 'funnelforms-pro' ) }>
 										{ __( 'if', 'funnelforms-pro' ) }
+									</span>
+								) : null }
+								{ isHidden( f, 'contact' === node.type ) ? (
+									<span className="ffxb-node__field-if" title={ __( 'Hidden field', 'funnelforms-pro' ) }>
+										{ __( 'hidden', 'funnelforms-pro' ) }
+									</span>
+								) : null }
+								{ prefillParam( f ) ? (
+									<span className="ffxb-node__field-if" title={ sprintf( /* translators: %s: name of the URL parameter */ __( 'Filled from the URL parameter %s', 'funnelforms-pro' ), prefillParam( f ) ?? '' ) }>
+										URL
 									</span>
 								) : null }
 								<span className="ffxb-node__field-label">{ text( f.label, locale ) || ( 'contact' === node.type ? contactFieldName( f.type ) : '' ) }</span>

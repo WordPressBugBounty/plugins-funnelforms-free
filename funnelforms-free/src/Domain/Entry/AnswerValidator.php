@@ -368,6 +368,9 @@ final class AnswerValidator {
 	public static function contact_field( array $field, $answer, string $locale = '' ): array {
 		$required = ! empty( $field['required'] );
 		$props    = $field['props'] ?? array();
+		if ( self::is_hidden( $field ) ) {
+			return self::ok( self::hidden_value( $props, $answer ) );
+		}
 		switch ( $field['type'] ) {
 			case 'html':
 				return self::ok( null );
@@ -436,6 +439,31 @@ final class AnswerValidator {
 				return self::check_contact_text( $field['type'], $props, $required, $text );
 		}
 		return self::error( 'unsupported' );
+	}
+
+	/**
+	 * Whether a contact field is a hidden field: a text field with props.hidden, not shown in the
+	 * form and never required.
+	 *
+	 * @param array<string,mixed> $field Contact field.
+	 */
+	public static function is_hidden( array $field ): bool {
+		return 'text' === ( $field['type'] ?? '' ) && true === ( ( (array) ( $field['props'] ?? array() ) )['hidden'] ?? false );
+	}
+
+	/**
+	 * Value of a hidden field: what the runtime took from the URL parameter (props.prefillFromQuery),
+	 * else the fixed value (props.defaultValue). Without a parameter only the fixed value counts, so
+	 * a visitor cannot change it. One line, at most MAX_TEXT characters; never an error, since the
+	 * visitor cannot see or fix the field.
+	 *
+	 * @param array<string,mixed> $props  Field props.
+	 * @param mixed               $answer Submitted value; null when missing.
+	 */
+	private static function hidden_value( array $props, $answer ): string {
+		$line  = static fn( $value ): string => is_string( $value ) ? mb_substr( trim( str_replace( array( "\r", "\n" ), ' ', $value ) ), 0, self::MAX_TEXT, 'UTF-8' ) : '';
+		$value = '' !== (string) ( $props['prefillFromQuery'] ?? '' ) ? $line( $answer ) : '';
+		return '' !== $value ? $value : $line( $props['defaultValue'] ?? '' );
 	}
 
 	/**

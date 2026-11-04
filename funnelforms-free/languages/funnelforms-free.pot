@@ -18,7 +18,7 @@ msgstr ""
 msgid "Account"
 msgstr ""
 
-#: src/Admin/AccountPage.php:95 src/Admin/AccountPage.php:176 src/Admin/AppPage.php:101 src/Admin/AutomationTokens.php:65 src/Admin/EntriesExport.php:72 src/Admin/EntryPdfDownload.php:59 src/Admin/MailDiagnostics.php:50 src/Admin/MailServerSection.php:38 src/Admin/MigrationPage.php:103 src/Admin/MigrationPage.php:120 src/Admin/MigrationPage.php:146 src/Admin/MigrationPage.php:183 src/Admin/MigrationPage.php:216 src/Admin/NoticesView.php:93 src/Admin/ProSettings.php:120 src/Admin/RoleRights.php:36 src/Admin/SafetySection.php:108 src/Admin/SafetySection.php:1460 src/Admin/SettingsPage.php:178 src/Admin/SetupPage.php:164 src/Admin/StatsExport.php:75 src/Admin/SupportAccessSection.php:72 src/Admin/SupportPage.php:126 src/Admin/SupportPage.php:217 src/Admin/TelemetrySection.php:49 src/Admin/TelemetrySection.php:63 src/Compat/Legacy/LegacyLicense.php:174 src/Edition/ReviewNotice.php:104 src/Frontend/LegacyPreview.php:58
+#: src/Admin/AccountPage.php:95 src/Admin/AccountPage.php:176 src/Admin/AppPage.php:101 src/Admin/AutomationTokens.php:65 src/Admin/EntriesExport.php:72 src/Admin/EntryPdfDownload.php:59 src/Admin/MailDiagnostics.php:50 src/Admin/MailServerSection.php:38 src/Admin/MigrationPage.php:103 src/Admin/MigrationPage.php:120 src/Admin/MigrationPage.php:146 src/Admin/MigrationPage.php:183 src/Admin/MigrationPage.php:216 src/Admin/NoticesView.php:93 src/Admin/ProSettings.php:136 src/Admin/RoleRights.php:36 src/Admin/SafetySection.php:108 src/Admin/SafetySection.php:1460 src/Admin/SettingsPage.php:178 src/Admin/SetupPage.php:164 src/Admin/StatsExport.php:75 src/Admin/SupportAccessSection.php:72 src/Admin/SupportPage.php:137 src/Admin/SupportPage.php:240 src/Admin/SupportPage.php:280 src/Admin/SupportPage.php:315 src/Admin/TelemetrySection.php:49 src/Admin/TelemetrySection.php:63 src/Application/License/VersionRollback.php:240 src/Application/License/VersionRollback.php:474 src/Compat/Legacy/LegacyLicense.php:174 src/Edition/ReviewNotice.php:104 src/Frontend/LegacyPreview.php:58
 msgid "You are not allowed to do this."
 msgstr ""
 
@@ -66,7 +66,7 @@ msgstr ""
 msgid "Too many attempts. Please try again in a few minutes."
 msgstr ""
 
-#: src/Admin/AccountPage.php:200 src/Application/License/Updates.php:475
+#: src/Admin/AccountPage.php:200 src/Application/License/Updates.php:475 src/Application/License/VersionRollback.php:555
 msgid "Funnelforms could not be reached. Please try again later; your forms keep working."
 msgstr ""
 
@@ -156,7 +156,7 @@ msgstr ""
 msgid "Active"
 msgstr ""
 
-#: src/Admin/AccountPage.php:316 src/Application/License/Updates.php:366 src/Application/License/Updates.php:471
+#: src/Admin/AccountPage.php:316 src/Application/License/Updates.php:366 src/Application/License/Updates.php:471 src/Application/License/VersionRollback.php:551
 msgid "Open the account"
 msgstr ""
 
@@ -326,7 +326,7 @@ msgid "%s in use · no limit"
 msgstr ""
 
 #. translators:1: websites in use, 2: websites of the plan.
-#: src/Admin/AccountPage.php:576 src/Frontend/Renderer.php:662
+#: src/Admin/AccountPage.php:576 src/Frontend/Renderer.php:663
 msgid "%1$s of %2$s"
 msgstr ""
 
@@ -374,7 +374,7 @@ msgstr ""
 msgid "Updates and services"
 msgstr ""
 
-#: src/Admin/AccountPage.php:633 src/Admin/SiteHealth.php:182 src/Admin/SupportAccessSection.php:104 src/Admin/SupportPage.php:460
+#: src/Admin/AccountPage.php:633 src/Admin/SiteHealth.php:182 src/Admin/SupportAccessSection.php:104 src/Admin/SupportPage.php:565
 msgid "On"
 msgstr ""
 
@@ -391,7 +391,7 @@ msgstr ""
 msgid "Confirmed until %s"
 msgstr ""
 
-#: src/Admin/AccountPage.php:645 src/Admin/SupportPage.php:428 packages/builder-ui/src/ui/Actions.tsx:533 packages/builder-ui/src/ui/CrmAction.tsx:165
+#: src/Admin/AccountPage.php:645 src/Admin/SupportPage.php:533 packages/builder-ui/src/ui/Actions.tsx:533 packages/builder-ui/src/ui/CrmAction.tsx:165
 msgid "Connection"
 msgstr ""
 
@@ -479,7 +479,7 @@ msgstr ""
 msgid "Choose a larger plan"
 msgstr ""
 
-#: src/Admin/AccountPage.php:768 src/Admin/NoticesView.php:158 src/Admin/ReferPage.php:335 src/Admin/SettingsPage.php:456 src/Admin/SetupPage.php:962 src/Admin/SupportPage.php:99 src/Admin/SupportPage.php:395 src/Admin/SupportPage.php:502 src/Admin/Ui.php:71 src/Edition/UpgradePage.php:442 packages/builder-ui/src/ui/Entries.tsx:1776 packages/builder-ui/src/ui/Settings.tsx:1000
+#: src/Admin/AccountPage.php:768 src/Admin/NoticesView.php:158 src/Admin/ReferPage.php:335 src/Admin/SettingsPage.php:461 src/Admin/SetupPage.php:962 src/Admin/SupportPage.php:109 src/Admin/SupportPage.php:500 src/Admin/SupportPage.php:607 src/Admin/Ui.php:71 src/Edition/UpgradePage.php:442 packages/builder-ui/src/ui/Entries.tsx:1776 packages/builder-ui/src/ui/Settings.tsx:1000
 msgid "(opens in a new tab)"
 msgstr ""
 
@@ -662,7 +662,7 @@ msgstr ""
 msgid "Everything booked in your forms, by day or as a calendar. Move, cancel or mark appointments right here."
 msgstr ""
 
-#: src/Admin/AppointmentsPage.php:140 src/Admin/BuilderPage.php:249 src/Admin/EntriesPage.php:113 src/Admin/ImportPage.php:186 src/Admin/IntegrationsPage.php:110 src/Admin/PredictionPage.php:149 src/Admin/StatsPage.php:331
+#: src/Admin/AppointmentsPage.php:140 src/Admin/BuilderPage.php:250 src/Admin/EntriesPage.php:113 src/Admin/ImportPage.php:186 src/Admin/IntegrationsPage.php:110 src/Admin/PredictionPage.php:149 src/Admin/StatsPage.php:331
 msgid "The form builder is missing from this copy of the plugin. Install the plugin from its ZIP file."
 msgstr ""
 
@@ -712,7 +712,7 @@ msgstr ""
 msgid "Revoke"
 msgstr ""
 
-#: src/Admin/BuilderPage.php:57 src/Admin/BuilderPage.php:248 src/Admin/BuilderPage.php:257 src/Admin/MigrationPage.php:386 src/Admin/MigrationTexts.php:298 src/Admin/MigrationTexts.php:314 src/Admin/OverviewPage.php:303 src/Admin/SetupPage.php:858 src/Admin/StatsExport.php:114 packages/builder-ui/src/ui/Builder.tsx:328 packages/builder-ui/src/ui/FormsList.tsx:149 packages/builder-ui/src/ui/FormsList.tsx:195 packages/builder-ui/src/ui/FormsList.tsx:295
+#: src/Admin/BuilderPage.php:57 src/Admin/BuilderPage.php:249 src/Admin/BuilderPage.php:258 src/Admin/MigrationPage.php:386 src/Admin/MigrationTexts.php:298 src/Admin/MigrationTexts.php:314 src/Admin/OverviewPage.php:303 src/Admin/SetupPage.php:858 src/Admin/StatsExport.php:114 packages/builder-ui/src/ui/Builder.tsx:328 packages/builder-ui/src/ui/FormsList.tsx:149 packages/builder-ui/src/ui/FormsList.tsx:195 packages/builder-ui/src/ui/FormsList.tsx:295
 msgid "Forms"
 msgstr ""
 
@@ -720,103 +720,107 @@ msgstr ""
 msgid "Build your forms, publish them and see how each one performs."
 msgstr ""
 
-#: src/Admin/BuilderPage.php:199 packages/builder-ui/src/ui/catalog.ts:54
+#: src/Admin/BuilderPage.php:199 packages/builder-ui/src/ui/catalog.ts:55
 msgid "New question"
 msgstr ""
 
 #. translators:%d: number of the answer.
-#: src/Admin/BuilderPage.php:201 packages/builder-ui/src/ui/catalog.ts:55
+#: src/Admin/BuilderPage.php:201 packages/builder-ui/src/ui/catalog.ts:56
 msgid "Option %d"
 msgstr ""
 
-#: src/Admin/BuilderPage.php:202 src/Application/FormEditor.php:93 src/Application/FormEditor.php:350 src/Compat/Import/Importer.php:170 packages/builder-ui/src/ui/catalog.ts:56
+#: src/Admin/BuilderPage.php:202 src/Application/FormEditor.php:93 src/Application/FormEditor.php:350 src/Compat/Import/Importer.php:170 packages/builder-ui/src/ui/catalog.ts:57
 msgid "Your contact details"
 msgstr ""
 
-#: src/Admin/BuilderPage.php:203 src/Application/FormEditor.php:96 src/Application/FormEditor.php:351 src/Compat/Import/Importer.php:171 src/Frontend/Renderer.php:624 packages/builder-ui/src/ui/Entries.tsx:1859 packages/builder-ui/src/ui/PredictionApply.tsx:82 packages/builder-ui/src/ui/catalog.ts:57
+#: src/Admin/BuilderPage.php:203 src/Application/FormEditor.php:96 src/Application/FormEditor.php:351 src/Compat/Import/Importer.php:171 src/Frontend/Renderer.php:624 packages/builder-ui/src/ui/Entries.tsx:1859 packages/builder-ui/src/ui/PredictionApply.tsx:82 packages/builder-ui/src/ui/catalog.ts:58
 msgid "Send"
 msgstr ""
 
-#: src/Admin/BuilderPage.php:204 src/Application/FormEditor.php:97 src/Application/FormEditor.php:352 src/Compat/Import/Importer.php:172 packages/builder-ui/src/ui/catalog.ts:58
+#: src/Admin/BuilderPage.php:204 src/Application/FormEditor.php:97 src/Application/FormEditor.php:352 src/Compat/Import/Importer.php:172 packages/builder-ui/src/ui/catalog.ts:59
 msgid "Thank you! We will get back to you soon."
 msgstr ""
 
-#: src/Admin/BuilderPage.php:205 src/Application/FormEditor.php:94 src/Application/FormEditor.php:355 packages/builder-ui/src/ui/Actions.tsx:785 packages/builder-ui/src/ui/BookingTypes.tsx:385 packages/builder-ui/src/ui/BookingTypes.tsx:1122 packages/builder-ui/src/ui/Calculations.tsx:285 packages/builder-ui/src/ui/CrmConnections.tsx:213 packages/builder-ui/src/ui/Entries.tsx:1258 packages/builder-ui/src/ui/Experiments.tsx:305 packages/builder-ui/src/ui/IntegrationsHub.tsx:844 packages/builder-ui/src/ui/WhatsAppTemplates.tsx:292 packages/builder-ui/src/ui/catalog.ts:36 packages/builder-ui/src/ui/catalog.ts:59
+#: src/Admin/BuilderPage.php:205 src/Application/FormEditor.php:94 src/Application/FormEditor.php:355 packages/builder-ui/src/ui/Actions.tsx:785 packages/builder-ui/src/ui/BookingTypes.tsx:385 packages/builder-ui/src/ui/BookingTypes.tsx:1122 packages/builder-ui/src/ui/Calculations.tsx:285 packages/builder-ui/src/ui/CrmConnections.tsx:213 packages/builder-ui/src/ui/Entries.tsx:1258 packages/builder-ui/src/ui/Experiments.tsx:305 packages/builder-ui/src/ui/IntegrationsHub.tsx:844 packages/builder-ui/src/ui/WhatsAppTemplates.tsx:292 packages/builder-ui/src/ui/catalog.ts:36 packages/builder-ui/src/ui/catalog.ts:60
 msgid "Name"
 msgstr ""
 
-#: src/Admin/BuilderPage.php:206 src/Application/BookingNotices.php:376 src/Application/FormEditor.php:95 src/Application/FormEditor.php:356 packages/builder-ui/src/ui/catalog.ts:14 packages/builder-ui/src/ui/catalog.ts:37 packages/builder-ui/src/ui/catalog.ts:60
+#: src/Admin/BuilderPage.php:206 src/Application/BookingNotices.php:376 src/Application/FormEditor.php:95 src/Application/FormEditor.php:356 packages/builder-ui/src/ui/catalog.ts:14 packages/builder-ui/src/ui/catalog.ts:37 packages/builder-ui/src/ui/catalog.ts:61
 msgid "E-mail address"
 msgstr ""
 
-#: src/Admin/BuilderPage.php:207 packages/builder-ui/src/ui/BookingTypes.tsx:301 packages/builder-ui/src/ui/catalog.ts:15 packages/builder-ui/src/ui/catalog.ts:38 packages/builder-ui/src/ui/catalog.ts:61
+#: src/Admin/BuilderPage.php:207 src/Frontend/Renderer.php:631 packages/builder-ui/src/ui/BookingTypes.tsx:301 packages/builder-ui/src/ui/catalog.ts:15 packages/builder-ui/src/ui/catalog.ts:38 packages/builder-ui/src/ui/catalog.ts:62
 msgid "Phone number"
 msgstr ""
 
-#: src/Admin/BuilderPage.php:208 packages/builder-ui/src/ui/catalog.ts:62
+#: src/Admin/BuilderPage.php:208 packages/builder-ui/src/ui/catalog.ts:63
 msgid "Your message"
 msgstr ""
 
-#: src/Admin/BuilderPage.php:209 packages/builder-ui/src/ui/catalog.ts:63
+#: src/Admin/BuilderPage.php:209 packages/builder-ui/src/ui/catalog.ts:64
 msgid "I agree to the privacy policy."
 msgstr ""
 
-#: src/Admin/BuilderPage.php:210 src/Application/FormEditor.php:354 src/Integrations/Crm/CrmCatalog.php:248 packages/builder-ui/src/ui/catalog.ts:35 packages/builder-ui/src/ui/catalog.ts:64
+#: src/Admin/BuilderPage.php:210 src/Application/FormEditor.php:354 src/Integrations/Crm/CrmCatalog.php:248 packages/builder-ui/src/ui/catalog.ts:35 packages/builder-ui/src/ui/catalog.ts:65
 msgid "Salutation"
 msgstr ""
 
-#: src/Admin/BuilderPage.php:211 packages/builder-ui/src/ui/catalog.ts:65
+#: src/Admin/BuilderPage.php:211 packages/builder-ui/src/ui/catalog.ts:66
 msgid "Drop files here or click to upload."
 msgstr ""
 
-#: src/Admin/BuilderPage.php:212 packages/builder-ui/src/ui/BookingTypes.tsx:478 packages/builder-ui/src/ui/Entries.tsx:1398 packages/builder-ui/src/ui/Entries.tsx:1398 packages/builder-ui/src/ui/Entries.tsx:1633 packages/builder-ui/src/ui/Palette.tsx:97 packages/builder-ui/src/ui/Palette.tsx:123 packages/builder-ui/src/ui/catalog.ts:66
+#: src/Admin/BuilderPage.php:212 packages/builder-ui/src/ui/BookingTypes.tsx:478 packages/builder-ui/src/ui/Entries.tsx:1398 packages/builder-ui/src/ui/Entries.tsx:1398 packages/builder-ui/src/ui/Entries.tsx:1633 packages/builder-ui/src/ui/Palette.tsx:97 packages/builder-ui/src/ui/Palette.tsx:123 packages/builder-ui/src/ui/catalog.ts:67
 msgid "Add"
 msgstr ""
 
 #. translators:%d: number of the item in a repeat group.
-#: src/Admin/BuilderPage.php:214 packages/builder-ui/src/ui/catalog.ts:67
+#: src/Admin/BuilderPage.php:214 packages/builder-ui/src/ui/catalog.ts:68
 msgid "Item %d"
 msgstr ""
 
-#: src/Admin/BuilderPage.php:215 src/Application/FormEditor.php:358 src/Frontend/Renderer.php:663 packages/builder-ui/src/ui/catalog.ts:68
+#: src/Admin/BuilderPage.php:215 src/Application/FormEditor.php:358 src/Frontend/Renderer.php:664 packages/builder-ui/src/ui/catalog.ts:69
 msgid "Clear"
 msgstr ""
 
-#: src/Admin/BuilderPage.php:216 src/Application/FormEditor.php:359 packages/builder-ui/src/ui/catalog.ts:69
+#: src/Admin/BuilderPage.php:216 src/Application/FormEditor.php:359 packages/builder-ui/src/ui/catalog.ts:70
 msgid "Type your name instead"
 msgstr ""
 
-#: src/Admin/BuilderPage.php:217 src/Admin/SetupPage.php:1514 src/Application/FormEditor.php:353 src/Compat/Import/Importer.php:173 src/Frontend/Renderer.php:622 packages/builder-ui/src/ui/BrandingImport.tsx:246 packages/builder-ui/src/ui/Entries.tsx:722 packages/builder-ui/src/ui/Entries.tsx:722 packages/builder-ui/src/ui/FormsList.tsx:340 packages/builder-ui/src/ui/FormsList.tsx:340 packages/builder-ui/src/ui/ThemeSample.tsx:93 packages/builder-ui/src/ui/Tour.tsx:138 packages/builder-ui/src/ui/catalog.ts:70
+#: src/Admin/BuilderPage.php:217 src/Admin/SetupPage.php:1514 src/Application/FormEditor.php:353 src/Compat/Import/Importer.php:173 src/Frontend/Renderer.php:622 packages/builder-ui/src/ui/BrandingImport.tsx:246 packages/builder-ui/src/ui/Entries.tsx:722 packages/builder-ui/src/ui/Entries.tsx:722 packages/builder-ui/src/ui/FormsList.tsx:340 packages/builder-ui/src/ui/FormsList.tsx:340 packages/builder-ui/src/ui/ThemeSample.tsx:93 packages/builder-ui/src/ui/Tour.tsx:138 packages/builder-ui/src/ui/catalog.ts:71
 msgid "Next"
 msgstr ""
 
-#: src/Admin/BuilderPage.php:218 packages/builder-ui/src/ui/catalog.ts:71
+#: src/Admin/BuilderPage.php:218 packages/builder-ui/src/ui/catalog.ts:72
 msgid "Your result"
 msgstr ""
 
 #. translators:1: points of the visitor, 2: most points of the quiz (both filled in after sending).
-#: src/Admin/BuilderPage.php:220 packages/builder-ui/src/ui/catalog.ts:72
+#: src/Admin/BuilderPage.php:220 packages/builder-ui/src/ui/catalog.ts:73
 msgid "You scored %1$s of %2$s points."
 msgstr ""
 
 #. translators:1: questions answered right, 2: questions of the quiz (both filled in after sending).
-#: src/Admin/BuilderPage.php:222 packages/builder-ui/src/ui/catalog.ts:73
+#: src/Admin/BuilderPage.php:222 packages/builder-ui/src/ui/catalog.ts:74
 msgid "You answered %1$s of %2$s questions right."
 msgstr ""
 
-#: src/Admin/BuilderPage.php:223 packages/builder-ui/src/ui/catalog.ts:74
+#: src/Admin/BuilderPage.php:223 packages/builder-ui/src/ui/catalog.ts:75
 msgid "Yes, send me news by e-mail."
 msgstr ""
 
-#: src/Admin/BuilderPage.php:224 packages/builder-ui/src/ui/catalog.ts:75
+#: src/Admin/BuilderPage.php:224 packages/builder-ui/src/ui/catalog.ts:76
 msgid "Your estimate"
 msgstr ""
 
-#: src/Admin/BuilderPage.php:225 src/Admin/StatsUi.php:352 packages/builder-ui/src/ui/catalog.ts:76
+#: src/Admin/BuilderPage.php:225 src/Admin/StatsUi.php:352 packages/builder-ui/src/ui/catalog.ts:77
 msgid "Total"
 msgstr ""
 
-#: src/Admin/BuilderPage.php:253
+#: src/Admin/BuilderPage.php:226 src/Application/SpamCheck.php:158 packages/builder-ui/src/ui/Canvas.tsx:149 packages/builder-ui/src/ui/Inspector.tsx:567 packages/builder-ui/src/ui/Prefill.tsx:117 packages/builder-ui/src/ui/catalog.ts:47 packages/builder-ui/src/ui/catalog.ts:78
+msgid "Hidden field"
+msgstr ""
+
+#: src/Admin/BuilderPage.php:254
 msgid "The form builder needs JavaScript."
 msgstr ""
 
@@ -856,7 +860,7 @@ msgstr ""
 msgid "You may not download the diagnostics."
 msgstr ""
 
-#: src/Admin/Diagnostics.php:358 src/Admin/SupportPage.php:465 src/Admin/SupportPage.php:573
+#: src/Admin/Diagnostics.php:358 src/Admin/SupportPage.php:570 src/Admin/SupportPage.php:678
 msgid "Diagnostics"
 msgstr ""
 
@@ -1071,7 +1075,7 @@ msgstr[1] ""
 msgid "ID"
 msgstr ""
 
-#: src/Admin/EntriesExport.php:141 src/Admin/MailDiagnostics.php:292 src/Admin/MigrationPage.php:1045 src/Admin/Privacy.php:111 src/Admin/Privacy.php:243 src/Admin/StatsExport.php:115 src/Admin/StatsExport.php:134 src/Admin/StatsPage.php:532 src/Frontend/ElementorWidget.php:75 src/Frontend/ElementorWidget.php:86 src/Integrations/Crm/GoogleSheets.php:263 blocks/form/editor.js:32 blocks/form/editor.js:234 packages/builder-ui/src/ui/Appointments.tsx:404 packages/builder-ui/src/ui/Appointments.tsx:820 packages/builder-ui/src/ui/Entries.tsx:550 packages/builder-ui/src/ui/Entries.tsx:950 packages/builder-ui/src/ui/FormsList.tsx:297 packages/builder-ui/src/ui/Inspector.tsx:184
+#: src/Admin/EntriesExport.php:141 src/Admin/MailDiagnostics.php:292 src/Admin/MigrationPage.php:1045 src/Admin/Privacy.php:111 src/Admin/Privacy.php:243 src/Admin/StatsExport.php:115 src/Admin/StatsExport.php:134 src/Admin/StatsPage.php:532 src/Frontend/ElementorWidget.php:75 src/Frontend/ElementorWidget.php:86 src/Integrations/Crm/GoogleSheets.php:263 blocks/form/editor.js:32 blocks/form/editor.js:234 packages/builder-ui/src/ui/Appointments.tsx:404 packages/builder-ui/src/ui/Appointments.tsx:820 packages/builder-ui/src/ui/Entries.tsx:550 packages/builder-ui/src/ui/Entries.tsx:950 packages/builder-ui/src/ui/FormsList.tsx:297 packages/builder-ui/src/ui/Inspector.tsx:185
 msgid "Form"
 msgstr ""
 
@@ -1357,7 +1361,7 @@ msgstr ""
 msgid "The conversion before the first test and of the variant each test kept, measured while it ran."
 msgstr ""
 
-#: src/Admin/ExperimentStatsSection.php:378 src/Admin/FormStatsPage.php:265 src/Admin/StatsExport.php:134 src/Admin/StatsExport.php:177 packages/builder-ui/src/ui/Canvas.tsx:81 packages/builder-ui/src/ui/Experiments.tsx:229 packages/builder-ui/src/ui/Inspector.tsx:238 packages/builder-ui/src/ui/Inspector.tsx:508 packages/builder-ui/src/ui/Logic.tsx:45 packages/builder-ui/src/ui/PredictionHistory.tsx:179 packages/builder-ui/src/ui/Stats.tsx:205
+#: src/Admin/ExperimentStatsSection.php:378 src/Admin/FormStatsPage.php:265 src/Admin/StatsExport.php:134 src/Admin/StatsExport.php:177 packages/builder-ui/src/ui/Canvas.tsx:82 packages/builder-ui/src/ui/Experiments.tsx:229 packages/builder-ui/src/ui/Inspector.tsx:239 packages/builder-ui/src/ui/Inspector.tsx:509 packages/builder-ui/src/ui/Logic.tsx:45 packages/builder-ui/src/ui/PredictionHistory.tsx:179 packages/builder-ui/src/ui/Stats.tsx:205
 msgid "Step"
 msgstr ""
 
@@ -1500,7 +1504,7 @@ msgstr ""
 msgid "Step without a title"
 msgstr ""
 
-#: src/Admin/FormStatsPage.php:252 src/Admin/StatsExport.php:176 packages/builder-ui/src/ui/Inspector.tsx:188 packages/builder-ui/src/ui/Logic.tsx:68
+#: src/Admin/FormStatsPage.php:252 src/Admin/StatsExport.php:176 packages/builder-ui/src/ui/Inspector.tsx:189 packages/builder-ui/src/ui/Logic.tsx:68
 msgid "Steps"
 msgstr ""
 
@@ -1937,11 +1941,11 @@ msgstr ""
 msgid "User name"
 msgstr ""
 
-#: src/Admin/MailServerSection.php:167 src/Frontend/Renderer.php:723 src/Integrations/Crm/CrmCatalog.php:214 packages/builder-ui/src/ui/BookingTypes.tsx:1110
+#: src/Admin/MailServerSection.php:167 src/Frontend/Renderer.php:724 src/Integrations/Crm/CrmCatalog.php:214 packages/builder-ui/src/ui/BookingTypes.tsx:1110
 msgid "Password"
 msgstr ""
 
-#: src/Admin/MailServerSection.php:168 src/Admin/SettingsPage.php:470
+#: src/Admin/MailServerSection.php:168 src/Admin/SettingsPage.php:475
 msgid "Saved; leave empty to keep it"
 msgstr ""
 
@@ -1977,7 +1981,7 @@ msgstr ""
 msgid "So no notification gets lost while the server is down. This page shows when it happened."
 msgstr ""
 
-#: src/Admin/MailServerSection.php:190 src/Admin/MigrationPage.php:1502 src/Admin/SettingsPage.php:275 src/Admin/SettingsPage.php:293 src/Admin/SettingsPage.php:479 packages/builder-ui/src/ui/Actions.tsx:729 packages/builder-ui/src/ui/BookingTypes.tsx:366 packages/builder-ui/src/ui/CrmConnections.tsx:182 packages/builder-ui/src/ui/Embed.tsx:223 packages/builder-ui/src/ui/Entries.tsx:1226 packages/builder-ui/src/ui/IntegrationsHub.tsx:749 packages/builder-ui/src/ui/Settings.tsx:906 packages/builder-ui/src/ui/WhatsAppTemplates.tsx:238
+#: src/Admin/MailServerSection.php:190 src/Admin/MigrationPage.php:1502 src/Admin/SettingsPage.php:280 src/Admin/SettingsPage.php:298 src/Admin/SettingsPage.php:484 packages/builder-ui/src/ui/Actions.tsx:729 packages/builder-ui/src/ui/BookingTypes.tsx:366 packages/builder-ui/src/ui/CrmConnections.tsx:182 packages/builder-ui/src/ui/Embed.tsx:223 packages/builder-ui/src/ui/Entries.tsx:1226 packages/builder-ui/src/ui/IntegrationsHub.tsx:749 packages/builder-ui/src/ui/Settings.tsx:906 packages/builder-ui/src/ui/WhatsAppTemplates.tsx:238
 msgid "Save"
 msgstr ""
 
@@ -2492,7 +2496,7 @@ msgstr ""
 msgid "Choose another filter above."
 msgstr ""
 
-#: src/Admin/MigrationPage.php:1046 src/Admin/SafetySection.php:706 packages/builder-ui/src/ui/Canvas.tsx:124
+#: src/Admin/MigrationPage.php:1046 src/Admin/SafetySection.php:706 packages/builder-ui/src/ui/Canvas.tsx:125
 msgid "Check"
 msgstr ""
 
@@ -2773,7 +2777,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators:%s: name of a Pro feature
-#: src/Admin/MigrationTexts.php:44 packages/builder-ui/src/ui/catalog.ts:85
+#: src/Admin/MigrationTexts.php:44 packages/builder-ui/src/ui/catalog.ts:87
 msgid "The form uses “%s”, which is part of Funnelforms Pro, so Funnelforms Free cannot publish it."
 msgstr ""
 
@@ -3087,7 +3091,7 @@ msgstr ""
 msgid "Uploaded files"
 msgstr ""
 
-#: src/Admin/MigrationTexts.php:315 packages/builder-ui/src/ui/Inspector.tsx:192 packages/builder-ui/src/ui/Palette.tsx:100 packages/builder-ui/src/ui/Palette.tsx:106 packages/builder-ui/src/ui/Quiz.tsx:271 packages/builder-ui/src/ui/Quiz.tsx:278
+#: src/Admin/MigrationTexts.php:315 packages/builder-ui/src/ui/Inspector.tsx:193 packages/builder-ui/src/ui/Palette.tsx:100 packages/builder-ui/src/ui/Palette.tsx:106 packages/builder-ui/src/ui/Quiz.tsx:271 packages/builder-ui/src/ui/Quiz.tsx:278
 msgid "Questions"
 msgstr ""
 
@@ -3099,7 +3103,7 @@ msgstr ""
 msgid "Additional values"
 msgstr ""
 
-#: src/Admin/MigrationTexts.php:322 src/Admin/SettingsPage.php:70 src/Admin/SettingsPage.php:211 packages/builder-ui/src/ui/Builder.tsx:293 packages/builder-ui/src/ui/Inspector.tsx:180 packages/builder-ui/src/ui/Workspaces.tsx:260 packages/builder-ui/src/ui/Workspaces.tsx:276
+#: src/Admin/MigrationTexts.php:322 src/Admin/SettingsPage.php:70 src/Admin/SettingsPage.php:211 packages/builder-ui/src/ui/Builder.tsx:293 packages/builder-ui/src/ui/Inspector.tsx:181 packages/builder-ui/src/ui/Workspaces.tsx:260 packages/builder-ui/src/ui/Workspaces.tsx:276
 msgid "Settings"
 msgstr ""
 
@@ -3378,7 +3382,7 @@ msgstr ""
 msgid "View entries"
 msgstr ""
 
-#: src/Admin/OverviewPage.php:259 src/Admin/SupportPage.php:393 src/Edition/UpgradePage.php:361
+#: src/Admin/OverviewPage.php:259 src/Admin/SupportPage.php:498 src/Edition/UpgradePage.php:361
 msgid "Help center"
 msgstr ""
 
@@ -3785,109 +3789,113 @@ msgid_plural "We delete form entries after %d days."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Admin/ProSettings.php:65 packages/builder-ui/src/ui/Integrations.tsx:273
+#: src/Admin/ProSettings.php:66 packages/builder-ui/src/ui/Integrations.tsx:273
 msgid "Interfaces"
 msgstr ""
 
-#: src/Admin/ProSettings.php:133
-msgid "Address fields"
-msgstr ""
-
-#: src/Admin/ProSettings.php:133
-msgid "Address suggestions and the map need your own Google Maps JavaScript API key with the Places API enabled. Restrict the key to your website in the Google Cloud console. Forms with address suggestions stay on Funnelforms 3 until a key is set."
-msgstr ""
-
-#: src/Admin/ProSettings.php:137
-msgid "Google Maps key"
-msgstr ""
-
-#: src/Admin/ProSettings.php:139
-msgid "Save key"
-msgstr ""
-
-#: src/Admin/ProSettings.php:149 src/Edition/Edition.php:362
-msgid "Webhooks"
+#: src/Admin/ProSettings.php:73
+msgid "Plugin version"
 msgstr ""
 
 #: src/Admin/ProSettings.php:149
+msgid "Address fields"
+msgstr ""
+
+#: src/Admin/ProSettings.php:149
+msgid "Address suggestions and the map need your own Google Maps JavaScript API key with the Places API enabled. Restrict the key to your website in the Google Cloud console. Forms with address suggestions stay on Funnelforms 3 until a key is set."
+msgstr ""
+
+#: src/Admin/ProSettings.php:153
+msgid "Google Maps key"
+msgstr ""
+
+#: src/Admin/ProSettings.php:155
+msgid "Save key"
+msgstr ""
+
+#: src/Admin/ProSettings.php:165 src/Edition/Edition.php:362
+msgid "Webhooks"
+msgstr ""
+
+#: src/Admin/ProSettings.php:165
 msgid "Forms on the new renderer sign every webhook with this secret (headers X-Funnelforms-Timestamp, X-Funnelforms-Signature and X-Funnelforms-Delivery). Receivers that check the signature need it; the content of the webhooks stays as in Funnelforms 3."
 msgstr ""
 
-#: src/Admin/ProSettings.php:154
+#: src/Admin/ProSettings.php:170
 msgid "Webhook secret"
 msgstr ""
 
-#: src/Admin/ProSettings.php:156
+#: src/Admin/ProSettings.php:172
 msgid "Create a new secret"
 msgstr ""
 
-#: src/Admin/ProSettings.php:169
+#: src/Admin/ProSettings.php:185
 msgid "Put into the spam folder"
 msgstr ""
 
-#: src/Admin/ProSettings.php:170
+#: src/Admin/ProSettings.php:186
 msgid "Refuse with a neutral message"
 msgstr ""
 
-#: src/Admin/ProSettings.php:183
+#: src/Admin/ProSettings.php:199
 msgid "Words and phrases"
 msgstr ""
 
-#: src/Admin/ProSettings.php:183
+#: src/Admin/ProSettings.php:199
 msgid "One per line. Found as whole words in what visitors type, without case."
 msgstr ""
 
-#: src/Admin/ProSettings.php:184
+#: src/Admin/ProSettings.php:200
 msgid "E-mail addresses and domains"
 msgstr ""
 
-#: src/Admin/ProSettings.php:184
+#: src/Admin/ProSettings.php:200
 msgid "One per line: an address (name@example.com) or a domain (example.com, which includes its subdomains)."
 msgstr ""
 
-#: src/Admin/ProSettings.php:185
+#: src/Admin/ProSettings.php:201
 msgid "IP addresses and ranges"
 msgstr ""
 
-#: src/Admin/ProSettings.php:185
+#: src/Admin/ProSettings.php:201
 msgid "One per line: an IPv4 or IPv6 address, or a range such as 203.0.113.0/24."
 msgstr ""
 
-#: src/Admin/ProSettings.php:187 src/Application/SpamCheck.php:174
+#: src/Admin/ProSettings.php:203 src/Application/SpamCheck.php:174
 msgid "Blocklists"
 msgstr ""
 
-#: src/Admin/ProSettings.php:187
+#: src/Admin/ProSettings.php:203
 msgid "Entries that match a list go into the spam folder or are refused, as you choose per list. Refused visitors see the general error of the form, which does not say why."
 msgstr ""
 
 #. translators:%s: name of a blocklist
-#: src/Admin/ProSettings.php:198
+#: src/Admin/ProSettings.php:214
 msgid "What happens with entries that match: %s"
 msgstr ""
 
-#: src/Admin/ProSettings.php:206
+#: src/Admin/ProSettings.php:222
 msgid "Throwaway e-mail addresses"
 msgstr ""
 
 #. translators:%d: number of e-mail services
-#: src/Admin/ProSettings.php:209
+#: src/Admin/ProSettings.php:225
 msgid "Addresses of %d known throwaway e-mail services, such as Mailinator or Trashmail."
 msgstr ""
 
-#: src/Admin/ProSettings.php:210
+#: src/Admin/ProSettings.php:226
 msgid "What happens with throwaway e-mail addresses"
 msgstr ""
 
-#: src/Admin/ProSettings.php:222
+#: src/Admin/ProSettings.php:238
 msgid "Forms on other websites"
 msgstr ""
 
-#: src/Admin/ProSettings.php:222
+#: src/Admin/ProSettings.php:238
 msgid "The external embed code shows forms on other websites. List the websites that may use it, one per line; subdomains are included. Leave the field empty to allow any website, as Funnelforms 3 did."
 msgstr ""
 
-#: src/Admin/ProSettings.php:226 src/Admin/SiteHealth.php:177
+#: src/Admin/ProSettings.php:242 src/Admin/SiteHealth.php:177
 msgid "Websites that may embed forms"
 msgstr ""
 
@@ -3899,7 +3907,7 @@ msgstr ""
 msgid "Recommend"
 msgstr ""
 
-#: src/Admin/ReferPage.php:71 src/Admin/SetupPage.php:501 src/Frontend/Renderer.php:676 packages/builder-ui/src/ui/EmbedParts.tsx:31 packages/builder-ui/src/ui/FormsList.tsx:413 packages/builder-ui/src/ui/IntegrationsHub.tsx:744 packages/builder-ui/src/ui/Settings.tsx:915
+#: src/Admin/ReferPage.php:71 src/Admin/SetupPage.php:501 src/Frontend/Renderer.php:677 packages/builder-ui/src/ui/EmbedParts.tsx:31 packages/builder-ui/src/ui/FormsList.tsx:413 packages/builder-ui/src/ui/IntegrationsHub.tsx:744 packages/builder-ui/src/ui/Settings.tsx:915
 msgid "Copied"
 msgstr ""
 
@@ -3940,7 +3948,7 @@ msgstr ""
 msgid "Join the partner program"
 msgstr ""
 
-#: src/Admin/ReferPage.php:149 src/Admin/SupportPage.php:67 src/Admin/SupportPage.php:338 src/Admin/SupportPage.php:687
+#: src/Admin/ReferPage.php:149 src/Admin/SupportPage.php:77 src/Admin/SupportPage.php:438 src/Admin/SupportPage.php:987
 msgid "Support"
 msgstr ""
 
@@ -4339,7 +4347,7 @@ msgstr ""
 msgid "Yes, back to Funnelforms 3"
 msgstr ""
 
-#: src/Admin/SafetySection.php:917 src/Admin/SafetySection.php:973 src/Admin/SafetySection.php:1038 src/Admin/SafetySection.php:1087 packages/builder-ui/src/ui/Actions.tsx:682 packages/builder-ui/src/ui/Actions.tsx:726 packages/builder-ui/src/ui/Actions.tsx:774 packages/builder-ui/src/ui/Answers.tsx:262 packages/builder-ui/src/ui/BookingTypes.tsx:363 packages/builder-ui/src/ui/BookingTypes.tsx:1028 packages/builder-ui/src/ui/BrandingImport.tsx:108 packages/builder-ui/src/ui/Builder.tsx:465 packages/builder-ui/src/ui/CalculationsPlus.tsx:192 packages/builder-ui/src/ui/ColorPick.tsx:243 packages/builder-ui/src/ui/CrmAction.tsx:241 packages/builder-ui/src/ui/CrmConnections.tsx:178 packages/builder-ui/src/ui/Design.tsx:899 packages/builder-ui/src/ui/EndProps.tsx:476 packages/builder-ui/src/ui/Entries.tsx:1223 packages/builder-ui/src/ui/Entries.tsx:1428 packages/builder-ui/src/ui/Entries.tsx:1932 packages/builder-ui/src/ui/Integrations.tsx:302 packages/builder-ui/src/ui/IntegrationsHub.tsx:768 packages/builder-ui/src/ui/IntegrationsHub.tsx:860 packages/builder-ui/src/ui/MailEditor.tsx:200 packages/builder-ui/src/ui/Prediction.tsx:402 packages/builder-ui/src/ui/PredictionApply.tsx:235 packages/builder-ui/src/ui/Settings.tsx:143 packages/builder-ui/src/ui/SiteDesign.tsx:78 packages/builder-ui/src/ui/WhatsAppTemplates.tsx:283
+#: src/Admin/SafetySection.php:917 src/Admin/SafetySection.php:973 src/Admin/SafetySection.php:1038 src/Admin/SafetySection.php:1087 src/Application/License/VersionRollback.php:628 packages/builder-ui/src/ui/Actions.tsx:682 packages/builder-ui/src/ui/Actions.tsx:726 packages/builder-ui/src/ui/Actions.tsx:774 packages/builder-ui/src/ui/Answers.tsx:262 packages/builder-ui/src/ui/BookingTypes.tsx:363 packages/builder-ui/src/ui/BookingTypes.tsx:1028 packages/builder-ui/src/ui/BrandingImport.tsx:108 packages/builder-ui/src/ui/Builder.tsx:465 packages/builder-ui/src/ui/CalculationsPlus.tsx:192 packages/builder-ui/src/ui/ColorPick.tsx:243 packages/builder-ui/src/ui/CrmAction.tsx:241 packages/builder-ui/src/ui/CrmConnections.tsx:178 packages/builder-ui/src/ui/Design.tsx:899 packages/builder-ui/src/ui/EndProps.tsx:476 packages/builder-ui/src/ui/Entries.tsx:1223 packages/builder-ui/src/ui/Entries.tsx:1428 packages/builder-ui/src/ui/Entries.tsx:1932 packages/builder-ui/src/ui/Integrations.tsx:302 packages/builder-ui/src/ui/IntegrationsHub.tsx:768 packages/builder-ui/src/ui/IntegrationsHub.tsx:860 packages/builder-ui/src/ui/MailEditor.tsx:200 packages/builder-ui/src/ui/Prediction.tsx:402 packages/builder-ui/src/ui/PredictionApply.tsx:235 packages/builder-ui/src/ui/Settings.tsx:143 packages/builder-ui/src/ui/SiteDesign.tsx:78 packages/builder-ui/src/ui/WhatsAppTemplates.tsx:283
 msgid "Cancel"
 msgstr ""
 
@@ -4815,7 +4823,7 @@ msgid_plural "%s restore points were deleted. The data of Funnelforms 3 and Funn
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Admin/SettingsPage.php:93 packages/builder-ui/src/ui/Inspector.tsx:130 packages/builder-ui/src/ui/Workspaces.tsx:262 packages/builder-ui/src/ui/Workspaces.tsx:278
+#: src/Admin/SettingsPage.php:93 packages/builder-ui/src/ui/Inspector.tsx:131 packages/builder-ui/src/ui/Workspaces.tsx:262 packages/builder-ui/src/ui/Workspaces.tsx:278
 msgid "General"
 msgstr ""
 
@@ -4844,230 +4852,230 @@ msgid "Saved."
 msgstr ""
 
 #. translators:%s: name of a section of the settings, such as "Privacy mode".
-#: src/Admin/SettingsPage.php:290
+#: src/Admin/SettingsPage.php:295
 msgid "Unsaved changes in \"%s\""
 msgstr ""
 
 #. translators:%s: names of the other sections with changes.
-#: src/Admin/SettingsPage.php:292
+#: src/Admin/SettingsPage.php:297
 msgid "Each section is saved on its own. Your changes in %s will be lost. Save anyway?"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:294
+#: src/Admin/SettingsPage.php:299
 msgid "Discard"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:325
+#: src/Admin/SettingsPage.php:330
 msgid "EU (GDPR), recommended"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:325
+#: src/Admin/SettingsPage.php:330
 msgid "Tracking, identifiers and services of other providers only with the visitor's consent."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:326 src/Admin/SiteHealth.php:168
+#: src/Admin/SettingsPage.php:331 src/Admin/SiteHealth.php:168
 msgid "Global (opt-out)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:326
+#: src/Admin/SettingsPage.php:331
 msgid "Without a consent tool, consent counts as given for tracking code, Google Maps and captchas. Conversions to Meta, TikTok and GA4 still need a yes in the cookie banner. A refusal and Global Privacy Control are respected. Only for websites without visitors from the EU."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:327 src/Admin/SiteHealth.php:168
+#: src/Admin/SettingsPage.php:332 src/Admin/SiteHealth.php:168
 msgid "Unrestricted (at your own risk)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:327
+#: src/Admin/SettingsPage.php:332
 msgid "Funnelforms loads tracking codes, sends conversions to Meta, TikTok, Google Analytics and Google Ads, loads maps and captchas without consent and stores full IP addresses, for every visitor."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:329 src/Admin/SettingsPage.php:334 src/Admin/SiteHealth.php:167
+#: src/Admin/SettingsPage.php:334 src/Admin/SettingsPage.php:339 src/Admin/SiteHealth.php:167
 msgid "Privacy mode"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:329
+#: src/Admin/SettingsPage.php:334
 msgid "How every form handles consent for conversions, tracking code, Google Maps and captchas. Consent comes from your cookie banner through the WP Consent API."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:342
+#: src/Admin/SettingsPage.php:347
 msgid "Your own liability"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:342
+#: src/Admin/SettingsPage.php:347
 msgid "In the EU, the EEA, Switzerland and the UK the unrestricted mode is usually not permitted because consent is required. As the website operator you are responsible for making sure this setting is lawful for your visitors (Terms § 7). Funnelforms accepts no liability for it."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:343
+#: src/Admin/SettingsPage.php:348
 msgid "In this mode Funnelforms also ignores a no in the cookie banner and Global Privacy Control. If your website offers visitors a way to decline, that choice is therefore misleading; this is not permitted in the EU, in California and in other US states."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:347
+#: src/Admin/SettingsPage.php:352
 msgid "Only an administrator can switch on the unrestricted mode."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:351
+#: src/Admin/SettingsPage.php:356
 msgid "I have checked that this setting is lawful for my website and take responsibility for it."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:368
+#: src/Admin/SettingsPage.php:373
 msgid "The unrestricted mode is on."
 msgstr ""
 
 #. translators:1: user name, 2: date and time.
-#: src/Admin/SettingsPage.php:373
+#: src/Admin/SettingsPage.php:378
 msgid "The unrestricted mode is on, confirmed by %1$s on %2$s."
 msgstr ""
 
 #. translators:1: user name, 2: date and time.
-#: src/Admin/SettingsPage.php:373
+#: src/Admin/SettingsPage.php:378
 msgid "a deleted user"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:380
+#: src/Admin/SettingsPage.php:385
 msgid "Tracking code"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:380
+#: src/Admin/SettingsPage.php:385
 msgid "Custom JavaScript on the contact step and after sending, such as conversion pixels, and the scripts in content steps run in visitors' browsers only if you allow it here. Forms from Funnelforms 3 with such code stay on Funnelforms 3 until then. Only administrators who may publish unfiltered HTML can change this."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:386
+#: src/Admin/SettingsPage.php:391
 msgid "Run the tracking code and the scripts in the content of my forms"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:398
+#: src/Admin/SettingsPage.php:403
 msgid "Deleting entries"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:398
+#: src/Admin/SettingsPage.php:403
 msgid "Entries older than this are deleted every day, with their uploaded files. 0 keeps entries. Until you save a value here, the setting \"Automatically delete leads\" of Funnelforms 3 applies."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:402
+#: src/Admin/SettingsPage.php:407
 msgid "Delete entries after (days)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:418 src/Admin/SiteHealth.php:164 src/Frontend/ElementorWidget.php:217 blocks/form/editor.js:178 packages/builder-ui/src/ui/BookingTypes.tsx:341 packages/builder-ui/src/ui/BookingTypes.tsx:346 packages/builder-ui/src/ui/Calculations.tsx:390 packages/builder-ui/src/ui/ContentProps.tsx:37 packages/builder-ui/src/ui/Design.tsx:483 packages/builder-ui/src/ui/Design.tsx:492 packages/builder-ui/src/ui/Design.tsx:504 packages/builder-ui/src/ui/Design.tsx:516 packages/builder-ui/src/ui/Design.tsx:672 packages/builder-ui/src/ui/Design.tsx:705 packages/builder-ui/src/ui/EmbedPro.tsx:102 packages/builder-ui/src/ui/EndProps.tsx:140 packages/builder-ui/src/ui/Experiments.tsx:668 packages/builder-ui/src/ui/IconPicker.tsx:283 packages/builder-ui/src/ui/RangeProps.tsx:98
+#: src/Admin/SettingsPage.php:423 src/Admin/SiteHealth.php:164 src/Frontend/ElementorWidget.php:217 blocks/form/editor.js:178 packages/builder-ui/src/ui/BookingTypes.tsx:341 packages/builder-ui/src/ui/BookingTypes.tsx:346 packages/builder-ui/src/ui/Calculations.tsx:390 packages/builder-ui/src/ui/ContentProps.tsx:37 packages/builder-ui/src/ui/Design.tsx:483 packages/builder-ui/src/ui/Design.tsx:492 packages/builder-ui/src/ui/Design.tsx:504 packages/builder-ui/src/ui/Design.tsx:516 packages/builder-ui/src/ui/Design.tsx:672 packages/builder-ui/src/ui/Design.tsx:705 packages/builder-ui/src/ui/EmbedPro.tsx:102 packages/builder-ui/src/ui/EndProps.tsx:140 packages/builder-ui/src/ui/Experiments.tsx:668 packages/builder-ui/src/ui/IconPicker.tsx:283 packages/builder-ui/src/ui/RangeProps.tsx:98
 msgid "None"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:418
+#: src/Admin/SettingsPage.php:423
 msgid "Only the checks that are always on."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:419
+#: src/Admin/SettingsPage.php:424
 msgid "Free and mostly invisible: visitors rarely solve a puzzle. Recommended."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:420
+#: src/Admin/SettingsPage.php:425
 msgid "Focused on privacy; sometimes asks for a puzzle."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:421
+#: src/Admin/SettingsPage.php:426
 msgid "The box \"I'm not a robot\"."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:422
+#: src/Admin/SettingsPage.php:427
 msgid "Invisible: Google rates each visitor. Entries with a low score go into the spam folder instead of being refused."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:425
+#: src/Admin/SettingsPage.php:430
 msgid "The keys work: the provider knows the secret key, and the site key has the right form. Open a form to see the captcha."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:426
+#: src/Admin/SettingsPage.php:431
 msgid "The site key does not look like a key of this service. Did you swap the site key and the secret key, or pick another service?"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:427
+#: src/Admin/SettingsPage.php:432
 msgid "The service does not know this secret key. Copy it again from the service's dashboard."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:428
+#: src/Admin/SettingsPage.php:433
 msgid "The service could not be reached to test the keys. Try again later."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:430 src/Admin/SiteHealth.php:163 packages/builder-ui/src/ui/Settings.tsx:1006 packages/builder-ui/src/ui/Workspaces.tsx:263 packages/builder-ui/src/ui/Workspaces.tsx:287
+#: src/Admin/SettingsPage.php:435 src/Admin/SiteHealth.php:163 packages/builder-ui/src/ui/Settings.tsx:1006 packages/builder-ui/src/ui/Workspaces.tsx:263 packages/builder-ui/src/ui/Workspaces.tsx:287
 msgid "Spam protection"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:430
+#: src/Admin/SettingsPage.php:435
 msgid "Every form already checks a hidden field, the time to fill it in and the number of entries per visitor. A captcha adds a check by a specialised service in the contact step of every form; you can switch it off per form in the form's settings. Its script loads on the contact step after the visitor's consent; mention it in your privacy policy."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:433
+#: src/Admin/SettingsPage.php:438
 msgid "Your forms are protected by:"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:447 packages/builder-ui/src/ui/catalog.ts:46
+#: src/Admin/SettingsPage.php:452 packages/builder-ui/src/ui/catalog.ts:46
 msgid "Captcha"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:456
+#: src/Admin/SettingsPage.php:461
 msgid "Get keys"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:465
+#: src/Admin/SettingsPage.php:470
 msgid "Site key"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:469
+#: src/Admin/SettingsPage.php:474
 msgid "Secret key"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:473
+#: src/Admin/SettingsPage.php:478
 msgid "Lowest score of a person (reCAPTCHA v3)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:475
+#: src/Admin/SettingsPage.php:480
 msgid "Google rates visitors from 0.0 (bot) to 1.0 (person). Entries below this go into the spam folder. 0.5 suits most websites."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:480
+#: src/Admin/SettingsPage.php:485
 msgid "Save and test keys"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:494
+#: src/Admin/SettingsPage.php:499
 msgid "Spam folder"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:494
+#: src/Admin/SettingsPage.php:499
 msgid "Entries that look like spam but could come from a person are not refused: they go into the spam folder of the entries. There they send no mail and run no action, integration or conversion, and they count in no statistics. \"Not spam\" takes an entry back and sends what was held back."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:500
+#: src/Admin/SettingsPage.php:505
 msgid "Delete spam after (days)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:502
+#: src/Admin/SettingsPage.php:507
 msgid "0 keeps spam until you delete it."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:505
+#: src/Admin/SettingsPage.php:510
 msgid "Shortest time to fill in a form (seconds)"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:507
+#: src/Admin/SettingsPage.php:512
 msgid "Faster entries go into the spam folder. 0 only refuses the ones sent within 3 seconds."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:510
+#: src/Admin/SettingsPage.php:515
 msgid "Most entries per visitor and hour"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:512
+#: src/Admin/SettingsPage.php:517
 msgid "Across all forms, by IP address. 0: only the standard limit of 10 entries per form in 10 minutes."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:518
+#: src/Admin/SettingsPage.php:523
 msgid "Check entries with Akismet"
 msgstr ""
 
-#: src/Admin/SettingsPage.php:524
+#: src/Admin/SettingsPage.php:529
 msgid "Uses the key of your Akismet plugin. Name, e-mail address, typed text, page, language, browser and IP address of each entry go to Automattic (USA) for the check; in the EU privacy mode the IP address is shortened first. Mention Akismet in your privacy policy."
 msgstr ""
 
-#: src/Admin/SettingsPage.php:525
+#: src/Admin/SettingsPage.php:530
 msgid "Install the Akismet plugin and connect it with a key to use it here."
 msgstr ""
 
@@ -5111,7 +5119,7 @@ msgstr ""
 msgid "Your Funnelforms 3 data stays untouched."
 msgstr ""
 
-#: src/Admin/SetupPage.php:545 packages/builder-ui/src/ui/Inspector.tsx:143
+#: src/Admin/SetupPage.php:545 packages/builder-ui/src/ui/Inspector.tsx:144
 msgid "Continue later"
 msgstr ""
 
@@ -5990,7 +5998,7 @@ msgstr ""
 msgid "Diagnostic data for Funnelforms"
 msgstr ""
 
-#: src/Admin/SiteHealth.php:182 src/Admin/SupportAccessSection.php:104 src/Admin/SupportPage.php:460
+#: src/Admin/SiteHealth.php:182 src/Admin/SupportAccessSection.php:104 src/Admin/SupportPage.php:565
 msgid "Off"
 msgstr ""
 
@@ -6128,7 +6136,7 @@ msgstr ""
 msgid "Median time on step (seconds)"
 msgstr ""
 
-#: src/Admin/StatsExport.php:188 src/Admin/StatsExport.php:198 packages/builder-ui/src/ui/Inspector.tsx:325 packages/builder-ui/src/ui/Inspector.tsx:569 packages/builder-ui/src/ui/RepeatProps.tsx:192
+#: src/Admin/StatsExport.php:188 src/Admin/StatsExport.php:198 packages/builder-ui/src/ui/Inspector.tsx:326 packages/builder-ui/src/ui/Inspector.tsx:571 packages/builder-ui/src/ui/RepeatProps.tsx:192
 msgid "Question"
 msgstr ""
 
@@ -6423,7 +6431,7 @@ msgstr ""
 msgid "Entries per day"
 msgstr ""
 
-#: src/Admin/StatsPage.php:539 packages/builder-ui/src/ui/Analytics.tsx:95 packages/builder-ui/src/ui/Analytics.tsx:209 packages/builder-ui/src/ui/Analytics.tsx:210 packages/builder-ui/src/ui/Analytics.tsx:282 packages/builder-ui/src/ui/Canvas.tsx:657
+#: src/Admin/StatsPage.php:539 packages/builder-ui/src/ui/Analytics.tsx:95 packages/builder-ui/src/ui/Analytics.tsx:209 packages/builder-ui/src/ui/Analytics.tsx:210 packages/builder-ui/src/ui/Analytics.tsx:282 packages/builder-ui/src/ui/Canvas.tsx:668
 msgid "Analytics"
 msgstr ""
 
@@ -6769,380 +6777,511 @@ msgstr ""
 msgid "Done. Funnelforms support can now log in until %s. You can end it here at any time."
 msgstr ""
 
-#: src/Admin/SupportAccessSection.php:122
+#: src/Admin/SupportAccessSection.php:129
 msgid "Administrator"
 msgstr ""
 
-#: src/Admin/SupportAccessSection.php:122
+#: src/Admin/SupportAccessSection.php:129
 msgid "Funnelforms only"
 msgstr ""
 
 #. translators:%s: ticket number.
-#: src/Admin/SupportAccessSection.php:125
+#: src/Admin/SupportAccessSection.php:132
 msgid "for ticket %s"
 msgstr ""
 
 #. translators:%s: date and time.
-#: src/Admin/SupportAccessSection.php:129
+#: src/Admin/SupportAccessSection.php:136
 msgid "Valid until %s"
 msgstr ""
 
-#: src/Admin/SupportAccessSection.php:133 src/Admin/SupportAccessSection.php:136
+#: src/Admin/SupportAccessSection.php:140 src/Admin/SupportAccessSection.php:143
 msgid "Last login:"
 msgstr ""
 
-#: src/Admin/SupportAccessSection.php:133
+#: src/Admin/SupportAccessSection.php:140
 msgid "Not yet"
 msgstr ""
 
-#: src/Admin/SupportAccessSection.php:145
+#: src/Admin/SupportAccessSection.php:152
 msgid "End now"
 msgstr ""
 
-#: src/Admin/SupportAccessSection.php:155
+#: src/Admin/SupportAccessSection.php:162
 msgid "Give access for 48 hours"
 msgstr ""
 
-#: src/Admin/SupportAccessSection.php:156
-msgid "Administrator for the whole website, so support can also change pages and the theme."
+#: src/Admin/SupportAccessSection.php:163
+msgid "Administrator for the whole website: support may also update plugins, Funnelforms included, and change pages and the theme."
 msgstr ""
 
 #. translators:%s: link to the account page.
-#: src/Admin/SupportAccessSection.php:162
+#: src/Admin/SupportAccessSection.php:169
 msgid "Support can log in once you %s."
 msgstr ""
 
 #. translators:%s: link to the account page.
-#: src/Admin/SupportAccessSection.php:162
+#: src/Admin/SupportAccessSection.php:169
 msgid "connect this website with Funnelforms"
 msgstr ""
 
-#: src/Admin/SupportAccessSection.php:167
+#: src/Admin/SupportAccessSection.php:174
 msgid "A user of its own, never your password; nothing to copy or send."
 msgstr ""
 
-#: src/Admin/SupportAccessSection.php:168
+#: src/Admin/SupportAccessSection.php:175
 msgid "Ends by itself; you can end it here at any time."
 msgstr ""
 
-#: src/Admin/SupportAccessSection.php:169
-msgid "Support works as an administrator of the whole website. Every login is recorded."
+#: src/Admin/SupportAccessSection.php:176
+msgid "Support works as an administrator of the whole website and may update plugins. Every login is recorded."
 msgstr ""
 
-#: src/Admin/SupportPage.php:90
+#: src/Admin/SupportPage.php:100
 msgid "Looking in the help center…"
 msgstr ""
 
-#: src/Admin/SupportPage.php:91
+#: src/Admin/SupportPage.php:101
 msgid "Writing a short answer from these articles…"
 msgstr ""
 
-#: src/Admin/SupportPage.php:92 src/Admin/SupportPage.php:494
+#: src/Admin/SupportPage.php:102 src/Admin/SupportPage.php:599
 msgid "Short answer from the help center (AI)"
 msgstr ""
 
-#: src/Admin/SupportPage.php:93 src/Admin/SupportPage.php:491
+#: src/Admin/SupportPage.php:103 src/Admin/SupportPage.php:596
 msgid "This might help"
 msgstr ""
 
-#: src/Admin/SupportPage.php:94
+#: src/Admin/SupportPage.php:104
 msgid "No article fits this question. Write to us, we answer by e-mail."
 msgstr ""
 
-#: src/Admin/SupportPage.php:95 src/Admin/SupportPage.php:408
+#: src/Admin/SupportPage.php:105 src/Admin/SupportPage.php:513
 msgid "The help center cannot be reached right now. Write to us directly, we answer by e-mail."
 msgstr ""
 
-#: src/Admin/SupportPage.php:96 src/Admin/SupportPage.php:512
+#: src/Admin/SupportPage.php:106 src/Admin/SupportPage.php:617
 msgid "That helped"
 msgstr ""
 
-#: src/Admin/SupportPage.php:97
+#: src/Admin/SupportPage.php:107
 msgid "Write to support"
 msgstr ""
 
-#: src/Admin/SupportPage.php:98 src/Admin/SupportPage.php:355
+#: src/Admin/SupportPage.php:108 src/Admin/SupportPage.php:455
 msgid "Glad it helped!"
 msgstr ""
 
-#: src/Admin/SupportPage.php:197
+#: src/Admin/SupportPage.php:110 src/Admin/SupportPage.php:647
+msgid "Write a ticket"
+msgstr ""
+
+#: src/Admin/SupportPage.php:221
 msgid "Your answer is on its way. We answer here and by e-mail."
 msgstr ""
 
-#: src/Admin/SupportPage.php:207
+#: src/Admin/SupportPage.php:231
 msgid "The ticket is closed. If the problem comes back, just answer here."
 msgstr ""
 
-#: src/Admin/SupportPage.php:244 packages/builder-ui/src/ui/Entries.tsx:532
+#: src/Admin/SupportPage.php:342 packages/builder-ui/src/ui/Entries.tsx:532
 msgid "Open"
 msgstr ""
 
-#: src/Admin/SupportPage.php:245
+#: src/Admin/SupportPage.php:343
 msgid "Waiting for your answer"
 msgstr ""
 
-#: src/Admin/SupportPage.php:246
+#: src/Admin/SupportPage.php:344
 msgid "Solved"
 msgstr ""
 
-#: src/Admin/SupportPage.php:258
+#: src/Admin/SupportPage.php:356
 msgid "Something does not work"
 msgstr ""
 
-#: src/Admin/SupportPage.php:259
+#: src/Admin/SupportPage.php:357
 msgid "My forms stopped working"
 msgstr ""
 
-#: src/Admin/SupportPage.php:260
+#: src/Admin/SupportPage.php:358
 msgid "Question about using Funnelforms"
 msgstr ""
 
-#: src/Admin/SupportPage.php:261
+#: src/Admin/SupportPage.php:359
 msgid "License, plan or invoice"
 msgstr ""
 
-#: src/Admin/SupportPage.php:262
+#: src/Admin/SupportPage.php:360
 msgid "Idea or wish"
 msgstr ""
 
-#: src/Admin/SupportPage.php:263
+#: src/Admin/SupportPage.php:361
 msgid "Report a security issue"
 msgstr ""
 
-#: src/Admin/SupportPage.php:286
+#: src/Admin/SupportPage.php:384
 msgid "E-mails of a form do not arrive"
 msgstr ""
 
-#: src/Admin/SupportPage.php:287
+#: src/Admin/SupportPage.php:385
 msgid "Connect Google Calendar"
 msgstr ""
 
-#: src/Admin/SupportPage.php:288
+#: src/Admin/SupportPage.php:386
 msgid "Show a form on my website"
 msgstr ""
 
-#: src/Admin/SupportPage.php:289
+#: src/Admin/SupportPage.php:387
 msgid "Move forms from Funnelforms 3"
 msgstr ""
 
-#: src/Admin/SupportPage.php:339
+#: src/Admin/SupportPage.php:439
 msgid "Answers in seconds, a direct line to the Funnelforms team and safe access for support."
 msgstr ""
 
 #. translators:%s: ticket number.
-#: src/Admin/SupportPage.php:349
+#: src/Admin/SupportPage.php:449
 msgid "Thank you! Your ticket %s has arrived at Funnelforms support. We answer by e-mail."
 msgstr ""
 
-#: src/Admin/SupportPage.php:394
+#: src/Admin/SupportPage.php:499
 msgid "How can we help?"
 msgstr ""
 
-#: src/Admin/SupportPage.php:395
+#: src/Admin/SupportPage.php:500
 msgid "Ask in your own words. Answers from the help center appear while you type; if they do not solve it, write to us."
 msgstr ""
 
-#: src/Admin/SupportPage.php:395
+#: src/Admin/SupportPage.php:500
 msgid "Open the help center"
 msgstr ""
 
-#: src/Admin/SupportPage.php:400
+#: src/Admin/SupportPage.php:505
 msgid "For example: How do I connect Google Calendar?"
 msgstr ""
 
-#: src/Admin/SupportPage.php:402
+#: src/Admin/SupportPage.php:507
 msgid "Find help"
 msgstr ""
 
-#: src/Admin/SupportPage.php:411
+#: src/Admin/SupportPage.php:516
 msgid "Popular questions"
 msgstr ""
 
-#: src/Admin/SupportPage.php:417
+#: src/Admin/SupportPage.php:522
 msgid "Urgent?"
 msgstr ""
 
-#: src/Admin/SupportPage.php:424
+#: src/Admin/SupportPage.php:529
 msgid "Your support"
 msgstr ""
 
-#: src/Admin/SupportPage.php:430 packages/builder-ui/src/ui/Integrations.tsx:398 packages/builder-ui/src/ui/IntegrationsHub.tsx:183 packages/builder-ui/src/ui/IntegrationsHub.tsx:183 packages/builder-ui/src/ui/IntegrationsHub.tsx:711
+#: src/Admin/SupportPage.php:535 packages/builder-ui/src/ui/Integrations.tsx:398 packages/builder-ui/src/ui/IntegrationsHub.tsx:183 packages/builder-ui/src/ui/IntegrationsHub.tsx:183 packages/builder-ui/src/ui/IntegrationsHub.tsx:711
 msgid "Connected"
 msgstr ""
 
-#: src/Admin/SupportPage.php:432 packages/builder-ui/src/ui/BookingTypes.tsx:1051 packages/builder-ui/src/ui/IntegrationsHub.tsx:864
+#: src/Admin/SupportPage.php:537 src/Admin/SupportPage.php:800 packages/builder-ui/src/ui/BookingTypes.tsx:1051 packages/builder-ui/src/ui/IntegrationsHub.tsx:864
 msgid "Connect"
 msgstr ""
 
-#: src/Admin/SupportPage.php:437
+#: src/Admin/SupportPage.php:542
 msgid "Open tickets"
 msgstr ""
 
-#: src/Admin/SupportPage.php:452
+#: src/Admin/SupportPage.php:557
 msgid "Support access"
 msgstr ""
 
 #. translators:%s: date.
-#: src/Admin/SupportPage.php:455
+#: src/Admin/SupportPage.php:560
 msgid "until %s"
 msgstr ""
 
-#: src/Admin/SupportPage.php:466
+#: src/Admin/SupportPage.php:571
 msgid "Only when you add them"
 msgstr ""
 
-#: src/Admin/SupportPage.php:513
+#: src/Admin/SupportPage.php:618
 msgid "Continue to support"
 msgstr ""
 
-#: src/Admin/SupportPage.php:534
+#: src/Admin/SupportPage.php:639
 msgid "Ask support"
 msgstr ""
 
-#: src/Admin/SupportPage.php:535
+#: src/Admin/SupportPage.php:640
 msgid "Your message goes straight to the Funnelforms team. We answer by e-mail."
 msgstr ""
 
-#: src/Admin/SupportPage.php:541
+#: src/Admin/SupportPage.php:646
 msgid "Try the help center first; most answers are there in seconds. Did not find it? Write to us."
 msgstr ""
 
-#: src/Admin/SupportPage.php:542
-msgid "Write a ticket"
-msgstr ""
-
-#: src/Admin/SupportPage.php:551
+#: src/Admin/SupportPage.php:656
 msgid "What is it about?"
 msgstr ""
 
-#: src/Admin/SupportPage.php:560 packages/builder-ui/src/ui/Actions.tsx:944 packages/builder-ui/src/ui/Appointments.tsx:1140 packages/builder-ui/src/ui/Settings.tsx:276 packages/builder-ui/src/ui/Settings.tsx:438
+#: src/Admin/SupportPage.php:665 packages/builder-ui/src/ui/Actions.tsx:944 packages/builder-ui/src/ui/Appointments.tsx:1140 packages/builder-ui/src/ui/Settings.tsx:276 packages/builder-ui/src/ui/Settings.tsx:438
 msgid "Subject"
 msgstr ""
 
-#: src/Admin/SupportPage.php:564
+#: src/Admin/SupportPage.php:669
 msgid "Describe the problem"
 msgstr ""
 
-#: src/Admin/SupportPage.php:565
+#: src/Admin/SupportPage.php:670
 msgid "What did you do, what did you expect, what happened? Which form and page?"
 msgstr ""
 
-#: src/Admin/SupportPage.php:568
+#: src/Admin/SupportPage.php:673
 msgid "Answer to"
 msgstr ""
 
 #. translators:1: WordPress version, 2: PHP version, 3: Funnelforms version, 4: number of forms, 5: failed deliveries.
-#: src/Admin/SupportPage.php:579
+#: src/Admin/SupportPage.php:684
 msgid "WordPress %1$s · PHP %2$s · Funnelforms %3$s · %4$s forms · %5$s failed deliveries in 30 days"
 msgstr ""
 
-#: src/Admin/SupportPage.php:589
+#: src/Admin/SupportPage.php:694
 msgid "Versions, settings, form structure and error codes, so support sees the problem at once. No entries, contact data or keys."
 msgstr ""
 
-#: src/Admin/SupportPage.php:596
+#: src/Admin/SupportPage.php:701
 msgid "Let support log in to look at the problem"
 msgstr ""
 
-#: src/Admin/SupportPage.php:597
-msgid "Support gets an administrator login of its own for the whole website, for 48 hours. No password is sent; you can end it at any time, and every login is recorded."
+#: src/Admin/SupportPage.php:702
+msgid "Support gets an administrator login of its own for the whole website, for 48 hours, and may also update plugins, Funnelforms included. No password is sent; you can end it at any time, and every login is recorded."
 msgstr ""
 
-#: src/Admin/SupportPage.php:606
+#: src/Admin/SupportPage.php:714
 msgid "Your request goes to Funnelforms support. Your message, your e-mail address and anything you add above are stored in our own support system. They are kept as long as needed to handle your request."
 msgstr ""
 
-#: src/Admin/SupportPage.php:609
+#: src/Admin/SupportPage.php:717
 msgid "Send to support"
 msgstr ""
 
-#: src/Admin/SupportPage.php:611
+#: src/Admin/SupportPage.php:719
 msgid "Sent with your e-mail address only, as this website is not connected."
 msgstr ""
 
-#: src/Admin/SupportPage.php:634
+#: src/Admin/SupportPage.php:734 packages/builder-ui/src/ui/Entries.tsx:951
+msgid "Received"
+msgstr ""
+
+#: src/Admin/SupportPage.php:735
+msgid "Open for voting"
+msgstr ""
+
+#: src/Admin/SupportPage.php:736
+msgid "Planned"
+msgstr ""
+
+#: src/Admin/SupportPage.php:737
+msgid "In development"
+msgstr ""
+
+#: src/Admin/SupportPage.php:738
+msgid "Released"
+msgstr ""
+
+#: src/Admin/SupportPage.php:739
+msgid "Not planned"
+msgstr ""
+
+#: src/Admin/SupportPage.php:740
+msgid "Merged with another idea"
+msgstr ""
+
+#: src/Admin/SupportPage.php:775
+msgid "Suggest an idea or wish"
+msgstr ""
+
+#: src/Admin/SupportPage.php:776
+msgid "We take the wishes of our customers seriously. Tell us your idea for the further development of Funnelforms. You can also vote on the ideas of other customers below."
+msgstr ""
+
+#. translators:%s: number of the idea.
+#: src/Admin/SupportPage.php:784
+msgid "Thank you! Your idea #%s has arrived. We read every idea and open good ones for voting."
+msgstr ""
+
+#: src/Admin/SupportPage.php:790
+msgid "Ideas and wishes have their own form, so other customers can vote for them. We moved your text there."
+msgstr ""
+
+#: src/Admin/SupportPage.php:794 src/Application/FeatureIdeas.php:139
+msgid "This idea has already been suggested. Please vote for it."
+msgstr ""
+
+#: src/Admin/SupportPage.php:795
+msgid "Go to the idea"
+msgstr ""
+
+#: src/Admin/SupportPage.php:799 src/Admin/SupportPage.php:854
+msgid "Connect this website with Funnelforms to suggest ideas and vote on them."
+msgstr ""
+
+#: src/Admin/SupportPage.php:804
+msgid "Write your idea"
+msgstr ""
+
+#: src/Admin/SupportPage.php:814
+msgid "Your idea in one line"
+msgstr ""
+
+#: src/Admin/SupportPage.php:818
+msgid "What should it do, and what would it help you with?"
+msgstr ""
+
+#: src/Admin/SupportPage.php:823
+msgid "Your idea is stored with Funnelforms together with your license. If we open it for voting, other customers see it without your name or website."
+msgstr ""
+
+#: src/Admin/SupportPage.php:826
+msgid "Send idea"
+msgstr ""
+
+#: src/Admin/SupportPage.php:826
+msgid "Suggest it anyway"
+msgstr ""
+
+#: src/Admin/SupportPage.php:848
+msgid "Ideas from customers"
+msgstr ""
+
+#: src/Admin/SupportPage.php:849
+msgid "Vote on the ideas we picked: one vote per idea and license. A vote cannot be changed."
+msgstr ""
+
+#: src/Admin/SupportPage.php:856
+msgid "The ideas cannot be loaded right now."
+msgstr ""
+
+#: src/Admin/SupportPage.php:859
+msgid "No ideas to vote on yet. Suggest the first one above."
+msgstr ""
+
+#: src/Admin/SupportPage.php:875
+msgid "Thank you for your vote!"
+msgstr ""
+
+#. translators:%s: number of votes.
+#: src/Admin/SupportPage.php:881
+msgid "For: %s"
+msgstr ""
+
+#. translators:%s: number of votes.
+#: src/Admin/SupportPage.php:883
+msgid "Against: %s"
+msgstr ""
+
+#: src/Admin/SupportPage.php:886
+msgid "You voted for it"
+msgstr ""
+
+#: src/Admin/SupportPage.php:888
+msgid "You voted against it"
+msgstr ""
+
+#: src/Admin/SupportPage.php:894
+msgid "Good idea"
+msgstr ""
+
+#: src/Admin/SupportPage.php:895
+msgid "Not for me"
+msgstr ""
+
+#: src/Admin/SupportPage.php:904
+msgid "Your suggestions"
+msgstr ""
+
+#: src/Admin/SupportPage.php:934
 msgid "Your tickets"
 msgstr ""
 
 #. translators:%s: link to the account page.
-#: src/Admin/SupportPage.php:640
+#: src/Admin/SupportPage.php:940
 msgid "Tip: %s to see the status of your tickets here and to let support log in."
 msgstr ""
 
 #. translators:%s: link to the account page.
-#: src/Admin/SupportPage.php:640
+#: src/Admin/SupportPage.php:940
 msgid "Connect this website with Funnelforms"
 msgstr ""
 
-#: src/Admin/SupportPage.php:644
+#: src/Admin/SupportPage.php:944
 msgid "The status of your tickets cannot be loaded right now. Answers still reach you by e-mail."
 msgstr ""
 
-#: src/Admin/SupportPage.php:646
+#: src/Admin/SupportPage.php:946
 msgid "No tickets from this website yet."
 msgstr ""
 
 #. translators:%s: time since the last change, e.g. 2 hours.
-#: src/Admin/SupportPage.php:663
+#: src/Admin/SupportPage.php:963
 msgid "updated %s ago"
 msgstr ""
 
-#: src/Admin/SupportPage.php:694 src/Admin/SupportPage.php:706
+#: src/Admin/SupportPage.php:994 src/Admin/SupportPage.php:1006
 msgid "Back to support"
 msgstr ""
 
-#: src/Admin/SupportPage.php:705
+#: src/Admin/SupportPage.php:1005
 msgid "The ticket cannot be loaded right now. Answers still reach you by e-mail."
 msgstr ""
 
 #. translators:%s: time since the ticket was written, e.g. 2 hours.
-#: src/Admin/SupportPage.php:736
+#: src/Admin/SupportPage.php:1036
 msgid "opened %s ago"
 msgstr ""
 
-#: src/Admin/SupportPage.php:742
+#: src/Admin/SupportPage.php:1042
 msgid "Conversation"
 msgstr ""
 
-#: src/Admin/SupportPage.php:760
+#: src/Admin/SupportPage.php:1060
 msgid "Your answer"
 msgstr ""
 
-#: src/Admin/SupportPage.php:764
+#: src/Admin/SupportPage.php:1064
 msgid "Send answer"
 msgstr ""
 
-#: src/Admin/SupportPage.php:766
+#: src/Admin/SupportPage.php:1066
 msgid "Your answer opens the ticket again."
 msgstr ""
 
-#: src/Admin/SupportPage.php:776
+#: src/Admin/SupportPage.php:1076
 msgid "Problem solved by itself? Close the ticket. You can open it again at any time with an answer."
 msgstr ""
 
-#: src/Admin/SupportPage.php:777
+#: src/Admin/SupportPage.php:1077
 msgid "Close ticket"
 msgstr ""
 
-#: src/Admin/SupportPage.php:794
+#: src/Admin/SupportPage.php:1094
 msgid "You closed the ticket."
 msgstr ""
 
-#: src/Admin/SupportPage.php:799
+#: src/Admin/SupportPage.php:1099
 msgid "You"
 msgstr ""
 
 #. translators:%s: first name of the person in the Funnelforms team.
-#: src/Admin/SupportPage.php:802
+#: src/Admin/SupportPage.php:1102
 msgid "%s from Funnelforms"
 msgstr ""
 
-#: src/Admin/SupportPage.php:804 src/Application/SupportAccess.php:156
+#: src/Admin/SupportPage.php:1104 src/Application/SupportAccess.php:176
 msgid "Funnelforms support"
 msgstr ""
 
 #. translators:%d: tickets waiting for an answer of the customer.
-#: src/Admin/SupportPage.php:443
+#: src/Admin/SupportPage.php:548
 msgid "%d waits for you"
 msgid_plural "%d wait for you"
 msgstr[0] ""
@@ -7245,7 +7384,7 @@ msgstr ""
 msgid "You get this reminder because you entered your address in our form."
 msgstr ""
 
-#: src/Application/Abandonment.php:441 src/Frontend/AbandonPage.php:74 src/Frontend/Renderer.php:758
+#: src/Application/Abandonment.php:441 src/Frontend/AbandonPage.php:74 src/Frontend/Renderer.php:759
 msgid "Don't remind me"
 msgstr ""
 
@@ -7438,7 +7577,7 @@ msgid "Your appointment was cancelled."
 msgstr ""
 
 #. translators:%s: name of the appointment type.
-#: src/Application/BookingNotices.php:270 src/Frontend/Renderer.php:707
+#: src/Application/BookingNotices.php:270 src/Frontend/Renderer.php:708
 msgid "Your appointment: %s"
 msgstr ""
 
@@ -7587,7 +7726,35 @@ msgstr ""
 msgid "Variant %s"
 msgstr ""
 
-#: src/Application/FormAccess.php:88 src/Frontend/Renderer.php:726
+#: src/Application/FeatureIdeas.php:114 src/Application/FeatureIdeas.php:149
+msgid "Give your idea a title (5 to 150 characters) and describe it (10 to 3000 characters)."
+msgstr ""
+
+#: src/Application/FeatureIdeas.php:143
+msgid "You have suggested many ideas today. Please try again tomorrow."
+msgstr ""
+
+#: src/Application/FeatureIdeas.php:151 src/Application/FeatureIdeas.php:188 src/Application/SupportTickets.php:352
+msgid "That did not work right now. Please try again in a few minutes."
+msgstr ""
+
+#: src/Application/FeatureIdeas.php:177
+msgid "You have already voted for this idea."
+msgstr ""
+
+#: src/Application/FeatureIdeas.php:180
+msgid "Voting for this idea has ended."
+msgstr ""
+
+#: src/Application/FeatureIdeas.php:216 src/Application/SupportTickets.php:376
+msgid "Funnelforms does not know this website any more. Connect it again on the Account page."
+msgstr ""
+
+#: src/Application/FeatureIdeas.php:223
+msgid "This idea cannot be found any more."
+msgstr ""
+
+#: src/Application/FormAccess.php:88 src/Frontend/Renderer.php:727
 msgid "This form is not taking any more entries."
 msgstr ""
 
@@ -7656,7 +7823,7 @@ msgstr ""
 msgid "This release has no notes yet."
 msgstr ""
 
-#: src/Application/License/Updates.php:296 src/Application/License/Updates.php:365 src/Application/License/Updates.php:469
+#: src/Application/License/Updates.php:296 src/Application/License/Updates.php:365 src/Application/License/Updates.php:469 src/Application/License/VersionRollback.php:549
 msgid "Updates are paused because the license of this website is not active. Your forms keep working."
 msgstr ""
 
@@ -7664,7 +7831,7 @@ msgstr ""
 msgid "This update is no longer offered by Funnelforms. Please check for updates again."
 msgstr ""
 
-#: src/Application/License/Updates.php:316
+#: src/Application/License/Updates.php:316 src/Application/License/VersionRollback.php:391
 msgid "The downloaded update does not match the release of Funnelforms and was not installed. Please try again."
 msgstr ""
 
@@ -7677,7 +7844,7 @@ msgstr ""
 msgid "Connect this website with Funnelforms to get updates from your account."
 msgstr ""
 
-#: src/Application/License/Updates.php:363 src/Application/License/Updates.php:465
+#: src/Application/License/Updates.php:363 src/Application/License/Updates.php:465 src/Application/License/VersionRollback.php:543
 msgid "Connect now"
 msgstr ""
 
@@ -7697,6 +7864,121 @@ msgstr ""
 #. translators:%s: version number.
 #: src/Application/License/Updates.php:460
 msgid "Funnelforms Pro is up to date (version %s)."
+msgstr ""
+
+#: src/Application/License/VersionRollback.php:381 src/Application/License/VersionRollback.php:524
+msgid "This version is no longer offered by Funnelforms. Please choose another one."
+msgstr ""
+
+#: src/Application/License/VersionRollback.php:421
+msgid "Earlier version"
+msgstr ""
+
+#. translators:%s: version number.
+#: src/Application/License/VersionRollback.php:461
+msgid "Funnelforms Pro is up to date again (version %s). Automatic updates of the plugin were switched off when you went back to an earlier version."
+msgstr ""
+
+#: src/Application/License/VersionRollback.php:463
+msgid "Switch automatic updates on again"
+msgstr ""
+
+#: src/Application/License/VersionRollback.php:465
+msgid "Leave them off"
+msgstr ""
+
+#: src/Application/License/VersionRollback.php:500
+msgid "Only administrators who may update plugins can go back to an earlier version."
+msgstr ""
+
+#: src/Application/License/VersionRollback.php:517
+msgid "Go back to an earlier version"
+msgstr ""
+
+#: src/Application/License/VersionRollback.php:518
+msgid "If an update broke something on your website, install one of the last versions again. Your forms, entries and settings stay as they are."
+msgstr ""
+
+#. translators:%s: version number.
+#: src/Application/License/VersionRollback.php:521
+msgid "Installed: %s"
+msgstr ""
+
+#. translators:1: version number gone back to, 2: version number left, 3: date.
+#: src/Application/License/VersionRollback.php:530
+msgid "You went back to version %1$s (from %2$s) on %3$s. Automatic updates of the plugin are off; update again in the plugin list once a newer version fixes the problem."
+msgstr ""
+
+#: src/Application/License/VersionRollback.php:541
+msgid "Earlier versions come from your Funnelforms account."
+msgstr ""
+
+#: src/Application/License/VersionRollback.php:559
+msgid "There is no earlier version to go back to yet."
+msgstr ""
+
+#. translators:%s: date.
+#: src/Application/License/VersionRollback.php:569
+msgid "Released on %s"
+msgstr ""
+
+#: src/Application/License/VersionRollback.php:572
+msgid "Go back to this version"
+msgstr ""
+
+#: src/Application/License/VersionRollback.php:579
+msgid "WordPress installs the earlier version like an update and keeps a backup until it is done."
+msgstr ""
+
+#: src/Application/License/VersionRollback.php:580 src/Application/License/VersionRollback.php:609
+msgid "Forms, entries, appointments and settings stay in the database."
+msgstr ""
+
+#: src/Application/License/VersionRollback.php:581 src/Application/License/VersionRollback.php:611
+msgid "Automatic updates of the plugin are switched off, so the newer version does not come back by itself."
+msgstr ""
+
+#: src/Application/License/VersionRollback.php:596 src/Application/Telemetry/Consent.php:134
+msgid "No answer"
+msgstr ""
+
+#: src/Application/License/VersionRollback.php:597
+msgid "Forms do not work or look wrong"
+msgstr ""
+
+#: src/Application/License/VersionRollback.php:598
+msgid "Errors in the admin area"
+msgstr ""
+
+#: src/Application/License/VersionRollback.php:599
+msgid "E-mails, integrations or appointments"
+msgstr ""
+
+#: src/Application/License/VersionRollback.php:600
+msgid "Something else"
+msgstr ""
+
+#. translators:%s: version number.
+#: src/Application/License/VersionRollback.php:604
+msgid "Go back to version %s?"
+msgstr ""
+
+#. translators:1: version number installed now, 2: version number gone back to.
+#: src/Application/License/VersionRollback.php:608
+msgid "WordPress replaces Funnelforms Pro %1$s with %2$s. This takes a few seconds; the plugin is switched on again afterwards."
+msgstr ""
+
+#: src/Application/License/VersionRollback.php:610
+msgid "Features that came with a later version are missing until you update again. Forms that use them show without them; the version history of each form keeps the newer state."
+msgstr ""
+
+#: src/Application/License/VersionRollback.php:620
+msgid "What went wrong? (optional, helps us fix it)"
+msgstr ""
+
+#. translators:%s: version number.
+#: src/Application/License/VersionRollback.php:627
+msgid "Go back to %s now"
 msgstr ""
 
 #: src/Application/Newsletter.php:128
@@ -7860,10 +8142,6 @@ msgstr ""
 msgid "Your logo"
 msgstr ""
 
-#: src/Application/SpamCheck.php:158
-msgid "Hidden field"
-msgstr ""
-
 #. translators:%d: seconds
 #: src/Application/SpamCheck.php:161
 msgid "Time check (at least %d seconds)"
@@ -7877,27 +8155,43 @@ msgstr ""
 msgid "Entries per visitor limited"
 msgstr ""
 
-#: src/Application/SubmitEntry.php:736 src/Domain/Entry/LegacyLead.php:197 src/Domain/Entry/Templates.php:98 src/Domain/Entry/Templates.php:329 src/Frontend/Renderer.php:682
+#: src/Application/SubmitEntry.php:736 src/Domain/Entry/LegacyLead.php:197 src/Domain/Entry/Templates.php:98 src/Domain/Entry/Templates.php:329 src/Frontend/Renderer.php:683
 msgid "An error occurred in the calculation!"
 msgstr ""
 
-#: src/Application/SupportAccess.php:126
+#: src/Application/SupportAccess.php:146
 msgid "This website does not use https yet. Support sees the access, but can open WordPress from Funnelforms only once the website runs on https."
 msgstr ""
 
-#: src/Application/SupportAccess.php:141
+#: src/Application/SupportAccess.php:161
 msgid "Choose the rights and how long the access runs."
 msgstr ""
 
-#: src/Application/SupportAccess.php:144 src/Application/SupportTickets.php:383
+#: src/Application/SupportAccess.php:164 src/Application/SupportTickets.php:385
 msgid "Support can only log in when this website is connected with Funnelforms. Connect it on the Account page first."
 msgstr ""
 
-#: src/Application/SupportAccess.php:216
+#: src/Application/SupportAccess.php:241
 msgid "Funnelforms could not be reached, so the access was not granted. Please try again later."
 msgstr ""
 
-#: src/Application/SupportAccess.php:415
+#: src/Application/SupportAccess.php:317
+msgid "Support cannot update plugins on this website: updates from WordPress are switched off (DISALLOW_FILE_MODS). Please update Funnelforms yourself or ask your host."
+msgstr ""
+
+#: src/Application/SupportAccess.php:319
+msgid "On a multisite network only super admins update plugins. Grant the access as a super admin, so support can update plugins too."
+msgstr ""
+
+#: src/Application/SupportAccess.php:321
+msgid "Support cannot update plugins on this website: WordPress asks for FTP access to do so. Please update Funnelforms yourself or ask your host to allow updates without FTP."
+msgstr ""
+
+#: src/Application/SupportAccess.php:323
+msgid "Support cannot update plugins on this website: another plugin or the host takes this right away from administrators."
+msgstr ""
+
+#: src/Application/SupportAccess.php:527
 msgid "Support users cannot log in with a password."
 msgstr ""
 
@@ -7917,52 +8211,40 @@ msgstr ""
 msgid "Fill in the subject, the message and a valid e-mail address."
 msgstr ""
 
-#: src/Application/SupportTickets.php:248 src/Application/SupportTickets.php:252 src/Application/SupportTickets.php:330 src/Application/SupportTickets.php:339
+#: src/Application/SupportTickets.php:250 src/Application/SupportTickets.php:254 src/Application/SupportTickets.php:332 src/Application/SupportTickets.php:341
 msgid "This ticket cannot be found any more."
 msgstr ""
 
-#: src/Application/SupportTickets.php:295
+#: src/Application/SupportTickets.php:297
 msgid "Write an answer first."
 msgstr ""
 
-#: src/Application/SupportTickets.php:342
+#: src/Application/SupportTickets.php:344
 msgid "This ticket never reached support. Please write a new one."
 msgstr ""
 
-#: src/Application/SupportTickets.php:345
+#: src/Application/SupportTickets.php:347
 msgid "Too many messages in a short time. Please try again later."
 msgstr ""
 
-#: src/Application/SupportTickets.php:350
-msgid "That did not work right now. Please try again in a few minutes."
-msgstr ""
-
-#: src/Application/SupportTickets.php:371
+#: src/Application/SupportTickets.php:373
 msgid "Too many tickets in a short time. Please try again later."
 msgstr ""
 
-#: src/Application/SupportTickets.php:374
-msgid "Funnelforms does not know this website any more. Connect it again on the Account page."
-msgstr ""
-
-#: src/Application/SupportTickets.php:377
+#: src/Application/SupportTickets.php:379
 msgid "Funnelforms support cannot take tickets right now. Please try again in a few minutes or write to support@funnelforms.io."
 msgstr ""
 
-#: src/Application/SupportTickets.php:380
+#: src/Application/SupportTickets.php:382
 msgid "The ticket is too large. Send it without the diagnostics or with a shorter message."
 msgstr ""
 
-#: src/Application/SupportTickets.php:386
+#: src/Application/SupportTickets.php:388
 msgid "Funnelforms did not accept the ticket. Please check the subject, the message and the e-mail address."
 msgstr ""
 
-#: src/Application/SupportTickets.php:388
+#: src/Application/SupportTickets.php:390
 msgid "The ticket could not be sent. Please try again later or write to support@funnelforms.io."
-msgstr ""
-
-#: src/Application/Telemetry/Consent.php:134
-msgid "No answer"
 msgstr ""
 
 #: src/Application/Telemetry/Consent.php:135
@@ -8173,7 +8455,7 @@ msgstr ""
 msgid "The form uses the font \"%s\"; it shows only when the website loads it."
 msgstr ""
 
-#: src/Compat/Import/ImportController.php:181 src/Frontend/Renderer.php:693 src/Http/FormsAdminController.php:977
+#: src/Compat/Import/ImportController.php:181 src/Frontend/Renderer.php:694 src/Http/FormsAdminController.php:977
 msgid "The file is too large."
 msgstr ""
 
@@ -8181,7 +8463,7 @@ msgstr ""
 msgid "The file holds no forms."
 msgstr ""
 
-#: src/Compat/Import/ImportController.php:183 src/Frontend/Renderer.php:697 src/Http/FormsAdminController.php:446 src/Http/FormsAdminController.php:981
+#: src/Compat/Import/ImportController.php:183 src/Frontend/Renderer.php:698 src/Http/FormsAdminController.php:446 src/Http/FormsAdminController.php:981
 msgid "The file could not be uploaded."
 msgstr ""
 
@@ -8422,7 +8704,7 @@ msgstr ""
 msgid "Incomplete entries"
 msgstr ""
 
-#: src/Edition/Edition.php:350 src/Frontend/Renderer.php:672
+#: src/Edition/Edition.php:350 src/Frontend/Renderer.php:673
 msgid "Save and continue later"
 msgstr ""
 
@@ -8573,7 +8855,7 @@ msgstr ""
 msgid "Branching by answer"
 msgstr ""
 
-#: src/Edition/UpgradePage.php:112 packages/builder-ui/src/ui/Actions.tsx:236 packages/builder-ui/src/ui/Canvas.tsx:165 packages/builder-ui/src/ui/Inspector.tsx:170 packages/builder-ui/src/ui/Inspector.tsx:324 packages/builder-ui/src/ui/Workspaces.tsx:302 packages/builder-ui/src/ui/Workspaces.tsx:302
+#: src/Edition/UpgradePage.php:112 packages/builder-ui/src/ui/Actions.tsx:236 packages/builder-ui/src/ui/Canvas.tsx:176 packages/builder-ui/src/ui/Inspector.tsx:171 packages/builder-ui/src/ui/Inspector.tsx:325 packages/builder-ui/src/ui/Workspaces.tsx:302 packages/builder-ui/src/ui/Workspaces.tsx:302
 msgid "After sending"
 msgstr ""
 
@@ -9085,7 +9367,7 @@ msgstr ""
 msgid "Confirm your e-mail address"
 msgstr ""
 
-#: src/Frontend/OptInPage.php:70 src/Frontend/Renderer.php:785
+#: src/Frontend/OptInPage.php:70 src/Frontend/Renderer.php:786
 msgid "Confirm"
 msgstr ""
 
@@ -9137,494 +9419,494 @@ msgstr ""
 msgid "Please choose"
 msgstr ""
 
-#: src/Frontend/Renderer.php:631 packages/builder-ui/src/ui/Design.tsx:193
+#: src/Frontend/Renderer.php:632 packages/builder-ui/src/ui/Design.tsx:193
 msgid "Search"
 msgstr ""
 
-#: src/Frontend/Renderer.php:632
+#: src/Frontend/Renderer.php:633
 msgid "No matches"
 msgstr ""
 
-#: src/Frontend/Renderer.php:633
+#: src/Frontend/Renderer.php:634
 msgid "Right!"
 msgstr ""
 
 #. translators:%s: the right answers of a quiz question
-#: src/Frontend/Renderer.php:635
+#: src/Frontend/Renderer.php:636
 msgid "Not quite. The right answer: %s"
 msgstr ""
 
-#: src/Frontend/Renderer.php:636
+#: src/Frontend/Renderer.php:637
 msgid "Mr."
 msgstr ""
 
-#: src/Frontend/Renderer.php:637
+#: src/Frontend/Renderer.php:638
 msgid "Ms."
 msgstr ""
 
-#: src/Frontend/Renderer.php:638
+#: src/Frontend/Renderer.php:639
 msgid "Diverse"
 msgstr ""
 
-#: src/Frontend/Renderer.php:639 src/Integrations/Crm/CrmCatalog.php:252 packages/builder-ui/src/ui/TextProps.tsx:19
+#: src/Frontend/Renderer.php:640 src/Integrations/Crm/CrmCatalog.php:252 packages/builder-ui/src/ui/TextProps.tsx:19
 msgid "Company"
 msgstr ""
 
-#: src/Frontend/Renderer.php:640
+#: src/Frontend/Renderer.php:641
 msgid "This field is required."
 msgstr ""
 
-#: src/Frontend/Renderer.php:641
+#: src/Frontend/Renderer.php:642
 msgid "Please choose one of the options."
 msgstr ""
 
 #. translators:%d: smallest number of options.
-#: src/Frontend/Renderer.php:643
+#: src/Frontend/Renderer.php:644
 msgid "Please choose at least %d options."
 msgstr ""
 
 #. translators:%d: largest number of options.
-#: src/Frontend/Renderer.php:645
+#: src/Frontend/Renderer.php:646
 msgid "Please choose at most %d options."
 msgstr ""
 
-#: src/Frontend/Renderer.php:646
+#: src/Frontend/Renderer.php:647
 msgid "The format is not valid."
 msgstr ""
 
-#: src/Frontend/Renderer.php:647
+#: src/Frontend/Renderer.php:648
 msgid "Please enter a valid date."
 msgstr ""
 
-#: src/Frontend/Renderer.php:648
+#: src/Frontend/Renderer.php:649
 msgid "Please choose a date in the allowed period."
 msgstr ""
 
-#: src/Frontend/Renderer.php:649
+#: src/Frontend/Renderer.php:650
 msgid "The end must not be before the start."
 msgstr ""
 
-#: src/Frontend/Renderer.php:650 packages/builder-ui/src/ui/CalculationsPlus.tsx:228 packages/builder-ui/src/ui/CalculationsPlus.tsx:317
+#: src/Frontend/Renderer.php:651 packages/builder-ui/src/ui/CalculationsPlus.tsx:228 packages/builder-ui/src/ui/CalculationsPlus.tsx:317
 msgid "From"
 msgstr ""
 
-#: src/Frontend/Renderer.php:652
+#: src/Frontend/Renderer.php:653
 msgid "The e-mail address is not valid."
 msgstr ""
 
-#: src/Frontend/Renderer.php:653
+#: src/Frontend/Renderer.php:654
 msgid "Please enter a business e-mail address."
 msgstr ""
 
-#: src/Frontend/Renderer.php:654
+#: src/Frontend/Renderer.php:655
 msgid "The phone number is not valid."
 msgstr ""
 
-#: src/Frontend/Renderer.php:655
+#: src/Frontend/Renderer.php:656
 msgid "The text does not have the required length."
 msgstr ""
 
-#: src/Frontend/Renderer.php:656
+#: src/Frontend/Renderer.php:657
 msgid "The text is too short."
 msgstr ""
 
-#: src/Frontend/Renderer.php:657
+#: src/Frontend/Renderer.php:658
 msgid "The text is too long."
 msgstr ""
 
-#: src/Frontend/Renderer.php:658
+#: src/Frontend/Renderer.php:659
 msgid "The value is outside the allowed range."
 msgstr ""
 
-#: src/Frontend/Renderer.php:659
+#: src/Frontend/Renderer.php:660
 msgid "The web address is not valid."
 msgstr ""
 
-#: src/Frontend/Renderer.php:660
+#: src/Frontend/Renderer.php:661
 msgid "Please enter a valid time."
 msgstr ""
 
-#: src/Frontend/Renderer.php:664
+#: src/Frontend/Renderer.php:665
 msgid "Or type your name"
 msgstr ""
 
-#: src/Frontend/Renderer.php:665
+#: src/Frontend/Renderer.php:666
 msgid "Or upload a picture of your signature"
 msgstr ""
 
-#: src/Frontend/Renderer.php:666
+#: src/Frontend/Renderer.php:667
 msgid "Add another"
 msgstr ""
 
 #. translators:%d: number of the entry in a repeat group.
-#: src/Frontend/Renderer.php:668
+#: src/Frontend/Renderer.php:669
 msgid "Remove entry %d"
 msgstr ""
 
 #. translators:%d: smallest number of entries.
-#: src/Frontend/Renderer.php:670
+#: src/Frontend/Renderer.php:671
 msgid "Please fill in at least %d entries."
 msgstr ""
 
-#: src/Frontend/Renderer.php:671
+#: src/Frontend/Renderer.php:672
 msgid "Too many entries."
 msgstr ""
 
-#: src/Frontend/Renderer.php:673
+#: src/Frontend/Renderer.php:674
 msgid "Your answers are saved. Continue later with this link:"
 msgstr ""
 
-#: src/Frontend/Renderer.php:674
+#: src/Frontend/Renderer.php:675
 msgid "Link to continue"
 msgstr ""
 
-#: src/Frontend/Renderer.php:675
+#: src/Frontend/Renderer.php:676
 msgid "Copy link"
 msgstr ""
 
-#: src/Frontend/Renderer.php:677
+#: src/Frontend/Renderer.php:678
 msgid "Please answer at least one question first."
 msgstr ""
 
-#: src/Frontend/Renderer.php:678
+#: src/Frontend/Renderer.php:679
 msgid "This link has expired or is not valid. Please start again."
 msgstr ""
 
 #. translators:%s: error code, e.g. rate_limited.
-#: src/Frontend/Renderer.php:680
+#: src/Frontend/Renderer.php:681
 msgid "The form could not be sent (%s). Please try again."
 msgstr ""
 
-#: src/Frontend/Renderer.php:681 src/Http/AutomationController.php:175
+#: src/Frontend/Renderer.php:682 src/Http/AutomationController.php:175
 msgid "Too many attempts. Please wait a few minutes and try again."
 msgstr ""
 
 #. translators:%s: a price or other result, e.g. "1,200 €".
-#: src/Frontend/Renderer.php:684
+#: src/Frontend/Renderer.php:685
 msgid "from %s"
 msgstr ""
 
-#: src/Frontend/Renderer.php:685
+#: src/Frontend/Renderer.php:686
 msgid "Your result is ready. We will show it to you in full after your contact details."
 msgstr ""
 
-#: src/Frontend/Renderer.php:686
+#: src/Frontend/Renderer.php:687
 msgid "Load video"
 msgstr ""
 
 #. translators:%s: YouTube or Vimeo.
-#: src/Frontend/Renderer.php:688
+#: src/Frontend/Renderer.php:689
 msgid "The video is loaded from %s only when you click. Its privacy policy applies then."
 msgstr ""
 
-#: src/Frontend/Renderer.php:689
+#: src/Frontend/Renderer.php:690
 msgid "Drop files here or click to choose"
 msgstr ""
 
-#: src/Frontend/Renderer.php:690 packages/builder-ui/src/ui/Design.tsx:115
+#: src/Frontend/Renderer.php:691 packages/builder-ui/src/ui/Design.tsx:115
 msgid "Uploading…"
 msgstr ""
 
 #. translators:%s: file name.
-#: src/Frontend/Renderer.php:692 packages/builder-ui/src/ui/BookingSchedule.tsx:127 packages/builder-ui/src/ui/Integrations.tsx:445 packages/builder-ui/src/ui/Languages.tsx:62 packages/builder-ui/src/ui/Languages.tsx:63 packages/builder-ui/src/ui/PhoneProps.tsx:59
+#: src/Frontend/Renderer.php:693 packages/builder-ui/src/ui/BookingSchedule.tsx:127 packages/builder-ui/src/ui/Integrations.tsx:445 packages/builder-ui/src/ui/Languages.tsx:62 packages/builder-ui/src/ui/Languages.tsx:63 packages/builder-ui/src/ui/PhoneProps.tsx:59
 msgid "Remove %s"
 msgstr ""
 
-#: src/Frontend/Renderer.php:694
+#: src/Frontend/Renderer.php:695
 msgid "This file type is not allowed."
 msgstr ""
 
-#: src/Frontend/Renderer.php:695
+#: src/Frontend/Renderer.php:696
 msgid "Too many files."
 msgstr ""
 
-#: src/Frontend/Renderer.php:696
+#: src/Frontend/Renderer.php:697
 msgid "Too many uploads. Please try again later."
 msgstr ""
 
-#: src/Frontend/Renderer.php:698 packages/builder-ui/src/ui/Appointments.tsx:967
+#: src/Frontend/Renderer.php:699 packages/builder-ui/src/ui/Appointments.tsx:967
 msgid "Duration"
 msgstr ""
 
-#: src/Frontend/Renderer.php:699
+#: src/Frontend/Renderer.php:700
 msgid "Previous month"
 msgstr ""
 
-#: src/Frontend/Renderer.php:700
+#: src/Frontend/Renderer.php:701
 msgid "Next month"
 msgstr ""
 
-#: src/Frontend/Renderer.php:701 packages/builder-ui/src/ui/Appointments.tsx:928
+#: src/Frontend/Renderer.php:702 packages/builder-ui/src/ui/Appointments.tsx:928
 msgid "Loading free times…"
 msgstr ""
 
-#: src/Frontend/Renderer.php:702
+#: src/Frontend/Renderer.php:703
 msgid "No free times this month."
 msgstr ""
 
-#: src/Frontend/Renderer.php:703
+#: src/Frontend/Renderer.php:704
 msgid "No appointments can be booked at the moment."
 msgstr ""
 
 #. translators:%s: time zone, e.g. Europe/Berlin.
-#: src/Frontend/Renderer.php:705
+#: src/Frontend/Renderer.php:706
 msgid "Times in your time zone (%s)"
 msgstr ""
 
-#: src/Frontend/Renderer.php:708
+#: src/Frontend/Renderer.php:709
 msgid "The free times could not be loaded. Please try again later."
 msgstr ""
 
-#: src/Frontend/Renderer.php:709
+#: src/Frontend/Renderer.php:710
 msgid "This time has just been booked. Please choose another one."
 msgstr ""
 
-#: src/Frontend/Renderer.php:710
+#: src/Frontend/Renderer.php:711
 msgid "Please choose a time."
 msgstr ""
 
-#: src/Frontend/Renderer.php:711
+#: src/Frontend/Renderer.php:712
 msgid "Please confirm that you are not a robot."
 msgstr ""
 
-#: src/Frontend/Renderer.php:712
+#: src/Frontend/Renderer.php:713
 msgid "The file is no longer available. Please upload it again."
 msgstr ""
 
-#: src/Frontend/Renderer.php:713
+#: src/Frontend/Renderer.php:714
 msgid "Please fill in the complete address."
 msgstr ""
 
-#: src/Frontend/Renderer.php:714 packages/builder-ui/src/ui/BookingTypes.tsx:300 packages/builder-ui/src/ui/Embed.tsx:221 packages/builder-ui/src/ui/NewForm.tsx:91 packages/builder-ui/src/ui/Settings.tsx:904 packages/builder-ui/src/ui/catalog.ts:24
+#: src/Frontend/Renderer.php:715 packages/builder-ui/src/ui/BookingTypes.tsx:300 packages/builder-ui/src/ui/Embed.tsx:221 packages/builder-ui/src/ui/NewForm.tsx:91 packages/builder-ui/src/ui/Settings.tsx:904 packages/builder-ui/src/ui/catalog.ts:24
 msgid "Address"
 msgstr ""
 
-#: src/Frontend/Renderer.php:715 src/Integrations/Crm/CrmCatalog.php:256 packages/builder-ui/src/ui/describe.ts:44
+#: src/Frontend/Renderer.php:716 src/Integrations/Crm/CrmCatalog.php:256 packages/builder-ui/src/ui/describe.ts:44
 msgid "Street"
 msgstr ""
 
-#: src/Frontend/Renderer.php:716
+#: src/Frontend/Renderer.php:717
 msgid "No."
 msgstr ""
 
-#: src/Frontend/Renderer.php:717 src/Integrations/Crm/CrmCatalog.php:258 packages/builder-ui/src/ui/TextProps.tsx:24 packages/builder-ui/src/ui/describe.ts:46
+#: src/Frontend/Renderer.php:718 src/Integrations/Crm/CrmCatalog.php:258 packages/builder-ui/src/ui/TextProps.tsx:24 packages/builder-ui/src/ui/describe.ts:46
 msgid "Postcode"
 msgstr ""
 
-#: src/Frontend/Renderer.php:718 src/Integrations/Crm/CrmCatalog.php:260 packages/builder-ui/src/ui/TextProps.tsx:25 packages/builder-ui/src/ui/describe.ts:47
+#: src/Frontend/Renderer.php:719 src/Integrations/Crm/CrmCatalog.php:260 packages/builder-ui/src/ui/TextProps.tsx:25 packages/builder-ui/src/ui/describe.ts:47
 msgid "City"
 msgstr ""
 
-#: src/Frontend/Renderer.php:719 packages/builder-ui/src/ui/TextProps.tsx:26 packages/builder-ui/src/ui/describe.ts:48
+#: src/Frontend/Renderer.php:720 packages/builder-ui/src/ui/TextProps.tsx:26 packages/builder-ui/src/ui/describe.ts:48
 msgid "Country"
 msgstr ""
 
-#: src/Frontend/Renderer.php:720
+#: src/Frontend/Renderer.php:721
 msgid "Use my location"
 msgstr ""
 
-#: src/Frontend/Renderer.php:721
+#: src/Frontend/Renderer.php:722
 msgid "Your location could not be found. Please enter the address."
 msgstr ""
 
-#: src/Frontend/Renderer.php:722
+#: src/Frontend/Renderer.php:723
 msgid "This form is protected by a password."
 msgstr ""
 
-#: src/Frontend/Renderer.php:724
+#: src/Frontend/Renderer.php:725
 msgid "Open form"
 msgstr ""
 
-#: src/Frontend/Renderer.php:725
+#: src/Frontend/Renderer.php:726
 msgid "The password is not correct."
 msgstr ""
 
 #. translators:%s: time left, e.g. 4:05
-#: src/Frontend/Renderer.php:728
+#: src/Frontend/Renderer.php:729
 msgid "Time left: %s"
 msgstr ""
 
-#: src/Frontend/Renderer.php:729
+#: src/Frontend/Renderer.php:730
 msgid "The time for this form is up. Your answers can no longer be sent."
 msgstr ""
 
 #. translators:%s: time left, such as 0:20.
-#: src/Frontend/Renderer.php:731
+#: src/Frontend/Renderer.php:732
 msgid "Only %s left."
 msgstr ""
 
-#: src/Frontend/Renderer.php:732
+#: src/Frontend/Renderer.php:733
 msgid "More time"
 msgstr ""
 
-#: src/Frontend/Renderer.php:733
+#: src/Frontend/Renderer.php:734
 msgid "Pause"
 msgstr ""
 
-#: src/Frontend/Renderer.php:734 packages/builder-ui/src/ui/Inspector.tsx:610 packages/builder-ui/src/ui/PredictionApply.tsx:99 packages/builder-ui/src/ui/Questions.tsx:89 packages/builder-ui/src/ui/RepeatProps.tsx:200
+#: src/Frontend/Renderer.php:735 packages/builder-ui/src/ui/Inspector.tsx:613 packages/builder-ui/src/ui/PredictionApply.tsx:99 packages/builder-ui/src/ui/Questions.tsx:89 packages/builder-ui/src/ui/RepeatProps.tsx:200
 msgid "Required"
 msgstr ""
 
-#: src/Frontend/Renderer.php:735
+#: src/Frontend/Renderer.php:736
 msgid "Fields marked with * are required."
 msgstr ""
 
-#: src/Frontend/Renderer.php:736
+#: src/Frontend/Renderer.php:737
 msgid "Load Google Maps to suggest addresses"
 msgstr ""
 
 #. translators:%s: company of the spam protection, such as Google or Cloudflare.
-#: src/Frontend/Renderer.php:738
+#: src/Frontend/Renderer.php:739
 msgid "Load spam protection from %s to send the form"
 msgstr ""
 
-#: src/Frontend/Renderer.php:740
+#: src/Frontend/Renderer.php:741
 msgid "This form cannot be used on this website."
 msgstr ""
 
-#: src/Frontend/Renderer.php:741
+#: src/Frontend/Renderer.php:742
 msgid "Taking you to the payment page…"
 msgstr ""
 
-#: src/Frontend/Renderer.php:742
+#: src/Frontend/Renderer.php:743
 msgid "The payment was not completed. Your answers are saved; you can pay now."
 msgstr ""
 
-#: src/Frontend/Renderer.php:743
+#: src/Frontend/Renderer.php:744
 msgid "The payment did not go through. Please try again, perhaps with another payment method."
 msgstr ""
 
-#: src/Frontend/Renderer.php:744
+#: src/Frontend/Renderer.php:745
 msgid "This payment was refunded."
 msgstr ""
 
-#: src/Frontend/Renderer.php:745
+#: src/Frontend/Renderer.php:746
 msgid "Pay now"
 msgstr ""
 
-#: src/Frontend/Renderer.php:746
+#: src/Frontend/Renderer.php:747
 msgid "The payment could not be started. Please try again later."
 msgstr ""
 
 #. translators:%s: web address.
-#: src/Frontend/Renderer.php:748
+#: src/Frontend/Renderer.php:749
 msgid "Visitors are now sent to %s."
 msgstr ""
 
 #. translators:%d: seconds until the next page opens.
-#: src/Frontend/Renderer.php:750
+#: src/Frontend/Renderer.php:751
 msgid "You will be forwarded in %d seconds."
 msgstr ""
 
-#: src/Frontend/Renderer.php:751
+#: src/Frontend/Renderer.php:752
 msgid "You will be forwarded in 1 second."
 msgstr ""
 
-#: src/Frontend/Renderer.php:752
+#: src/Frontend/Renderer.php:753
 msgid "Go now"
 msgstr ""
 
-#: src/Frontend/Renderer.php:753
+#: src/Frontend/Renderer.php:754
 msgid "Your answers"
 msgstr ""
 
-#: src/Frontend/Renderer.php:754
+#: src/Frontend/Renderer.php:755
 msgid "This is not available in the preview."
 msgstr ""
 
-#: src/Frontend/Renderer.php:757 packages/builder-ui/src/ui/Settings.tsx:427
+#: src/Frontend/Renderer.php:758 packages/builder-ui/src/ui/Settings.tsx:427
 msgid "If you leave without sending, we will e-mail you one reminder with a link back to your answers."
 msgstr ""
 
-#: src/Frontend/Renderer.php:759
+#: src/Frontend/Renderer.php:760
 msgid "OK, you will not get a reminder."
 msgstr ""
 
 #. translators:%s: name of the country chosen for a phone number.
-#: src/Frontend/Renderer.php:775
+#: src/Frontend/Renderer.php:776
 msgid "Country code: %s"
 msgstr ""
 
-#: src/Frontend/Renderer.php:776
+#: src/Frontend/Renderer.php:777
 msgid "Search country or code"
 msgstr ""
 
-#: src/Frontend/Renderer.php:777
+#: src/Frontend/Renderer.php:778
 msgid "Countries"
 msgstr ""
 
 #. translators:%d: number of countries found.
-#: src/Frontend/Renderer.php:779
+#: src/Frontend/Renderer.php:780
 msgid "%d countries"
 msgstr ""
 
-#: src/Frontend/Renderer.php:780
+#: src/Frontend/Renderer.php:781
 msgid "The phone number is too short."
 msgstr ""
 
-#: src/Frontend/Renderer.php:781
+#: src/Frontend/Renderer.php:782
 msgid "The phone number is too long."
 msgstr ""
 
-#: src/Frontend/Renderer.php:782
+#: src/Frontend/Renderer.php:783
 msgid "Phone numbers from this country are not accepted."
 msgstr ""
 
-#: src/Frontend/Renderer.php:783
+#: src/Frontend/Renderer.php:784
 msgid "Please confirm your phone number with the code."
 msgstr ""
 
-#: src/Frontend/Renderer.php:784
+#: src/Frontend/Renderer.php:785
 msgid "Send code"
 msgstr ""
 
-#: src/Frontend/Renderer.php:786
+#: src/Frontend/Renderer.php:787
 msgid "Send a new code"
 msgstr ""
 
 #. translators:%d: seconds until a new code can be sent.
-#: src/Frontend/Renderer.php:788
+#: src/Frontend/Renderer.php:789
 msgid "New code in %d s"
 msgstr ""
 
-#: src/Frontend/Renderer.php:789
+#: src/Frontend/Renderer.php:790
 msgid "Change number"
 msgstr ""
 
-#: src/Frontend/Renderer.php:790
+#: src/Frontend/Renderer.php:791
 msgid "Code from the text message"
 msgstr ""
 
-#: src/Frontend/Renderer.php:791
+#: src/Frontend/Renderer.php:792
 msgid "We will text you a code to confirm your number."
 msgstr ""
 
-#: src/Frontend/Renderer.php:792
+#: src/Frontend/Renderer.php:793
 msgid "In the preview no text message is sent; any six digits confirm."
 msgstr ""
 
 #. translators:%s: the phone number the code was sent to.
-#: src/Frontend/Renderer.php:794
+#: src/Frontend/Renderer.php:795
 msgid "We sent a code to %s."
 msgstr ""
 
-#: src/Frontend/Renderer.php:795
+#: src/Frontend/Renderer.php:796
 msgid "Number confirmed."
 msgstr ""
 
-#: src/Frontend/Renderer.php:796
+#: src/Frontend/Renderer.php:797
 msgid "The text message could not be sent. Please check the number or try again later."
 msgstr ""
 
-#: src/Frontend/Renderer.php:797
+#: src/Frontend/Renderer.php:798
 msgid "Phone numbers cannot be confirmed at the moment."
 msgstr ""
 
-#: src/Frontend/Renderer.php:798
+#: src/Frontend/Renderer.php:799
 msgid "The code is not correct or has expired."
 msgstr ""
 
-#: src/Frontend/Renderer.php:651
+#: src/Frontend/Renderer.php:652
 msgctxt "end of a date range"
 msgid "To"
 msgstr ""
@@ -10555,11 +10837,11 @@ msgstr ""
 msgid "Incomplete"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Actions.tsx:254 packages/builder-ui/src/ui/Actions.tsx:254 packages/builder-ui/src/ui/FormsList.tsx:450 packages/builder-ui/src/ui/FormsList.tsx:450 packages/builder-ui/src/ui/Inspector.tsx:252
+#: packages/builder-ui/src/ui/Actions.tsx:254 packages/builder-ui/src/ui/Actions.tsx:254 packages/builder-ui/src/ui/FormsList.tsx:450 packages/builder-ui/src/ui/FormsList.tsx:450 packages/builder-ui/src/ui/Inspector.tsx:253
 msgid "Duplicate"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Actions.tsx:255 packages/builder-ui/src/ui/Actions.tsx:255 packages/builder-ui/src/ui/Actions.tsx:559 packages/builder-ui/src/ui/Actions.tsx:1085 packages/builder-ui/src/ui/BookingTypes.tsx:359 packages/builder-ui/src/ui/Builder.tsx:805 packages/builder-ui/src/ui/Entries.tsx:1419 packages/builder-ui/src/ui/Entries.tsx:1802 packages/builder-ui/src/ui/Entries.tsx:1919 packages/builder-ui/src/ui/Inspector.tsx:266 packages/builder-ui/src/ui/IntegrationsHub.tsx:797
+#: packages/builder-ui/src/ui/Actions.tsx:255 packages/builder-ui/src/ui/Actions.tsx:255 packages/builder-ui/src/ui/Actions.tsx:559 packages/builder-ui/src/ui/Actions.tsx:1085 packages/builder-ui/src/ui/BookingTypes.tsx:359 packages/builder-ui/src/ui/Builder.tsx:805 packages/builder-ui/src/ui/Entries.tsx:1419 packages/builder-ui/src/ui/Entries.tsx:1802 packages/builder-ui/src/ui/Entries.tsx:1919 packages/builder-ui/src/ui/Inspector.tsx:267 packages/builder-ui/src/ui/IntegrationsHub.tsx:797
 msgid "Delete"
 msgstr ""
 
@@ -10627,7 +10909,7 @@ msgstr ""
 msgid "Page of the form"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Actions.tsx:431 packages/builder-ui/src/ui/Appointments.tsx:971 packages/builder-ui/src/ui/Inspector.tsx:131 packages/builder-ui/src/ui/Inspector.tsx:185 packages/builder-ui/src/ui/NewForm.tsx:286
+#: packages/builder-ui/src/ui/Actions.tsx:431 packages/builder-ui/src/ui/Appointments.tsx:971 packages/builder-ui/src/ui/Inspector.tsx:132 packages/builder-ui/src/ui/Inspector.tsx:186 packages/builder-ui/src/ui/NewForm.tsx:286
 msgid "Name of the form"
 msgstr ""
 
@@ -10723,7 +11005,7 @@ msgstr ""
 msgid "Test"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Actions.tsx:554 packages/builder-ui/src/ui/AppointmentTypes.tsx:102 packages/builder-ui/src/ui/FormsList.tsx:446 packages/builder-ui/src/ui/Inspector.tsx:409 packages/builder-ui/src/ui/IntegrationsHub.tsx:793
+#: packages/builder-ui/src/ui/Actions.tsx:554 packages/builder-ui/src/ui/AppointmentTypes.tsx:102 packages/builder-ui/src/ui/FormsList.tsx:446 packages/builder-ui/src/ui/Inspector.tsx:410 packages/builder-ui/src/ui/IntegrationsHub.tsx:793
 msgid "Edit"
 msgstr ""
 
@@ -10855,7 +11137,7 @@ msgstr ""
 msgid "Every entry"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Actions.tsx:848 packages/builder-ui/src/ui/Inspector.tsx:477 packages/builder-ui/src/ui/Logic.tsx:780
+#: packages/builder-ui/src/ui/Actions.tsx:848 packages/builder-ui/src/ui/Inspector.tsx:478 packages/builder-ui/src/ui/Logic.tsx:780
 msgid "Only if …"
 msgstr ""
 
@@ -10899,7 +11181,7 @@ msgstr ""
 msgid "Several addresses separated by commas."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Actions.tsx:945 packages/builder-ui/src/ui/Actions.tsx:1021 packages/builder-ui/src/ui/Actions.tsx:1033 packages/builder-ui/src/ui/Canvas.tsx:194 packages/builder-ui/src/ui/EndProps.tsx:66 packages/builder-ui/src/ui/EndProps.tsx:97 packages/builder-ui/src/ui/Settings.tsx:277 packages/builder-ui/src/ui/Settings.tsx:440 packages/builder-ui/src/ui/WhatsAppTemplates.tsx:304
+#: packages/builder-ui/src/ui/Actions.tsx:945 packages/builder-ui/src/ui/Actions.tsx:1021 packages/builder-ui/src/ui/Actions.tsx:1033 packages/builder-ui/src/ui/Canvas.tsx:205 packages/builder-ui/src/ui/EndProps.tsx:66 packages/builder-ui/src/ui/EndProps.tsx:97 packages/builder-ui/src/ui/Settings.tsx:277 packages/builder-ui/src/ui/Settings.tsx:440 packages/builder-ui/src/ui/WhatsAppTemplates.tsx:304
 msgid "Message"
 msgstr ""
 
@@ -11127,7 +11409,7 @@ msgstr ""
 msgid "Turn the form into a quiz: each right answer scores one point, with three results"
 msgstr ""
 
-#: packages/builder-ui/src/ui/AiForm.tsx:38 packages/builder-ui/src/ui/Builder.tsx:292 packages/builder-ui/src/ui/Design.tsx:274 packages/builder-ui/src/ui/Experiments.tsx:229 packages/builder-ui/src/ui/Inspector.tsx:152 packages/builder-ui/src/ui/Inspector.tsx:167 packages/builder-ui/src/ui/Settings.tsx:448 packages/builder-ui/src/ui/Workspaces.tsx:35
+#: packages/builder-ui/src/ui/AiForm.tsx:38 packages/builder-ui/src/ui/Builder.tsx:292 packages/builder-ui/src/ui/Design.tsx:274 packages/builder-ui/src/ui/Experiments.tsx:229 packages/builder-ui/src/ui/Inspector.tsx:153 packages/builder-ui/src/ui/Inspector.tsx:168 packages/builder-ui/src/ui/Settings.tsx:448 packages/builder-ui/src/ui/Workspaces.tsx:35
 msgid "Design"
 msgstr ""
 
@@ -11279,7 +11561,7 @@ msgstr ""
 msgid "Dashed: nobody"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Analytics.tsx:149 packages/builder-ui/src/ui/Analytics.tsx:305 packages/builder-ui/src/ui/Canvas.tsx:304
+#: packages/builder-ui/src/ui/Analytics.tsx:149 packages/builder-ui/src/ui/Analytics.tsx:305 packages/builder-ui/src/ui/Canvas.tsx:315
 msgid "Strongest path"
 msgstr ""
 
@@ -11343,7 +11625,7 @@ msgstr ""
 msgid "Last before leaving"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Analytics.tsx:226 packages/builder-ui/src/ui/Analytics.tsx:246 packages/builder-ui/src/ui/Analytics.tsx:279 packages/builder-ui/src/ui/Calculations.tsx:269 packages/builder-ui/src/ui/Calculations.tsx:642 packages/builder-ui/src/ui/Canvas.tsx:128 packages/builder-ui/src/ui/EndProps.tsx:489 packages/builder-ui/src/ui/Experiments.tsx:252 packages/builder-ui/src/ui/Experiments.tsx:348 packages/builder-ui/src/ui/Hints.tsx:50 packages/builder-ui/src/ui/Hints.tsx:69 packages/builder-ui/src/ui/Inspector.tsx:400 packages/builder-ui/src/ui/Logic.tsx:44 packages/builder-ui/src/ui/Logic.tsx:63 packages/builder-ui/src/ui/Logic.tsx:221 packages/builder-ui/src/ui/Logic.tsx:622 packages/builder-ui/src/ui/Logic.tsx:675 packages/builder-ui/src/ui/Logic.tsx:677 packages/builder-ui/src/ui/Prediction.tsx:565 packages/builder-ui/src/ui/Prediction.tsx:679 packages/builder-ui/src/ui/PredictionResult.tsx:112 packages/builder-ui/src/ui/PredictionScreen.tsx:170 packages/builder-ui/src/ui/PredictionStage.tsx:96 packages/builder-ui/src/ui/Quiz.tsx:93 packages/builder-ui/src/ui/Stats.tsx:201 packages/builder-ui/src/ui/Stats.tsx:214 packages/builder-ui/src/ui/Stats.tsx:235
+#: packages/builder-ui/src/ui/Analytics.tsx:226 packages/builder-ui/src/ui/Analytics.tsx:246 packages/builder-ui/src/ui/Analytics.tsx:279 packages/builder-ui/src/ui/Calculations.tsx:269 packages/builder-ui/src/ui/Calculations.tsx:642 packages/builder-ui/src/ui/Canvas.tsx:129 packages/builder-ui/src/ui/EndProps.tsx:489 packages/builder-ui/src/ui/Experiments.tsx:252 packages/builder-ui/src/ui/Experiments.tsx:348 packages/builder-ui/src/ui/Hints.tsx:50 packages/builder-ui/src/ui/Hints.tsx:69 packages/builder-ui/src/ui/Inspector.tsx:401 packages/builder-ui/src/ui/Logic.tsx:44 packages/builder-ui/src/ui/Logic.tsx:63 packages/builder-ui/src/ui/Logic.tsx:221 packages/builder-ui/src/ui/Logic.tsx:622 packages/builder-ui/src/ui/Logic.tsx:675 packages/builder-ui/src/ui/Logic.tsx:677 packages/builder-ui/src/ui/Prediction.tsx:565 packages/builder-ui/src/ui/Prediction.tsx:679 packages/builder-ui/src/ui/PredictionResult.tsx:112 packages/builder-ui/src/ui/PredictionScreen.tsx:170 packages/builder-ui/src/ui/PredictionStage.tsx:96 packages/builder-ui/src/ui/Quiz.tsx:93 packages/builder-ui/src/ui/Stats.tsx:201 packages/builder-ui/src/ui/Stats.tsx:214 packages/builder-ui/src/ui/Stats.tsx:235
 msgid "Without a title"
 msgstr ""
 
@@ -12723,7 +13005,7 @@ msgstr ""
 msgid "%s is not hosted on your site. Visitors see it only on pages that load it; upload the font file in the design settings to show it everywhere."
 msgstr ""
 
-#: packages/builder-ui/src/ui/BrandingImport.tsx:189 packages/builder-ui/src/ui/ContentProps.tsx:127 packages/builder-ui/src/ui/Experiments.tsx:636 packages/builder-ui/src/ui/Inspector.tsx:437
+#: packages/builder-ui/src/ui/BrandingImport.tsx:189 packages/builder-ui/src/ui/ContentProps.tsx:127 packages/builder-ui/src/ui/Experiments.tsx:636 packages/builder-ui/src/ui/Inspector.tsx:438
 msgid "Button"
 msgstr ""
 
@@ -12987,7 +13269,7 @@ msgstr ""
 msgid "Show these shortcuts"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Builder.tsx:813 packages/builder-ui/src/ui/Canvas.tsx:601 packages/builder-ui/src/ui/Canvas.tsx:601
+#: packages/builder-ui/src/ui/Builder.tsx:813 packages/builder-ui/src/ui/Canvas.tsx:612 packages/builder-ui/src/ui/Canvas.tsx:612
 msgid "Keyboard shortcuts"
 msgstr ""
 
@@ -13247,7 +13529,7 @@ msgstr ""
 msgid "Added to %s."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Calculations.tsx:439 packages/builder-ui/src/ui/Inspector.tsx:572 packages/builder-ui/src/ui/RepeatProps.tsx:195
+#: packages/builder-ui/src/ui/Calculations.tsx:439 packages/builder-ui/src/ui/Inspector.tsx:575 packages/builder-ui/src/ui/RepeatProps.tsx:195
 msgid "Placeholder"
 msgstr ""
 
@@ -13355,7 +13637,7 @@ msgstr ""
 msgid "Remove rule"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Calculations.tsx:687 packages/builder-ui/src/ui/Canvas.tsx:369 packages/builder-ui/src/ui/Inspector.tsx:401
+#: packages/builder-ui/src/ui/Calculations.tsx:687 packages/builder-ui/src/ui/Canvas.tsx:380 packages/builder-ui/src/ui/Inspector.tsx:402
 msgid "Otherwise"
 msgstr ""
 
@@ -13511,139 +13793,147 @@ msgstr ""
 msgid "Each entry keeps this result as its lead value: the lead list shows and sorts by it, the export, webhooks and CRMs get it."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:82 packages/builder-ui/src/ui/Inspector.tsx:238 packages/builder-ui/src/ui/Inspector.tsx:325 packages/builder-ui/src/ui/Inspector.tsx:508 packages/builder-ui/src/ui/Logic.tsx:45 packages/builder-ui/src/ui/Palette.tsx:118
+#: packages/builder-ui/src/ui/Canvas.tsx:83 packages/builder-ui/src/ui/Inspector.tsx:239 packages/builder-ui/src/ui/Inspector.tsx:326 packages/builder-ui/src/ui/Inspector.tsx:509 packages/builder-ui/src/ui/Logic.tsx:45 packages/builder-ui/src/ui/Palette.tsx:118
 msgid "Contact step"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:83 packages/builder-ui/src/ui/Inspector.tsx:238 packages/builder-ui/src/ui/Logic.tsx:45 packages/builder-ui/src/ui/Palette.tsx:119
+#: packages/builder-ui/src/ui/Canvas.tsx:84 packages/builder-ui/src/ui/Inspector.tsx:239 packages/builder-ui/src/ui/Logic.tsx:45 packages/builder-ui/src/ui/Palette.tsx:119
 msgid "End"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:115
+#: packages/builder-ui/src/ui/Canvas.tsx:116
 msgid "Start"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:117
+#: packages/builder-ui/src/ui/Canvas.tsx:118
 msgid "A/B test: variant %s"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:118
+#: packages/builder-ui/src/ui/Canvas.tsx:119
 msgid "A/B · %s"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:121 packages/builder-ui/src/ui/Questions.tsx:93
+#: packages/builder-ui/src/ui/Canvas.tsx:122 packages/builder-ui/src/ui/Questions.tsx:93
 msgid "Not reachable"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:124
+#: packages/builder-ui/src/ui/Canvas.tsx:125
 msgid "Stuck"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:143
+#: packages/builder-ui/src/ui/Canvas.tsx:144
 msgid "Shown only on certain answers"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:144
+#: packages/builder-ui/src/ui/Canvas.tsx:145
 msgid "if"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:176
+#: packages/builder-ui/src/ui/Canvas.tsx:150
+msgid "hidden"
+msgstr ""
+
+#: packages/builder-ui/src/ui/Canvas.tsx:154
+msgid "Filled from the URL parameter %s"
+msgstr ""
+
+#: packages/builder-ui/src/ui/Canvas.tsx:187
 msgid "Only saved. Add a mail …"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:189
+#: packages/builder-ui/src/ui/Canvas.tsx:200
 msgid "Message, then redirect"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:192 packages/builder-ui/src/ui/EndProps.tsx:67
+#: packages/builder-ui/src/ui/Canvas.tsx:203 packages/builder-ui/src/ui/EndProps.tsx:67
 msgid "Redirect"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:194
+#: packages/builder-ui/src/ui/Canvas.tsx:205
 msgid "Shows nothing yet"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:396
+#: packages/builder-ui/src/ui/Canvas.tsx:407
 msgid "Path from %1$s to %2$s"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:590
+#: packages/builder-ui/src/ui/Canvas.tsx:601
 msgid "Steps of the form"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:595 packages/builder-ui/src/ui/Canvas.tsx:595
+#: packages/builder-ui/src/ui/Canvas.tsx:606 packages/builder-ui/src/ui/Canvas.tsx:606
 msgid "Hide the overview map"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:595 packages/builder-ui/src/ui/Canvas.tsx:595
+#: packages/builder-ui/src/ui/Canvas.tsx:606 packages/builder-ui/src/ui/Canvas.tsx:606
 msgid "Show the overview map"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:612 packages/builder-ui/src/ui/Canvas.tsx:701
+#: packages/builder-ui/src/ui/Canvas.tsx:623 packages/builder-ui/src/ui/Canvas.tsx:712
 msgid "Overview map"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:661
+#: packages/builder-ui/src/ui/Canvas.tsx:672
 msgid "Paths, the strongest way and drop-off per field on the canvas come with Funnelforms Pro."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:686
+#: packages/builder-ui/src/ui/Canvas.tsx:697
 msgid "Step moved up. New position: %1$s, %2$s."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:687
+#: packages/builder-ui/src/ui/Canvas.tsx:698
 msgid "Step moved down. New position: %1$s, %2$s."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:688
+#: packages/builder-ui/src/ui/Canvas.tsx:699
 msgid "Step moved left. New position: %1$s, %2$s."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:689
+#: packages/builder-ui/src/ui/Canvas.tsx:700
 msgid "Step moved right. New position: %1$s, %2$s."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:692
+#: packages/builder-ui/src/ui/Canvas.tsx:703
 msgid "Press Enter or Space to select a step."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:693
+#: packages/builder-ui/src/ui/Canvas.tsx:704
 msgid "Press Enter or Space to select a step. Then move it with the arrow keys; Escape cancels."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:696
+#: packages/builder-ui/src/ui/Canvas.tsx:707
 msgid "Press Enter or Space to select a path."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:697
+#: packages/builder-ui/src/ui/Canvas.tsx:708
 msgid "Canvas controls"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:698 packages/builder-ui/src/ui/Design.tsx:678
+#: packages/builder-ui/src/ui/Canvas.tsx:709 packages/builder-ui/src/ui/Design.tsx:678
 msgid "Zoom in"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:699
+#: packages/builder-ui/src/ui/Canvas.tsx:710
 msgid "Zoom out"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:700
+#: packages/builder-ui/src/ui/Canvas.tsx:711
 msgid "Show all steps"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:702
+#: packages/builder-ui/src/ui/Canvas.tsx:713
 msgid "Connection point"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:709
+#: packages/builder-ui/src/ui/Canvas.tsx:720
 msgid "Drag a field type from the left onto the canvas for the next step, or onto this step to ask more on it."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:711
+#: packages/builder-ui/src/ui/Canvas.tsx:722
 msgid "Connect the steps: drag from the dot on the right of a step to the next one."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Canvas.tsx:713
+#: packages/builder-ui/src/ui/Canvas.tsx:724
 msgid "Add an end from the left: it shows a thank-you message or leads to a page."
 msgstr ""
 
@@ -14899,7 +15189,7 @@ msgstr ""
 msgid "Choose what visitors see at this end."
 msgstr ""
 
-#: packages/builder-ui/src/ui/EndProps.tsx:95 packages/builder-ui/src/ui/Inspector.tsx:435 packages/builder-ui/src/ui/Inspector.tsx:569 packages/builder-ui/src/ui/MailEditor.tsx:34
+#: packages/builder-ui/src/ui/EndProps.tsx:95 packages/builder-ui/src/ui/Inspector.tsx:436 packages/builder-ui/src/ui/Inspector.tsx:571 packages/builder-ui/src/ui/MailEditor.tsx:34
 msgid "Heading"
 msgstr ""
 
@@ -15385,10 +15675,6 @@ msgstr ""
 
 #: packages/builder-ui/src/ui/Entries.tsx:947
 msgid "Select all on this page"
-msgstr ""
-
-#: packages/builder-ui/src/ui/Entries.tsx:951
-msgid "Received"
 msgstr ""
 
 #: packages/builder-ui/src/ui/Entries.tsx:980
@@ -16603,219 +16889,219 @@ msgstr ""
 msgid "Forms of Contact Form 7, WPForms, Gravity Forms or another form plugin?"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:84 packages/builder-ui/src/ui/Inspector.tsx:354 packages/builder-ui/src/ui/Tour.tsx:33
+#: packages/builder-ui/src/ui/Inspector.tsx:85 packages/builder-ui/src/ui/Inspector.tsx:355 packages/builder-ui/src/ui/Tour.tsx:33
 msgid "Properties"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:99
+#: packages/builder-ui/src/ui/Inspector.tsx:100
 msgid "You are translating into %s. Empty fields show the default text to visitors."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:109
+#: packages/builder-ui/src/ui/Inspector.tsx:110
 msgid "No captcha is set up for the website yet, so visitors do not see this field. Add the keys of a captcha service in the settings of Funnelforms, under Entries and spam."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:112
+#: packages/builder-ui/src/ui/Inspector.tsx:113
 msgid "This form does without the captcha (Settings, Spam protection), so visitors do not see this field."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:114
+#: packages/builder-ui/src/ui/Inspector.tsx:115
 msgid "Uses the spam protection of the website: %s."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:119 packages/builder-ui/src/ui/PhoneProps.tsx:142
+#: packages/builder-ui/src/ui/Inspector.tsx:120 packages/builder-ui/src/ui/PhoneProps.tsx:142
 msgid "This field type is part of Funnelforms Pro. Delete the question to publish the form."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:131 packages/builder-ui/src/ui/Inspector.tsx:185 packages/builder-ui/src/ui/NewForm.tsx:286
+#: packages/builder-ui/src/ui/Inspector.tsx:132 packages/builder-ui/src/ui/Inspector.tsx:186 packages/builder-ui/src/ui/NewForm.tsx:286
 msgid "Only you see the name; visitors see the questions."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:135
+#: packages/builder-ui/src/ui/Inspector.tsx:136
 msgid "Save incomplete entries"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:136
+#: packages/builder-ui/src/ui/Inspector.tsx:137
 msgid "Answers are kept step by step, also when visitors leave before sending."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:144
+#: packages/builder-ui/src/ui/Inspector.tsx:145
 msgid "Visitors can save their answers and get a link to continue."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:150
+#: packages/builder-ui/src/ui/Inspector.tsx:151
 msgid "The progress bar, the height of the steps and the transitions are set in the design."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:167
+#: packages/builder-ui/src/ui/Inspector.tsx:168
 msgid "Colours, font and look, with a live preview."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:172
+#: packages/builder-ui/src/ui/Inspector.tsx:173
 msgid "Add a contact step: mails and webhooks run when visitors send it."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:174
+#: packages/builder-ui/src/ui/Inspector.tsx:175
 msgid "Actions: %d, at the contact step."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:176
+#: packages/builder-ui/src/ui/Inspector.tsx:177
 msgid "Mails to you and your visitors, at the contact step."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:177
+#: packages/builder-ui/src/ui/Inspector.tsx:178
 msgid "Mails, webhooks and connections, at the contact step."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:180
+#: packages/builder-ui/src/ui/Inspector.tsx:181
 msgid "Name, behaviour and the own page of the form."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:180
+#: packages/builder-ui/src/ui/Inspector.tsx:181
 msgid "Languages, calculations, quiz, payment and access."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:196 packages/builder-ui/src/ui/Logic.tsx:70
+#: packages/builder-ui/src/ui/Inspector.tsx:197 packages/builder-ui/src/ui/Logic.tsx:70
 msgid "Ends"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:200
+#: packages/builder-ui/src/ui/Inspector.tsx:201
 msgid "Select a step on the canvas to edit it."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:203
+#: packages/builder-ui/src/ui/Inspector.tsx:204
 msgid "More of this form"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:224
+#: packages/builder-ui/src/ui/Inspector.tsx:225
 msgid "Logic check"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:225
+#: packages/builder-ui/src/ui/Inspector.tsx:226
 msgid "Every step leads on and every end can be reached."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:245 packages/builder-ui/src/ui/Quiz.tsx:101
+#: packages/builder-ui/src/ui/Inspector.tsx:246 packages/builder-ui/src/ui/Quiz.tsx:101
 msgid "Change with AI"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:248
+#: packages/builder-ui/src/ui/Inspector.tsx:249
 msgid "In the step \"%s\": "
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:300
+#: packages/builder-ui/src/ui/Inspector.tsx:301
 msgid "Make this the first step"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:303
+#: packages/builder-ui/src/ui/Inspector.tsx:304
 msgid "Visitors start here."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:315
+#: packages/builder-ui/src/ui/Inspector.tsx:316
 msgid "Then visitors see"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:324 packages/builder-ui/src/ui/NewForm.tsx:83
+#: packages/builder-ui/src/ui/Inspector.tsx:325 packages/builder-ui/src/ui/NewForm.tsx:83
 msgid "Logic"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:325 packages/builder-ui/src/ui/Inspector.tsx:468
+#: packages/builder-ui/src/ui/Inspector.tsx:326 packages/builder-ui/src/ui/Inspector.tsx:469
 msgid "Fields"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:370
+#: packages/builder-ui/src/ui/Inspector.tsx:371
 msgid "Hints about the logic"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:387
+#: packages/builder-ui/src/ui/Inspector.tsx:388
 msgid "How visitors get here"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:388
+#: packages/builder-ui/src/ui/Inspector.tsx:389
 msgid "No path leads here yet. Choose this end as next step of a contact step or a question, or draw a path on the canvas."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:401 packages/builder-ui/src/ui/Logic.tsx:620 packages/builder-ui/src/ui/Logic.tsx:777
+#: packages/builder-ui/src/ui/Inspector.tsx:402 packages/builder-ui/src/ui/Logic.tsx:620 packages/builder-ui/src/ui/Logic.tsx:777
 msgid "Always"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:406
+#: packages/builder-ui/src/ui/Inspector.tsx:407
 msgid "After sending: %s"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:407
+#: packages/builder-ui/src/ui/Inspector.tsx:408
 msgid "After sending: the entry is saved, nothing else happens."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:413
+#: packages/builder-ui/src/ui/Inspector.tsx:414
 msgid "Leaves without sending: no entry, no mails."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:436
+#: packages/builder-ui/src/ui/Inspector.tsx:437
 msgid "Text below the heading"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:481 packages/builder-ui/src/ui/Quiz.tsx:173 packages/builder-ui/src/ui/RepeatProps.tsx:94
+#: packages/builder-ui/src/ui/Inspector.tsx:482 packages/builder-ui/src/ui/Quiz.tsx:173 packages/builder-ui/src/ui/RepeatProps.tsx:94
 msgid "Move up"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:483 packages/builder-ui/src/ui/RepeatProps.tsx:96
+#: packages/builder-ui/src/ui/Inspector.tsx:484 packages/builder-ui/src/ui/RepeatProps.tsx:96
 msgid "Move down"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:491
+#: packages/builder-ui/src/ui/Inspector.tsx:492
 msgid "Add fields from the list on the left, or drag them onto the step."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:540
+#: packages/builder-ui/src/ui/Inspector.tsx:541
 msgid "Duplicate field"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:554 packages/builder-ui/src/ui/RepeatProps.tsx:102
+#: packages/builder-ui/src/ui/Inspector.tsx:555 packages/builder-ui/src/ui/RepeatProps.tsx:102
 msgid "Delete field"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:569 packages/builder-ui/src/ui/ResultProps.tsx:53
+#: packages/builder-ui/src/ui/Inspector.tsx:571 packages/builder-ui/src/ui/ResultProps.tsx:53
 msgid "Label"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:571
+#: packages/builder-ui/src/ui/Inspector.tsx:573
 msgid "Description"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:575
+#: packages/builder-ui/src/ui/Inspector.tsx:578
 msgid "Consent text"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:575
+#: packages/builder-ui/src/ui/Inspector.tsx:578
 msgid "Text next to the box"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:575 packages/builder-ui/src/ui/MailEditor.tsx:162 packages/builder-ui/src/ui/catalog.ts:45
+#: packages/builder-ui/src/ui/Inspector.tsx:578 packages/builder-ui/src/ui/MailEditor.tsx:162 packages/builder-ui/src/ui/catalog.ts:45
 msgid "HTML"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:579
+#: packages/builder-ui/src/ui/Inspector.tsx:582
 msgid "Links are allowed, e.g. to the privacy policy."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:607
+#: packages/builder-ui/src/ui/Inspector.tsx:610
 msgid "Business addresses only"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:616
+#: packages/builder-ui/src/ui/Inspector.tsx:620
 msgid "The variable name \"%1$s\" is used by \"%2$s\" as well. Calculations, placeholders and integrations then take only one of them; change it under Advanced."
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:620
+#: packages/builder-ui/src/ui/Inspector.tsx:624
 msgid "Advanced"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:622
+#: packages/builder-ui/src/ui/Inspector.tsx:626
 msgid "Variable name"
 msgstr ""
 
-#: packages/builder-ui/src/ui/Inspector.tsx:625
+#: packages/builder-ui/src/ui/Inspector.tsx:629
 msgid "Used in calculations, placeholders and integrations."
 msgstr ""
 
@@ -19115,6 +19401,58 @@ msgstr ""
 msgid "with the real figures after them"
 msgstr ""
 
+#: packages/builder-ui/src/ui/Prefill.tsx:54
+msgid "The value is an answer: its text, its value or its ID. Several answers are separated by commas."
+msgstr ""
+
+#: packages/builder-ui/src/ui/Prefill.tsx:56
+msgid "Values: herr, frau, divers, firma."
+msgstr ""
+
+#: packages/builder-ui/src/ui/Prefill.tsx:58
+msgid "Ticks the box with 1, true, yes or ja."
+msgstr ""
+
+#: packages/builder-ui/src/ui/Prefill.tsx:60
+msgid "Spaces are written as + or %20."
+msgstr ""
+
+#: packages/builder-ui/src/ui/Prefill.tsx:76
+msgid "Fill from the page address"
+msgstr ""
+
+#: packages/builder-ui/src/ui/Prefill.tsx:79
+msgid "A link such as ?name=value fills the field when the form opens. Visitors can still change it."
+msgstr ""
+
+#: packages/builder-ui/src/ui/Prefill.tsx:94
+msgid "URL parameter"
+msgstr ""
+
+#: packages/builder-ui/src/ui/Prefill.tsx:100
+msgid "Example for the page with the form:"
+msgstr ""
+
+#: packages/builder-ui/src/ui/Prefill.tsx:101 packages/builder-ui/src/ui/Prefill.tsx:101
+msgid "Copy example"
+msgstr ""
+
+#: packages/builder-ui/src/ui/Prefill.tsx:120
+msgid "Not shown in the form; holds a value from the page address or a fixed value for the entry."
+msgstr ""
+
+#: packages/builder-ui/src/ui/Prefill.tsx:139
+msgid "Fixed value"
+msgstr ""
+
+#: packages/builder-ui/src/ui/Prefill.tsx:151
+msgid "Used when the page address has no value for the field. It stays on the server and does not appear in the page."
+msgstr ""
+
+#: packages/builder-ui/src/ui/Prefill.tsx:156
+msgid "The value is saved with the entry and shown in the lead. In mails, redirects and integrations it is %s."
+msgstr ""
+
 #: packages/builder-ui/src/ui/Preview.tsx:83 packages/builder-ui/src/ui/Workspaces.tsx:131
 msgid "Screen size"
 msgstr ""
@@ -20723,91 +21061,91 @@ msgstr ""
 msgid "Checkbox"
 msgstr ""
 
-#: packages/builder-ui/src/ui/catalog.ts:88
+#: packages/builder-ui/src/ui/catalog.ts:90
 msgid "A path leads to a step that no longer exists."
 msgstr ""
 
-#: packages/builder-ui/src/ui/catalog.ts:89
+#: packages/builder-ui/src/ui/catalog.ts:91
 msgid "The form has no start step."
 msgstr ""
 
-#: packages/builder-ui/src/ui/catalog.ts:90
+#: packages/builder-ui/src/ui/catalog.ts:92
 msgid "A path asks for a field that no longer exists."
 msgstr ""
 
-#: packages/builder-ui/src/ui/catalog.ts:91
+#: packages/builder-ui/src/ui/catalog.ts:93
 msgid "A path asks for an answer that no longer exists."
 msgstr ""
 
-#: packages/builder-ui/src/ui/catalog.ts:92
+#: packages/builder-ui/src/ui/catalog.ts:94
 msgid "A loading screen needs a waiting time and no button."
 msgstr ""
 
-#: packages/builder-ui/src/ui/catalog.ts:93
+#: packages/builder-ui/src/ui/catalog.ts:95
 msgid "Two elements have the same ID."
 msgstr ""
 
-#: packages/builder-ui/src/ui/catalog.ts:94
+#: packages/builder-ui/src/ui/catalog.ts:96
 msgid "A text shows a calculation that no longer exists."
 msgstr ""
 
-#: packages/builder-ui/src/ui/catalog.ts:95
+#: packages/builder-ui/src/ui/catalog.ts:97
 msgid "A path asks for a calculation that no longer exists."
 msgstr ""
 
-#: packages/builder-ui/src/ui/catalog.ts:96
+#: packages/builder-ui/src/ui/catalog.ts:98
 msgid "A setting uses a calculation that no longer exists."
 msgstr ""
 
-#: packages/builder-ui/src/ui/catalog.ts:97
+#: packages/builder-ui/src/ui/catalog.ts:99
 msgid "The payment is incomplete: choose the account and the amount."
 msgstr ""
 
-#: packages/builder-ui/src/ui/catalog.ts:98
+#: packages/builder-ui/src/ui/catalog.ts:100
 msgid "The double opt-in needs an e-mail field of a contact step."
 msgstr ""
 
-#: packages/builder-ui/src/ui/catalog.ts:99
+#: packages/builder-ui/src/ui/catalog.ts:101
 msgid "The reminder to visitors who leave needs an e-mail field and, if visitors allow it with a box, that box."
 msgstr ""
 
-#: packages/builder-ui/src/ui/catalog.ts:100
+#: packages/builder-ui/src/ui/catalog.ts:102
 msgid "A setting under \"Access\" is incomplete."
 msgstr ""
 
-#: packages/builder-ui/src/ui/catalog.ts:101
+#: packages/builder-ui/src/ui/catalog.ts:103
 msgid "A calculation is incomplete."
 msgstr ""
 
-#: packages/builder-ui/src/ui/catalog.ts:102
+#: packages/builder-ui/src/ui/catalog.ts:104
 msgid "An action under \"After sending\" is incomplete."
 msgstr ""
 
-#: packages/builder-ui/src/ui/catalog.ts:103
+#: packages/builder-ui/src/ui/catalog.ts:105
 msgid "A CRM, newsletter or spreadsheet action under \"After sending\" needs a tool and a connection."
 msgstr ""
 
-#: packages/builder-ui/src/ui/catalog.ts:104
+#: packages/builder-ui/src/ui/catalog.ts:106
 msgid "An action belongs to a contact step that no longer exists."
 msgstr ""
 
-#: packages/builder-ui/src/ui/catalog.ts:105
+#: packages/builder-ui/src/ui/catalog.ts:107
 msgid "An action waits for a payment, but the form takes none."
 msgstr ""
 
-#: packages/builder-ui/src/ui/catalog.ts:106
+#: packages/builder-ui/src/ui/catalog.ts:108
 msgid "An appointment question has no appointment type."
 msgstr ""
 
-#: packages/builder-ui/src/ui/catalog.ts:107
+#: packages/builder-ui/src/ui/catalog.ts:109
 msgid "An appointment type still uses the calendar connected in Funnelforms 3. Connect a calendar for conflicts or save the appointment type again."
 msgstr ""
 
-#: packages/builder-ui/src/ui/catalog.ts:124
+#: packages/builder-ui/src/ui/catalog.ts:126
 msgid "Tracking code, scripts and custom CSS need the right to use unfiltered HTML."
 msgstr ""
 
-#: packages/builder-ui/src/ui/catalog.ts:126
+#: packages/builder-ui/src/ui/catalog.ts:128
 msgid "Changes to actions, redirects and entry settings need the right to see entries."
 msgstr ""
 

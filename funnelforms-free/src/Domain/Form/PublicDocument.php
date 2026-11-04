@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Funnelforms\Domain\Form;
 
+use Funnelforms\Domain\Entry\AnswerValidator;
 use Funnelforms\Edition\Edition;
 use Funnelforms\Frontend\StyleTokens;
 
@@ -160,6 +161,10 @@ final class PublicDocument {
 		// that the number is confirmed by text message.
 		$verify = PhoneNumbers::confirms( $field );
 		unset( $field['props']['connectionRef'], $field['props']['sms'] );
+		if ( AnswerValidator::is_hidden( $field ) ) {
+			// The fixed value of a hidden field stays on the server, which fills it in (AnswerValidator).
+			unset( $field['props']['defaultValue'] );
+		}
 		if ( $verify ) {
 			$field['props']['verify'] = 'sms';
 		}

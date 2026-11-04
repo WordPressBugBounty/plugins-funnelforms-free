@@ -1285,7 +1285,31 @@ html:has(.ffx-popup[open]) {
  * it more specific than theme selectors (Divi's #page-container, #et-boc .et-l). Theme rules with
  * !important still win, and so do inline styles of the script.
  * Left out: icon font glyphs (<i>, styled by Font Awesome outside a layer) and the parts of SVG icons.
+ *
+ * The form's own box: themes with a CSS reset on div (OceanWP: div { padding: 0; font: inherit;
+ * font-size: 100% }) took its inner spacing, its font and its font size (14px of the theme instead of
+ * the form's 16px). Here the look goes back to the layers, while where the box sits stays the theme's
+ * and the page builder's (margins, width, display and position of the content column).
  */
+:is(.ffx-form, .ffx-popup):not(#ffx-shield#ffx-shield) {
+	padding: revert-layer;
+	border: revert-layer;
+	border-radius: revert-layer;
+	background: revert-layer;
+	box-shadow: revert-layer;
+	box-sizing: revert-layer;
+	color: revert-layer;
+	font: revert-layer;
+	letter-spacing: revert-layer;
+	word-spacing: revert-layer;
+	text-align: revert-layer;
+	text-indent: revert-layer;
+	text-transform: revert-layer;
+	text-decoration: revert-layer;
+	text-shadow: revert-layer;
+	vertical-align: revert-layer;
+}
+
 :is(.ffx-form, .ffx-popup):not(#ffx-shield#ffx-shield) :not(i, svg, svg *),
 :is(.ffx-form, .ffx-popup):not(#ffx-shield#ffx-shield) :not(i, svg, svg *)::before,
 :is(.ffx-form, .ffx-popup):not(#ffx-shield#ffx-shield) :not(i, svg, svg *)::after,

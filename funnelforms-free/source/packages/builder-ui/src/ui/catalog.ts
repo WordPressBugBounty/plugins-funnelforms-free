@@ -44,6 +44,7 @@ export function contactFieldName( type: string ): string {
 		consent: __( 'Consent', 'funnelforms-pro' ),
 		html: __( 'HTML', 'funnelforms-pro' ),
 		captcha: __( 'Captcha', 'funnelforms-pro' ),
+		hidden: __( 'Hidden field', 'funnelforms-pro' ),
 	};
 	return names[ type ] ?? type;
 }
@@ -74,6 +75,7 @@ export function defaultLabels(): Labels {
 		newsletter: __( 'Yes, send me news by e-mail.', 'funnelforms-pro' ),
 		liveResult: __( 'Your estimate', 'funnelforms-pro' ),
 		liveTotal: __( 'Total', 'funnelforms-pro' ),
+		hidden: __( 'Hidden field', 'funnelforms-pro' ),
 	};
 }
 

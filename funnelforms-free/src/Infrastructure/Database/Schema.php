@@ -120,9 +120,16 @@ final class Schema {
 	}
 
 	/**
-	 * Creates or updates all tables.
+	 * Creates or updates all tables. Tables of a later version are left as they are: an earlier
+	 * version installed again (VersionRollback, or a ZIP uploaded by hand) reads them as they are,
+	 * because updates only add tables, columns and keys (columns with a default or NULL), and
+	 * dbDelta() of the older code would change the newer columns back. The stored version never
+	 * goes down, so the next update does not run its upgrade steps twice.
 	 */
 	public static function install(): void {
+		if ( (int) get_option( self::VERSION_OPTION, 0 ) > self::VERSION ) {
+			return;
+		}
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( self::sql() );
 		update_option( self::VERSION_OPTION, self::VERSION, true );
