@@ -220,6 +220,16 @@ class MigrationStore {
 	}
 
 	/**
+	 * A stored connection with its decrypted secret.
+	 *
+	 * @param string $ref Connection ref.
+	 * @return array{type:string,config:array<string,mixed>,secret:array<string,mixed>}|null
+	 */
+	public function connection( string $ref ): ?array {
+		return ( new ConnectionRepository( $this->box ) )->by_ref( $ref );
+	}
+
+	/**
 	 * Stores a connection (credentials encrypted), keyed on its ref.
 	 *
 	 * @param array{ref:string,type:string,label:string,config:array<string,mixed>,secret:array<string,mixed>} $connection Connection.

@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Funnelforms\Admin;
 
+use Funnelforms\Application\Actions\MailServer;
 use Funnelforms\Application\Capabilities;
 use Funnelforms\Application\FormRenderer;
 use Funnelforms\Application\LeadMirror;
@@ -503,6 +504,7 @@ final class MigrationPage {
 		$total   = count( $forms );
 		$running = 'running' === $state['status'] || LegacyBackup::running();
 		self::hero( $state, $data, $by, $total, $running );
+		self::mail_server_notice();
 		/**
 		 * Fires below the state of the move on the migration overview. Pro shows here the
 		 * appointment types from 3.x that lost their Cronofy calendar (CronofyNotice).
@@ -564,6 +566,7 @@ final class MigrationPage {
 		</div>
 
 		<?php self::attention( $forms, $data, $files ); ?>
+		<?php self::hints( $forms ); ?>
 
 		<section class="ffx-card ffx-section" aria-labelledby="ffx-mig-latest">
 			<div class="ffx-card__head">
@@ -571,6 +574,59 @@ final class MigrationPage {
 				<?php echo Ui::button( __( 'Full log', 'funnelforms-free' ), self::url( array( 'tab' => 'log' ) ), 'ghost', 'arrow' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in button(). ?>
 			</div>
 			<?php self::timeline( MigrationLog::with_backups( MigrationLog::timeline( 5 ) ), 5 ); ?>
+		</section>
+		<?php
+	}
+
+	/**
+	 * The SMTP server of the 3.x contact forms that became the mail server under Settings → E-mail,
+	 * while it still is one, and the other servers (user name @ server) that stay with their forms.
+	 *
+	 * @return array{host:string,others:string[]}|null
+	 */
+	public static function adopted_mail_server(): ?array {
+		$taken = get_option( Migrator::MAIL_SERVER );
+		if ( ! is_array( $taken ) || 'adopted' !== ( $taken['status'] ?? '' ) || MailServer::host() !== (string) ( $taken['host'] ?? '' ) ) {
+			return null;
+		}
+		return array(
+			'host'   => (string) $taken['host'],
+			'others' => array_values( array_filter( array_map( static fn( $other ): string => is_array( $other ) ? (string) ( $other['label'] ?? '' ) : '', (array) ( $taken['others'] ?? array() ) ) ) ),
+		);
+	}
+
+	/**
+	 * Which SMTP server of the 3.x contact forms became the mail server under Settings → E-mail
+	 * (Migrator::adopt_mail_server()), while it still is; and which servers stay with their forms.
+	 */
+	private static function mail_server_notice(): void {
+		$taken = self::adopted_mail_server();
+		if ( null === $taken ) {
+			return;
+		}
+		$others = $taken['others'];
+		?>
+		<section class="ffx-notice ffx-notice--info ffx-section ffx-mig-mailserver" aria-labelledby="ffx-mig-mailserver-title">
+			<h2 id="ffx-mig-mailserver-title"><?php esc_html_e( 'Mail server taken over from Funnelforms 3', 'funnelforms-free' ); ?></h2>
+			<p>
+				<?php
+				/* translators: %s: name of the SMTP server, e.g. smtp.example.com. */
+				printf( esc_html__( 'Funnelforms now sends its mails through %s, the SMTP server your contact forms used in Funnelforms 3. Forms with their own SMTP server keep using it. If the server cannot be reached or refuses the password, the mails go out through WordPress.', 'funnelforms-free' ), '<strong>' . esc_html( $taken['host'] ) . '</strong>' );
+				?>
+			</p>
+			<?php if ( array() !== $others ) : ?>
+				<p><strong><?php esc_html_e( 'Other SMTP servers stay with the forms that used them:', 'funnelforms-free' ); ?></strong></p>
+				<ul class="ffx-mig-chips">
+					<?php foreach ( $others as $label ) : ?>
+						<li><?php echo esc_html( $label ); ?></li>
+					<?php endforeach; ?>
+				</ul>
+			<?php endif; ?>
+			<?php if ( current_user_can( Capabilities::MANAGE_SETTINGS ) ) : ?>
+				<div class="ffx-hero__actions">
+					<?php echo Ui::button( __( 'Check the mail server', 'funnelforms-free' ), SettingsPage::url( 'mail', 'ffx-mail-server' ), 'secondary', 'arrow' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in button(). ?>
+				</div>
+			<?php endif; ?>
 		</section>
 		<?php
 	}
@@ -942,6 +998,40 @@ final class MigrationPage {
 	}
 
 	/**
+	 * What is missing in forms but keeps none of them on Funnelforms 3 (FormRenderer::hints()),
+	 * grouped like attention().
+	 *
+	 * @param list<array<string,mixed>> $forms MigrationReport::forms(), or one form of it.
+	 * @param bool                      $chips Whether to name the forms (not on a form's own page).
+	 */
+	private static function hints( array $forms, bool $chips = true ): void {
+		$groups = array();
+		foreach ( $forms as $form ) {
+			foreach ( (array) ( $form['hints'] ?? array() ) as $code ) {
+				$groups[ (string) $code ][] = $form;
+			}
+		}
+		if ( array() === $groups ) {
+			return;
+		}
+		?>
+		<section class="ffx-card ffx-section" id="ffx-mig-hints" aria-labelledby="ffx-mig-hints-title">
+			<div class="ffx-card__head">
+				<div>
+					<h2 id="ffx-mig-hints-title"><?php esc_html_e( 'Works already, one thing is left', 'funnelforms-free' ); ?></h2>
+					<p><?php esc_html_e( 'This does not keep any form on Funnelforms 3. It only makes the forms complete again.', 'funnelforms-free' ); ?></p>
+				</div>
+			</div>
+			<ul class="ffx-mig-problems">
+				<?php foreach ( $groups as $code => $group ) : ?>
+					<li><?php self::problem( array( 'forms' => $chips ? $group : array() ) + MigrationTexts::blocker( (string) $code, (int) $group[0]['id'] ) ); ?></li>
+				<?php endforeach; ?>
+			</ul>
+		</section>
+		<?php
+	}
+
+	/**
 	 * One problem: what, why, how to fix it, and the forms it concerns.
 	 *
 	 * @param array<string,mixed> $item title, text, fix, link, url, forms, start, details.
@@ -1225,6 +1315,8 @@ final class MigrationPage {
 				</ul>
 			</section>
 		<?php endif; ?>
+
+		<?php self::hints( array( $form ), false ); ?>
 
 		<div class="ffx-split ffx-section">
 			<section class="ffx-card" aria-labelledby="ffx-mig-check">

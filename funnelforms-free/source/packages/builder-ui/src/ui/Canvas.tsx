@@ -34,7 +34,7 @@ import {
 import type { FormDocument, FormNode } from '@funnelforms/form-schema';
 import { connectFromCanvas } from '../conditions';
 import { testKind, testSteps } from '../experiments';
-import { addContact, addEnd, addField, addStep, nodeName, setPositions, STEP_FIELD_TYPES, text, type StepFieldType } from '../document';
+import { addContact, addEnd, addField, addStep, fieldKind, nodeName, setPositions, STEP_FIELD_TYPES, text, type StepKind } from '../document';
 import type { LogicHint } from '../logic';
 import type { Selection } from '../store';
 import { kindName } from './Actions';
@@ -58,7 +58,7 @@ import type { CanvasAnalytics, EdgeAnalytics } from '../stats';
 export const DRAG_TYPE = 'application/x-funnelforms-builder';
 
 /** What the palette drags: a step with a field type, a contact step, an end, or a field. */
-export type PaletteItem = { kind: 'step'; type: StepFieldType } | { kind: 'contact' } | { kind: 'end' } | { kind: 'field'; type: string };
+export type PaletteItem = { kind: 'step'; type: StepKind } | { kind: 'contact' } | { kind: 'end' } | { kind: 'field'; type: string };
 
 type NodeData = {
 	node: FormNode;
@@ -110,7 +110,7 @@ const NodeView = memo( function NodeView( { data, selected }: NodeProps<CanvasNo
 			<Handle type="target" position={ Position.Left } className="ffxb-handle" />
 			<div className="ffxb-node__head">
 				<span className="ffxb-node__icon" aria-hidden="true">
-					<TypeIcon type={ 'step' === node.type ? fields[ 0 ]?.type ?? 'text' : node.type } size={ 14 } />
+					<TypeIcon type={ 'step' === node.type ? ( fields[ 0 ] ? fieldKind( fields[ 0 ] ) : 'text' ) : node.type } size={ 14 } />
 				</span>
 				<span className="ffxb-node__kind">{ KIND_NAMES()[ node.type ] }</span>
 				{ start ? <span className="ffxb-node__flag ffxb-node__flag--start">{ __( 'Start', 'funnelforms-pro' ) }</span> : null }
@@ -139,7 +139,7 @@ const NodeView = memo( function NodeView( { data, selected }: NodeProps<CanvasNo
 									onSelectField( f.id );
 								} }
 							>
-								{ 'contact' === node.type ? null : <span className="ffxb-node__field-type">{ stepFieldName( f.type ) }</span> }
+								{ 'contact' === node.type ? null : <span className="ffxb-node__field-type">{ stepFieldName( fieldKind( f ) ) }</span> }
 								{ 'showWhen' in f && f.showWhen ? (
 									<span className="ffxb-node__field-if" title={ __( 'Shown only on certain answers', 'funnelforms-pro' ) }>
 										{ __( 'if', 'funnelforms-pro' ) }
@@ -161,7 +161,7 @@ const NodeView = memo( function NodeView( { data, selected }: NodeProps<CanvasNo
 					) ) }
 				</ul>
 			) : fields[ 0 ] ? (
-				<div className="ffxb-node__meta">{ stepFieldName( fields[ 0 ].type ) }</div>
+				<div className="ffxb-node__meta">{ loadingMeta( fields[ 0 ] ) ?? stepFieldName( fields[ 0 ].type ) }</div>
 			) : null }
 			{ 'end' === node.type ? <div className="ffxb-node__meta">{ endKind( node ) }</div> : null }
 			{ 'contact' === node.type ? (
@@ -553,7 +553,7 @@ function Flow() {
 				}
 			}
 			const placement = { position: { x: position.x - 120, y: position.y - 40 } };
-			if ( 'step' === item.kind && ( STEP_FIELD_TYPES as readonly string[] ).includes( item.type ) ) {
+			if ( 'step' === item.kind && ( 'loading' === item.type || ( STEP_FIELD_TYPES as readonly string[] ).includes( item.type ) ) ) {
 				created = { node: addStep( d, item.type, ctx, placement ) };
 			} else if ( 'contact' === item.kind ) {
 				created = { node: addContact( d, ctx, placement ) };
@@ -738,4 +738,14 @@ export function Canvas() {
 			</ReactFlowProvider>
 		</div>
 	);
+}
+
+/** "Loading animation · 4 s" on a step that is one: what it is and how long it waits. */
+function loadingMeta( field: { type: string; props?: unknown } ): string | null {
+	if ( 'loading' !== fieldKind( field ) ) {
+		return null;
+	}
+	const seconds = ( ( field.props as { autoAdvanceMs?: number } ).autoAdvanceMs ?? 0 ) / 1000;
+	const number = new Intl.NumberFormat( document.documentElement.lang || undefined, { maximumFractionDigits: 1 } ).format( seconds );
+	return `${ stepFieldName( 'loading' ) } · ${ sprintf( /* translators: %s: number of seconds */ __( '%s s', 'funnelforms-pro' ), number ) }`;
 }

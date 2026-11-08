@@ -928,22 +928,44 @@ function content( field: ContentField, ctx: FieldContext, label: string, head: H
 /** Animation and texts that change evenly over the waiting time, read out politely. */
 function loadingScreen( loader: NonNullable<ContentField[ 'props' ][ 'loader' ]>, wait: number, ctx: FieldContext ): HTMLElement {
 	const messages = loader.messages.map( ( m ) => ctx.text( m ).replace( /<[^>]*>/g, '' ).trim() ).filter( Boolean );
-	const text = h( 'p', { class: 'ffx-loader-message' }, messages[ 0 ] ?? '' );
+	// A list to tick off needs its texts; without them it is a spinner.
+	const style = 'checklist' === loader.style && ! messages.length ? 'spinner' : loader.style;
+	const at = ( i: number ): number => ( i * wait ) / messages.length;
 	const animation = h( 'div', { class: 'ffx-loader-animation', 'aria-hidden': 'true' } );
-	if ( loader.style === 'dots' ) {
-		animation.append( h( 'span', {} ), h( 'span', {} ), h( 'span', {} ) );
-	}
-	const box = h( 'div', { class: `ffx-loader ffx-loader-${ loader.style }`, role: 'status' }, animation, text );
+	const extra = [ loader.size ? ` ffx-loader-${ loader.size }` : '', 'above' === loader.textPosition ? ' ffx-loader-above' : '' ].join( '' );
+	const box = h( 'div', { class: `ffx-loader ffx-loader-${ style }${ extra }`, role: 'status' } );
 	// Through the CSSOM, which a content security policy without inline styles still allows.
 	box.style.setProperty( '--ffx-loader-ms', `${ wait }ms` );
-	if ( loader.style === 'circle' ) {
-		// Counts up to 100 % in the waiting time.
-		const percent = h( 'span', { class: 'ffx-loader-percent' }, '0 %' );
-		animation.append( percent );
+	if ( loader.color && /^#[0-9a-f]{6}$/i.test( loader.color ) ) {
+		box.style.setProperty( '--ffx-color-primary', loader.color );
+	}
+	if ( 'checklist' === style ) {
+		// Each text is ticked off in its share of the waiting time; the last one just before the step moves on.
+		const items = messages.map( ( message ) => h( 'li', {}, message ) );
+		box.append( h( 'ul', { class: 'ffx-loader-list' }, ...items ) );
+		items.forEach( ( item, i ) => {
+			setTimeout( () => item.classList.add( 'is-active' ), at( i ) );
+			setTimeout( () => item.classList.replace( 'is-active', 'is-done' ), Math.min( at( i + 1 ), wait - 150 ) );
+		} );
+		return box;
+	}
+	const text = h( 'p', { class: 'ffx-loader-message' }, messages[ 0 ] ?? '' );
+	if ( 'dots' === style ) {
+		animation.append( h( 'span', {} ), h( 'span', {} ), h( 'span', {} ) );
+	}
+	box.append( animation );
+	// Counts up to 100 % in the waiting time: the ring fills with it, the percent shows it.
+	const percent = ( loader.percent ?? 'circle' === style ) && ( 'circle' === style || 'bar' === style ) ? h( 'span', { class: 'ffx-loader-percent' }, '0 %' ) : null;
+	if ( percent ) {
+		( 'circle' === style ? animation : box ).append( percent );
+	}
+	if ( 'circle' === style || percent ) {
 		const started = Date.now();
 		const tick = (): void => {
 			const done = Math.min( 100, Math.round( ( ( Date.now() - started ) / wait ) * 100 ) );
-			percent.textContent = `${ done } %`;
+			if ( percent ) {
+				percent.textContent = `${ done } %`;
+			}
 			box.style.setProperty( '--ffx-loader-done', String( done ) );
 			if ( done < 100 ) {
 				setTimeout( tick, 50 );
@@ -951,10 +973,11 @@ function loadingScreen( loader: NonNullable<ContentField[ 'props' ][ 'loader' ]>
 		};
 		tick();
 	}
+	box.append( text );
 	messages.slice( 1 ).forEach( ( message, i ) => {
 		setTimeout( () => {
 			text.textContent = message;
-		}, ( ( i + 1 ) * wait ) / messages.length );
+		}, at( i + 1 ) );
 	} );
 	return box;
 }

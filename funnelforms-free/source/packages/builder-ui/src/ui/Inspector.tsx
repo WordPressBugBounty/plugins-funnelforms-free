@@ -8,7 +8,9 @@ import type { ContactField, Field, FormDocument, FormNode, Text } from '@funnelf
 import {
 	duplicateField,
 	duplicateNode,
+	fieldKind,
 	findNode,
+	isLoading,
 	asksFor,
 	keyClash,
 	moveField,
@@ -130,6 +132,7 @@ export function FormSettings( { doc }: { doc: FormDocument } ) {
 	return (
 		<Section title={ __( 'General', 'funnelforms-pro' ) }>
 			<TextInput label={ __( 'Name of the form', 'funnelforms-pro' ) } value={ doc.title } onChange={ ( v ) => change( ( d ) => void ( d.title = v ), 'title' ) } hint={ __( 'Only you see the name; visitors see the questions.', 'funnelforms-pro' ) } />
+			<FormHeading doc={ doc } />
 			{ /* Pro features: Funnelforms Free shows them only to switch them off. */ }
 			{ 'free' !== process.env.FUNNELFORMS_EDITION || settings.savePartialEntries ? (
 				<Toggle
@@ -154,6 +157,43 @@ export function FormSettings( { doc }: { doc: FormDocument } ) {
 				</button>
 			</p>
 		</Section>
+	);
+}
+
+/**
+ * The heading above every step (settings.heading): the same text on all steps, above the
+ * question, like the form title of Funnelforms 3 (fe_title, taken over by the migration).
+ * Switching it off removes the text; undo brings it back.
+ */
+function FormHeading( { doc }: { doc: FormDocument } ) {
+	const change = useChange();
+	const { ctx, lang } = useEnv();
+	const heading = doc.settings.heading;
+	return (
+		<>
+			<Toggle
+				label={ __( 'Heading above every step', 'funnelforms-pro' ) }
+				hint={ __( 'A title that stays the same on every step, above the question.', 'funnelforms-pro' ) }
+				checked={ undefined !== heading }
+				onChange={ ( on ) =>
+					change( ( d ) => {
+						if ( on ) {
+							d.settings.heading = d.settings.heading ?? {};
+						} else {
+							delete d.settings.heading;
+						}
+					} )
+				}
+			/>
+			{ undefined !== heading ? (
+				<TextProp
+					label={ __( 'Text of the heading', 'funnelforms-pro' ) }
+					value={ heading }
+					hint={ __( 'Its colour is set in the design, under More colours.', 'funnelforms-pro' ) }
+					onChange={ ( v ) => change( ( d ) => put( d.settings, 'heading', lang, v, ctx.locale ), 'settings.heading' ) }
+				/>
+			) : null }
+		</>
 	);
 }
 
@@ -464,7 +504,7 @@ function FieldList( { node }: { node: Extract<FormNode, { type: 'step' | 'contac
 	const change = useChange();
 	const select = store.getState().select;
 	const fields = node.fields as AnyField[];
-	const name = ( f: AnyField ): string => ( 'contact' === node.type ? contactFieldName( f.type ) : stepFieldName( f.type ) );
+	const name = ( f: AnyField ): string => ( 'contact' === node.type ? contactFieldName( f.type ) : stepFieldName( fieldKind( f ) ) );
 	return (
 		<Section title={ __( 'Fields', 'funnelforms-pro' ) }>
 			<ol className="ffxb-fields">
@@ -564,11 +604,11 @@ function FieldProps( { node, field }: { node: Extract<FormNode, { type: 'step' |
 		</>
 	);
 	const hidden = isHidden( field, contact );
-	const name = hidden ? __( 'Hidden field', 'funnelforms-pro' ) : contact ? contactFieldName( field.type ) : stepFieldName( field.type );
+	const name = hidden ? __( 'Hidden field', 'funnelforms-pro' ) : contact ? contactFieldName( field.type ) : stepFieldName( fieldKind( field ) );
 	const hasLabel = ! ( contact && [ 'consent', 'checkbox', 'html', 'captcha' ].includes( field.type ) );
 	return (
 		<Section title={ name } actions={ actions }>
-			{ hasLabel ? <TextProp label={ contact ? __( 'Label', 'funnelforms-pro' ) : 'result' === field.type ? __( 'Heading', 'funnelforms-pro' ) : __( 'Question', 'funnelforms-pro' ) } value={ field.label } onChange={ textOf( 'label' ) } /> : null }
+			{ hasLabel ? <TextProp label={ contact ? __( 'Label', 'funnelforms-pro' ) : 'result' === field.type || isLoading( field ) ? __( 'Heading', 'funnelforms-pro' ) : __( 'Question', 'funnelforms-pro' ) } value={ field.label } onChange={ textOf( 'label' ) } /> : null }
 			{ hasLabel && ! contact && 'free' !== process.env.FUNNELFORMS_EDITION ? <AnswerInsert fieldId={ field.id } onInsert={ ( token ) => textOf( 'label' )( `${ editText( field.label, lang, ctx.locale ) } ${ token }`.trim() ) } /> : null }
 			{ ! contact && 'description' in field ? <TextProp label={ __( 'Description', 'funnelforms-pro' ) } value={ field.description } onChange={ textOf( 'description' ) } multiline /> : null }
 			{ contact && 'text' === field.type ? <HiddenFieldProps field={ field as ContactField } edit={ edit } readOnly={ readOnly } /> : null }

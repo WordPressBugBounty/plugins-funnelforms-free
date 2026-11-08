@@ -2,8 +2,9 @@ import { h } from './dom';
 
 /**
  * Consent and pixel identifiers for the plugin's server-side conversions (Meta, GA4, TikTok).
- * Consent comes from the WP Consent API, which cookie banners such as Complianz, CookieYes or Real
- * Cookie Banner fill. Identifiers of a category are read only when the visitor allowed that
+ * Consent comes from Borlabs Cookie (3.x, JavaScript API) where it is on the page, otherwise from the
+ * WP Consent API, which cookie banners such as Complianz, CookieYes or Real Cookie Banner fill.
+ * Identifiers of a category are read only when the visitor allowed that
  * category. Without a consent tool the site's privacy mode decides: in the EU mode (default) no
  * answer counts as no, in the global mode as yes. The unrestricted mode, which the site owner
  * chooses at their own risk, counts every category as allowed and ignores the consent tool and
@@ -23,6 +24,7 @@ export interface TrackingInfo {
 declare global {
 	interface Window {
 		wp_has_consent?: ( category: string ) => boolean;
+		BorlabsCookie?: { Consents?: { hasConsentForServiceGroup?: ( group: string ) => boolean } };
 	}
 	interface Navigator {
 		globalPrivacyControl?: boolean;
@@ -39,6 +41,30 @@ export function setPrivacy( mode?: string ): void {
 }
 
 /**
+ * Borlabs Cookie 3 (window.BorlabsCookie.Consents) answers for its service groups; its default
+ * groups "marketing" and "statistics" have the names of the categories. It comes first, because
+ * the banner on the page is the one the visitor answered, also where the WP Consent API plugin is
+ * installed next to it. Null when Borlabs Cookie 3 is not on the page.
+ */
+function borlabs( category: string ): boolean | null {
+	const has = window.BorlabsCookie?.Consents?.hasConsentForServiceGroup;
+	if ( typeof has !== 'function' ) {
+		return null;
+	}
+	try {
+		return Boolean( has.call( window.BorlabsCookie?.Consents, category ) );
+	} catch {
+		return null;
+	}
+}
+
+/** The consent tool's answer for a category (Borlabs Cookie, then the WP Consent API), or null without a tool. */
+function tool( category: string ): boolean | null {
+	const has = window.wp_has_consent;
+	return borlabs( category ) ?? ( typeof has === 'function' ? Boolean( has( category ) ) : null );
+}
+
+/**
  * The consent tool's answer for a category, or null without a tool. In the global mode Global
  * Privacy Control is a no for marketing and statistics, whatever the tool says (CPRA).
  */
@@ -46,8 +72,7 @@ function answer( category: string ): boolean | null {
 	if ( unrestricted ) {
 		return true;
 	}
-	const has = window.wp_has_consent;
-	return optOut && navigator.globalPrivacyControl === true ? false : typeof has === 'function' ? Boolean( has( category ) ) : null;
+	return optOut && navigator.globalPrivacyControl === true ? false : tool( category );
 }
 
 /** Whether an answer allows: yes or no as given; no answer is a no in the EU mode, a yes in the global mode. */
@@ -109,15 +134,19 @@ export function trackingInfo( search: string, cookies: string, now: number = Dat
 	return { consent, ...ids };
 }
 
-/** Whether a category is allowed (WP Consent API, Global Privacy Control and the privacy mode). */
+/** Whether a category is allowed (Borlabs Cookie or WP Consent API, Global Privacy Control and the privacy mode). */
 export function allowed( category: string ): boolean {
 	return granted( answer( category ) );
 }
 
+/** Event of Borlabs Cookie 3 after the visitor saved a choice in the banner. */
+export const BORLABS_SAVED = 'borlabs-cookie-consent-saved';
+
 /**
  * Scripts of other services (Google Maps, captchas) load at once only where marketing is allowed
- * (allowed()); otherwise after a click on a button that says what loads from where. Returns
- * that button, or null when loading started. After the click the focus goes to target.
+ * (allowed()); otherwise after a click on a button that says what loads from where, or as soon as
+ * the visitor allows marketing in Borlabs Cookie. Returns that button, or null when loading
+ * started. After the click the focus goes to target.
  */
 export function loadWithConsent( label: string, load: () => void, target: HTMLElement ): HTMLElement | null {
 	if ( allowed( 'marketing' ) ) {
@@ -125,7 +154,19 @@ export function loadWithConsent( label: string, load: () => void, target: HTMLEl
 		return null;
 	}
 	const button = h( 'button', { type: 'button', class: 'ffx-button ffx-consent-load' }, label );
+	const later = (): void => {
+		// A button no longer on the page (another step) has nothing to load.
+		if ( ! button.isConnected ) {
+			window.removeEventListener( BORLABS_SAVED, later );
+		} else if ( allowed( 'marketing' ) ) {
+			window.removeEventListener( BORLABS_SAVED, later );
+			button.replaceWith( target );
+			load();
+		}
+	};
+	window.addEventListener( BORLABS_SAVED, later );
 	button.addEventListener( 'click', () => {
+		window.removeEventListener( BORLABS_SAVED, later );
 		target.tabIndex = -1;
 		button.replaceWith( target );
 		load();

@@ -12,8 +12,9 @@ namespace Funnelforms\Domain\Entry;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * The runtime reads the consent from the WP Consent API (wp_has_consent) that cookie banners such
- * as Complianz, CookieYes or Real Cookie Banner fill, and the first-party cookies of the pixels
+ * The runtime reads the consent from Borlabs Cookie 3 (its service groups marketing and statistics)
+ * or from the WP Consent API (wp_has_consent) that cookie banners such as Complianz, CookieYes or
+ * Real Cookie Banner fill, and the first-party cookies of the pixels
  * (_fbp, _fbc, _ga, _ga_<stream>, _ttp) plus click IDs in the address. Everything is checked against the
  * formats the platforms use; anything else is dropped. Stored with the entry only for forms with
  * conversion actions, and only what the visitor allowed: identifiers, IP address and user agent of

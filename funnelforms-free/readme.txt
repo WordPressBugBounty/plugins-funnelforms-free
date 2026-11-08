@@ -4,7 +4,7 @@ Tags: contact form, multi step form, form builder, lead generation, conversation
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 5.0.6
+Stable tag: 5.0.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -221,6 +221,12 @@ If you set up a mail server under Funnelforms > Settings > E-mail, the mails of 
 The scripts in assets/builder and assets/runtime are built and minified from TypeScript. The sources, with the build scripts, are in the folder source/ of this plugin. To build them: `pnpm install` and `pnpm -r build` in that folder (Node.js 20 or newer).
 
 == Changelog ==
+
+= 5.0.7 =
+* Forms: new block "Loading animation": shows an animation with changing texts and moves on by itself after the set duration. Choose progress bar, ring with percent, checklist, spinner, dots or magnifier, plus duration, percent display, size, position of the texts and your own colour, with a preview in the editor.
+* Forms: switch "Heading above every step" under Settings > General with its own colour under Design, like the form title in Funnelforms 3. Forms moved from Funnelforms 3 keep their title and its colour.
+* Integrations: submissions are reported to Independent Analytics Pro (form ID and title). Consent is also read directly from Borlabs Cookie 3 (service groups "Marketing" and "Statistics").
+* Moving from Funnelforms 3: the SMTP server your contact forms used in Funnelforms 3 becomes the mail server under Settings > E-mail, if none is set there. With several servers it takes the one used most, and the others stay with their forms.
 
 = 5.0.6 =
 * Forms: fields can be filled from the page address (for example `?kundennummer=123`): switch "Fill from the page address" on text, e-mail, phone, number, choice and dropdown questions and on contact fields. New hidden field in the contact step for values from the link or a fixed value that is saved with the entry.

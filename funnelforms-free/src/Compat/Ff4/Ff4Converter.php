@@ -861,14 +861,6 @@ final class Ff4Converter {
 					)
 				);
 			case 'loading':
-				$styles  = array(
-					'progress' => 'bar',
-					'circle'   => 'circle',
-					'dots'     => 'dots',
-					'spinner'  => 'spinner',
-				);
-				$seconds = $number( $settings['duration'] ?? null, 3 );
-				$message = $settings['displayText'] ?? $label;
 				return array_merge(
 					$base,
 					array(
@@ -876,21 +868,60 @@ final class Ff4Converter {
 						'type'     => 'content',
 						'props'    => array(
 							'html'          => $this->t( '' ),
-							'autoAdvanceMs' => (int) max( 500, min( 60000, round( $seconds * 1000 ) ) ),
+							'autoAdvanceMs' => (int) max( 500, min( 60000, round( $number( $settings['duration'] ?? null, 3 ) * 1000 ) ) ),
 							'button'        => array(
 								'show'  => false,
 								'label' => $this->t( $this->options['texts']['next'] ),
 							),
-							'loader'        => array(
-								'style'    => $styles[ (string) ( $settings['animationType'] ?? 'progress' ) ] ?? 'spinner',
-								'messages' => array( $text( $message ) ),
-							),
+							'loader'        => $this->loader( $settings, $text( $settings['displayText'] ?? $label ) ),
 						),
 					)
 				);
 		}
 		$this->notes[] = 'field_type_not_imported:' . $type . ':' . $label;
 		return null;
+	}
+
+	/**
+	 * The loading animation of a loading field of Funnelforms 4: its animation, percent, size,
+	 * colour and where its text stands. "Speed" has no counterpart; the duration counts.
+	 *
+	 * @param array<string,mixed>  $settings Settings.
+	 * @param array<string,string> $message  The text, translated.
+	 * @return array<string,mixed>
+	 */
+	private function loader( array $settings, array $message ): array {
+		$styles   = array(
+			'progress' => 'bar',
+			'circle'   => 'circle',
+			'dots'     => 'dots',
+			'spinner'  => 'spinner',
+			'search'   => 'search',
+		);
+		$style    = $styles[ (string) ( $settings['animationType'] ?? 'progress' ) ] ?? 'spinner';
+		$position = (string) ( $settings['textPosition'] ?? 'bottom' );
+		$loader   = array(
+			'style'    => $style,
+			// "No text" in Funnelforms 4 leaves the animation alone.
+			'messages' => 'none' === $position || '' === trim( implode( '', $message ) ) ? array() : array( $message ),
+		);
+		if ( 'bar' === $style || 'circle' === $style ) {
+			// Funnelforms 4 showed the percent unless it was switched off.
+			$loader['percent'] = false !== ( $settings['showPercentage'] ?? true );
+		}
+		$size = (string) ( $settings['size'] ?? 'medium' );
+		if ( 'small' === $size || 'large' === $size ) {
+			$loader['size'] = $size;
+		}
+		$color = strtolower( (string) ( $settings['primaryColor'] ?? '' ) );
+		// The purple of Funnelforms 4 was its default; such forms take the accent colour of their design.
+		if ( 1 === preg_match( '/^#[0-9a-f]{6}$/', $color ) && '#6a30f5' !== $color ) {
+			$loader['color'] = $color;
+		}
+		if ( 'top' === $position ) {
+			$loader['textPosition'] = 'above';
+		}
+		return $loader;
 	}
 
 	/**

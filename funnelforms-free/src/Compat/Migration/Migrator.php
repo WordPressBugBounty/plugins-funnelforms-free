@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Funnelforms\Compat\Migration;
 
+use Funnelforms\Application\Actions\MailServer;
 use Funnelforms\Compat\Legacy\LegacyCodec;
 use Funnelforms\Application\FormRenderer;
 use Funnelforms\Application\LeadMirror;
@@ -26,6 +27,9 @@ defined( 'ABSPATH' ) || exit;
  * keep writing 3.x leads, so after the first full run a delta run picks up new and changed posts
  * and removes entries whose lead was deleted in 3.x. Every item is keyed on its legacy ID and
  * skipped when its source hash is unchanged, so runs can repeat safely.
+ *
+ * At the end of a run the SMTP server most forms of 3.x sent through becomes the site's mail
+ * server (Settings → E-mail), once and only when none is set (adopt_mail_server()).
  */
 class Migrator {
 
@@ -38,6 +42,9 @@ class Migrator {
 
 	/** Copies kept because many 3.x leads vanished at once (see sweep_deleted_entries()). */
 	public const HELD = 'funnelforms_migration_held';
+
+	/** What became of the SMTP servers of the 3.x contact forms (adopt_mail_server()). */
+	public const MAIL_SERVER = 'funnelforms_migration_mail_server';
 
 	/** Vanished leads below this number are always followed. */
 	private const HOLD_MIN = 20;
@@ -180,6 +187,7 @@ class Migrator {
 			'last_sync_at'   => null,
 			'finished_at'    => null,
 			'changes'        => array(),
+			'smtp'           => array(),
 		);
 	}
 
@@ -212,6 +220,7 @@ class Migrator {
 			'last_sync_at'   => $this->state['last_sync_at'],
 			'finished_at'    => null,
 			'changes'        => array(),
+			'smtp'           => array(),
 		);
 		$this->save();
 		// The hourly delta runs show up in the log only when they changed something.
@@ -258,6 +267,7 @@ class Migrator {
 	private function batch( int $batch ): bool {
 		$phase = self::PHASES[ $this->state['phase'] ] ?? null;
 		if ( null === $phase ) {
+			$this->adopt_mail_server();
 			$this->state['status']       = 'done';
 			$this->state['finished_at']  = gmdate( 'Y-m-d H:i:s' );
 			$this->state['last_sync_at'] = $this->state['run_started_at'];
@@ -475,6 +485,148 @@ class Migrator {
 	}
 
 	/**
+	 * Counts the forms that send through each SMTP server of a 3.x contact form, once per form.
+	 *
+	 * @param array<int,array<string,mixed>> $connections Connections of one converted form.
+	 */
+	private function count_smtp( array $connections ): void {
+		$smtp = (array) ( $this->state['smtp'] ?? array() );
+		$refs = array();
+		foreach ( $connections as $connection ) {
+			if ( 'smtp' === ( $connection['type'] ?? '' ) ) {
+				$refs[ (string) $connection['ref'] ] = true;
+			}
+		}
+		foreach ( array_keys( $refs ) as $ref ) {
+			$smtp[ $ref ] = (int) ( $smtp[ $ref ] ?? 0 ) + 1;
+		}
+		$this->state['smtp'] = $smtp;
+	}
+
+	/**
+	 * Makes the SMTP server most forms of 3.x sent through the site's mail server (Settings →
+	 * E-mail), so the mails Funnelforms 5 sends besides the forms' own (opt-in, reminders, mails of
+	 * forms that used WordPress in 3.x) reach their recipients the same way. Each form keeps its own
+	 * server as before; with several servers the others stay with their forms only.
+	 *
+	 * Happens once per site: a mail server set in the settings is never replaced, and one removed
+	 * there does not come back with the next hourly run. When the server fails, the mails go out
+	 * through WordPress as in 3.x (fallback). On a tie the server of the form with the lowest ID wins.
+	 */
+	private function adopt_mail_server(): void {
+		$used = array_filter( (array) ( $this->state['smtp'] ?? array() ) );
+		if ( array() === $used || false !== get_option( self::MAIL_SERVER, false ) ) {
+			return;
+		}
+		arsort( $used );
+		$servers = array();
+		foreach ( $used as $ref => $forms ) {
+			$connection = $this->store->connection( (string) $ref );
+			$host       = self::smtp_host( (string) ( $connection['config']['host'] ?? '' ) );
+			if ( null === $connection || '' === $host || '' === (string) ( $connection['secret']['password'] ?? '' ) ) {
+				continue;
+			}
+			$servers[] = array(
+				'ref'        => (string) $ref,
+				'connection' => $connection,
+				'host'       => $host,
+				'label'      => (string) ( $connection['config']['username'] ?? '' ) . ' @ ' . $host,
+				'forms'      => (int) $forms,
+			);
+		}
+		if ( array() === $servers ) {
+			return;
+		}
+		$others = array_map(
+			static fn( array $server ): array => array(
+				'label' => $server['label'],
+				'forms' => $server['forms'],
+			),
+			array_slice( $servers, 1 )
+		);
+		if ( array() !== MailServer::settings() ) {
+			update_option(
+				self::MAIL_SERVER,
+				array(
+					'status' => 'kept',
+					'time'   => time(),
+					'others' => array_merge(
+						array(
+							array(
+								'label' => $servers[0]['label'],
+								'forms' => $servers[0]['forms'],
+							),
+						),
+						$others
+					),
+				),
+				false
+			);
+			return;
+		}
+		$chosen   = $servers[0];
+		$config   = $chosen['connection']['config'];
+		$provider = 'custom';
+		foreach ( MailServer::PROVIDERS as $key => $preset ) {
+			if ( '' !== $preset['host'] && $preset['host'] === $chosen['host'] ) {
+				$provider = $key;
+				break;
+			}
+		}
+		MailServer::save(
+			array(
+				'enabled'    => true,
+				'provider'   => $provider,
+				'host'       => $chosen['host'],
+				'port'       => (int) ( $config['port'] ?? 0 ),
+				'encryption' => (string) ( $config['encryption'] ?? 'ssl' ),
+				'username'   => (string) ( $config['username'] ?? '' ),
+				'password'   => (string) $chosen['connection']['secret']['password'],
+				// The sender stays the user name when it is an address, as in MailServer::configure().
+				'fromEmail'  => '',
+				'fromName'   => '',
+				'fallback'   => true,
+			)
+		);
+		update_option(
+			self::MAIL_SERVER,
+			array(
+				'status' => 'adopted',
+				'time'   => time(),
+				'ref'    => $chosen['ref'],
+				'host'   => $chosen['host'],
+				'forms'  => $chosen['forms'],
+				'others' => $others,
+			),
+			false
+		);
+		// Server name and counts only: no user name, no password.
+		$this->store->audit(
+			'migration_mail_server',
+			'connection',
+			MailServer::REF,
+			array(
+				'host'   => $chosen['host'],
+				'forms'  => $chosen['forms'],
+				'others' => count( $others ),
+			)
+		);
+	}
+
+	/**
+	 * Server name of a 3.x contact form as the mail server takes it: without ssl:// or tls:// in
+	 * front and a port behind; empty when it is no server name.
+	 *
+	 * @param string $host As entered in 3.x.
+	 */
+	public static function smtp_host( string $host ): string {
+		$host = strtolower( trim( $host ) );
+		$host = (string) preg_replace( '#^(?:ssl|tls)://#', '', $host );
+		$host = (string) preg_replace( '#:\d+$#', '', $host );
+		return 1 === preg_match( '/^[a-z0-9.-]{1,253}$/', $host ) ? $host : '';
+	}
+
+	/**
 	 * Booking type (af2_terminevent). The Cronofy token becomes an encrypted calendar connection.
 	 *
 	 * @param array<string,mixed> $row Post row.
@@ -524,7 +676,12 @@ class Migrator {
 		$result = ( new FormConverter( $load, $this->ctx ) )->convert( $id, $form );
 
 		$trashed = 'trash' === (string) $row['post_status'];
-		$parts   = array( (string) $row['post_content'], (string) wp_json_encode( $this->ctx ) );
+		// Every run converts every form, also the unchanged ones, so the count is complete.
+		if ( $result['ok'] && ! $trashed && 'running' === $this->state['status'] ) {
+			$this->count_smtp( $result['connections'] );
+		}
+
+		$parts = array( (string) $row['post_content'], (string) wp_json_encode( $this->ctx ) );
 		if ( $trashed ) {
 			// Only for trashed forms, so the hashes of all other forms stay as they were.
 			$parts[] = 'trash';

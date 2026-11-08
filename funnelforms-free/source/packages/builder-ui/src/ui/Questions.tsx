@@ -4,7 +4,7 @@
  */
 import React, { useState } from 'react';
 import type { ContactField, Field } from '@funnelforms/form-schema';
-import { reachable } from '../document';
+import { fieldKind, reachable } from '../document';
 import { contactFieldName, stepFieldName } from './catalog';
 import { useBuilder, useEnv } from './context';
 import { fieldTitle } from './describe';
@@ -47,8 +47,8 @@ export function QuestionList() {
 				node: node.id,
 				field: field.id,
 				title: fieldTitle( field as Field, ctx.locale ),
-				type: ( contact ? 'contact:' : '' ) + field.type,
-				typeName: contact ? contactFieldName( field.type ) : stepFieldName( field.type ),
+				type: contact ? 'contact:' + field.type : fieldKind( field ),
+				typeName: contact ? contactFieldName( field.type ) : stepFieldName( fieldKind( field ) ),
 				key: field.key,
 				required: field.required,
 				reachable: reached.has( node.id ),

@@ -12,7 +12,7 @@
  */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { FormDocument, FormNode } from '@funnelforms/form-schema';
-import { nodeName } from '../document';
+import { fieldKind, nodeName } from '../document';
 import { funnelScore, isBetter, seeded, worthApplying, type Prediction, type PredictionModel, type PredictionParameters } from '../predict';
 import { contactFieldName, stepFieldName } from './catalog';
 import { __, sprintf } from './i18n';
@@ -131,7 +131,7 @@ export function stepKind( node: FormNode ): string {
 		return sprintf( __( '%d fields', 'funnelforms-pro' ), fields.length );
 	}
 	const [ field ] = fields as [ ( typeof fields )[ number ] ];
-	return field.required ? sprintf( __( '%s, required', 'funnelforms-pro' ), stepFieldName( field.type ) ) : stepFieldName( field.type );
+	return field.required ? sprintf( __( '%s, required', 'funnelforms-pro' ), stepFieldName( field.type ) ) : stepFieldName( fieldKind( field ) );
 }
 
 function clamp( x: number ): number {

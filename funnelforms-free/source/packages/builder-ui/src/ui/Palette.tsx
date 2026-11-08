@@ -4,7 +4,7 @@
  * type into a node.
  */
 import React, { useState } from 'react';
-import { addContact, addEnd, addField, addStep, defaultPlacement, findNode, CONTACT_PALETTE, STEP_FIELD_TYPES, type Placement, type StepFieldType } from '../document';
+import { addContact, addEnd, addField, addStep, defaultPlacement, findNode, CONTACT_PALETTE, STEP_FIELD_TYPES, type Placement, type StepKind } from '../document';
 import { isPro } from '../edition';
 import type { Selection } from '../store';
 import { DRAG_TYPE, type PaletteItem } from './Canvas';
@@ -16,10 +16,10 @@ import { TypeIcon } from './typeIcons';
 import { ProBadge } from './ui';
 
 /** The step types by what visitors do: pick, type in, or the rest. */
-const GROUPS: Array<{ id: 'pick' | 'input' | 'more'; title: () => string; types: StepFieldType[] }> = [
+const GROUPS: Array<{ id: 'pick' | 'input' | 'more'; title: () => string; types: StepKind[] }> = [
 	{ id: 'pick', title: () => __( 'Pick answers', 'funnelforms-pro' ), types: [ 'choice', 'dropdown', 'rating', 'slider' ] },
 	{ id: 'input', title: () => __( 'Type in', 'funnelforms-pro' ), types: [ 'text', 'textarea', 'email', 'phone', 'url', 'number', 'date', 'time', 'address' ] },
-	{ id: 'more', title: () => __( 'Content and more', 'funnelforms-pro' ), types: [ 'content', 'result', 'file', 'signature', 'repeat', 'booking' ] },
+	{ id: 'more', title: () => __( 'Content and more', 'funnelforms-pro' ), types: [ 'content', 'loading', 'result', 'file', 'signature', 'repeat', 'booking' ] },
 ];
 
 function Tile( { item, label, icon, tone, onAdd, disabled }: { item: PaletteItem; label: string; icon: string; tone: string; onAdd: () => void; disabled: boolean } ) {

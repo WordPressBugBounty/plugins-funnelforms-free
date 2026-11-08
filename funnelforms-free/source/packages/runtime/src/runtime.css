@@ -1242,6 +1242,11 @@ html:has(.ffx-popup[open]) {
 		text-transform: none;
 	}
 
+	/* The heading above every step (settings.heading) may have a colour of its own, as in 3.x. */
+	.ffx-form .ffx-heading {
+		color: var(--ffx-color-form-heading, var(--ffx-color-heading, inherit));
+	}
+
 	.ffx-form .ffx-success-answers h3 {
 		margin: 0 0 8px;
 		font-size: 1em;

@@ -331,7 +331,7 @@ final class SettingsPage {
 			PrivacyMode::GLOBAL => array( __( 'Global (opt-out)', 'funnelforms-free' ), __( 'Without a consent tool, consent counts as given for tracking code, Google Maps and captchas. Conversions to Meta, TikTok and GA4 still need a yes in the cookie banner. A refusal and Global Privacy Control are respected. Only for websites without visitors from the EU.', 'funnelforms-free' ) ),
 			PrivacyMode::OPEN   => array( __( 'Unrestricted (at your own risk)', 'funnelforms-free' ), __( 'Funnelforms loads tracking codes, sends conversions to Meta, TikTok, Google Analytics and Google Ads, loads maps and captchas without consent and stores full IP addresses, for every visitor.', 'funnelforms-free' ) ),
 		);
-		self::card( __( 'Privacy mode', 'funnelforms-free' ), __( 'How every form handles consent for conversions, tracking code, Google Maps and captchas. Consent comes from your cookie banner through the WP Consent API.', 'funnelforms-free' ), 'ffx-privacy' );
+		self::card( __( 'Privacy mode', 'funnelforms-free' ), __( 'How every form handles consent for conversions, tracking code, Google Maps and captchas. Consent comes from your cookie banner through the WP Consent API or Borlabs Cookie.', 'funnelforms-free' ), 'ffx-privacy' );
 		?>
 			<form method="post" action="<?php echo esc_url( admin_url( 'options.php' ) ); ?>">
 				<?php settings_fields( self::GROUP . '_privacy' ); ?>

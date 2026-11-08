@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { allowed, loadWithConsent, setPrivacy, trackingInfo } from '../src/consent';
+import { allowed, BORLABS_SAVED, loadWithConsent, setPrivacy, trackingInfo } from '../src/consent';
 
 afterEach( () => {
 	delete window.wp_has_consent;
+	delete window.BorlabsCookie;
 	setPrivacy();
 	vi.unstubAllGlobals();
 	document.body.innerHTML = '';
@@ -144,5 +145,74 @@ describe( 'privacy modes', () => {
 		gpc();
 		expect( loadWithConsent( 'Load', load, target ) ).not.toBeNull();
 		expect( load ).toHaveBeenCalledTimes( 2 );
+	} );
+} );
+
+describe( 'Borlabs Cookie', () => {
+	const cookies = '_fbp=fb.1.1700000000000.123456789; _ga=GA1.1.987654321.1700000000';
+	const borlabs = ( groups: string[] ): void => {
+		window.BorlabsCookie = { Consents: { hasConsentForServiceGroup: ( group: string ) => groups.includes( group ) } };
+	};
+
+	it( 'reads the service groups marketing and statistics of Borlabs Cookie 3', () => {
+		borlabs( [ 'essential', 'statistics' ] );
+		expect( [ allowed( 'marketing' ), allowed( 'statistics' ) ] ).toEqual( [ false, true ] );
+		expect( trackingInfo( '', cookies ) ).toEqual( { consent: { marketing: false, statistics: true }, gaClientId: '987654321.1700000000' } );
+		borlabs( [ 'marketing', 'statistics' ] );
+		expect( trackingInfo( '', cookies ).consent ).toEqual( { marketing: true, statistics: true } );
+	} );
+
+	it( 'goes before the WP Consent API, which answers only without Borlabs Cookie 3', () => {
+		window.wp_has_consent = () => false;
+		borlabs( [ 'marketing' ] );
+		expect( allowed( 'marketing' ) ).toBe( true );
+		// Borlabs Cookie 2 has no Consents: the WP Consent API answers.
+		window.BorlabsCookie = {};
+		expect( allowed( 'marketing' ) ).toBe( false );
+	} );
+
+	it( 'counts a failing Borlabs API as no answer', () => {
+		window.BorlabsCookie = { Consents: { hasConsentForServiceGroup: () => {
+			throw new Error( 'not ready' );
+		} } };
+		expect( trackingInfo( '', cookies ).consent ).toEqual( { marketing: null, statistics: null } );
+		window.wp_has_consent = () => true;
+		expect( allowed( 'marketing' ) ).toBe( true );
+	} );
+
+	it( 'keeps the privacy modes: Global Privacy Control in the global mode, everything in the unrestricted mode', () => {
+		borlabs( [ 'marketing', 'statistics' ] );
+		setPrivacy( 'global' );
+		gpc();
+		expect( allowed( 'marketing' ) ).toBe( false );
+		borlabs( [] );
+		setPrivacy( 'open' );
+		expect( allowed( 'marketing' ) ).toBe( true );
+	} );
+
+	it( 'loads other services once the visitor allows marketing in the banner', () => {
+		borlabs( [] );
+		const target = document.createElement( 'div' );
+		const load = vi.fn();
+		const button = loadWithConsent( 'Load', load, target ) as HTMLElement;
+		document.body.append( button );
+		window.dispatchEvent( new Event( BORLABS_SAVED ) );
+		expect( load ).not.toHaveBeenCalled();
+		borlabs( [ 'marketing' ] );
+		window.dispatchEvent( new Event( BORLABS_SAVED ) );
+		expect( load ).toHaveBeenCalledTimes( 1 );
+		expect( document.body.contains( target ) ).toBe( true );
+		expect( document.body.contains( button ) ).toBe( false );
+		window.dispatchEvent( new Event( BORLABS_SAVED ) );
+		expect( load ).toHaveBeenCalledTimes( 1 );
+	} );
+
+	it( 'leaves a button alone that is no longer on the page', () => {
+		borlabs( [] );
+		const load = vi.fn();
+		loadWithConsent( 'Load', load, document.createElement( 'div' ) );
+		borlabs( [ 'marketing' ] );
+		window.dispatchEvent( new Event( BORLABS_SAVED ) );
+		expect( load ).not.toHaveBeenCalled();
 	} );
 } );

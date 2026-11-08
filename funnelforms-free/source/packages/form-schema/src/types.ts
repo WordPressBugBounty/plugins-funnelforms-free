@@ -296,11 +296,26 @@ export interface ContentField extends FieldBase {
 		html: Template;
 		autoAdvanceMs?: number;
 		button: { show: boolean; label: Text };
-		/** Loading screen: an animation and changing texts while the step waits autoAdvanceMs. `circle` counts up to 100 %. */
-		loader?: { style: 'spinner' | 'bar' | 'dots' | 'circle' | 'search'; messages: Text[] };
+		/** Loading screen ("Loading animation" in the builder): an animation and changing texts while the step waits autoAdvanceMs. */
+		loader?: ContentLoader;
 		/** Image or video above the text. YouTube and Vimeo load only after a click. */
 		media?: ContentMedia;
 	};
+}
+
+export interface ContentLoader {
+	/** `circle` counts up to 100 %; `checklist` ticks the messages off one by one. */
+	style: 'spinner' | 'bar' | 'dots' | 'circle' | 'search' | 'checklist';
+	/** Change evenly over the waiting time (at most 10). */
+	messages: Text[];
+	/** Percent of the waiting time at bar and circle; without: on for circle, off for bar. */
+	percent?: boolean;
+	/** Medium without. */
+	size?: 'small' | 'large';
+	/** #rrggbb; the primary colour of the design without. */
+	color?: string;
+	/** Below the animation without. */
+	textPosition?: 'above' | 'below';
 }
 
 export interface ContentMedia {

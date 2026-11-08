@@ -998,16 +998,30 @@
 	/* Loading screens of content steps (props.loader). Tracks are not the border colour, which may be the primary one. */
 	.ffx-loader {
 		--ffx-track: color-mix(in srgb, currentColor 12%, transparent);
+		--ffx-loader-scale: 1;
 		align-items: center;
 		gap: 16px;
 		margin: 24px 0 8px;
 		text-align: center;
 	}
 
+	.ffx-loader-small {
+		--ffx-loader-scale: 0.7;
+	}
+
+	.ffx-loader-large {
+		--ffx-loader-scale: 1.5;
+	}
+
+	/* Texts above the animation (props.loader.textPosition). */
+	.ffx-loader-above {
+		flex-direction: column-reverse;
+	}
+
 	.ffx-loader-spinner .ffx-loader-animation {
-		width: 48px;
-		height: 48px;
-		border: 4px solid var(--ffx-track);
+		width: calc(48px * var(--ffx-loader-scale));
+		height: calc(48px * var(--ffx-loader-scale));
+		border: calc(4px * var(--ffx-loader-scale)) solid var(--ffx-track);
 		border-top-color: var(--ffx-color-primary);
 		border-radius: 50%;
 		animation: ffx-spin 0.9s linear infinite;
@@ -1015,9 +1029,9 @@
 
 	.ffx-loader-bar .ffx-loader-animation {
 		width: 100%;
-		height: 8px;
+		height: calc(8px * var(--ffx-loader-scale));
 		background: linear-gradient(var(--ffx-color-primary), var(--ffx-color-primary)) no-repeat 0 0 / 0 100%, var(--ffx-track);
-		border-radius: 4px;
+		border-radius: calc(4px * var(--ffx-loader-scale));
 		animation: ffx-fill var(--ffx-loader-ms, 3s) linear forwards;
 	}
 
@@ -1027,8 +1041,8 @@
 	}
 
 	.ffx-loader-dots span {
-		width: 12px;
-		height: 12px;
+		width: calc(12px * var(--ffx-loader-scale));
+		height: calc(12px * var(--ffx-loader-scale));
 		background: var(--ffx-color-primary);
 		border-radius: 50%;
 		animation: ffx-bounce 1.2s ease-in-out infinite;
@@ -1046,16 +1060,16 @@
 	.ffx-loader-circle .ffx-loader-animation {
 		display: grid;
 		place-items: center;
-		width: 88px;
-		height: 88px;
+		width: calc(88px * var(--ffx-loader-scale));
+		height: calc(88px * var(--ffx-loader-scale));
 		background: conic-gradient(var(--ffx-color-primary) calc(var(--ffx-loader-done, 0) * 1%), var(--ffx-track) 0);
 		border-radius: 50%;
 	}
 
 	.ffx-loader-circle .ffx-loader-animation::before {
 		grid-area: 1 / 1;
-		width: 72px;
-		height: 72px;
+		width: calc(72px * var(--ffx-loader-scale));
+		height: calc(72px * var(--ffx-loader-scale));
 		background: var(--ffx-color-background);
 		border-radius: 50%;
 		content: "";
@@ -1071,10 +1085,10 @@
 	/* A magnifying glass looking around. */
 	.ffx-loader-search .ffx-loader-animation {
 		position: relative;
-		width: 36px;
-		height: 36px;
+		width: calc(36px * var(--ffx-loader-scale));
+		height: calc(36px * var(--ffx-loader-scale));
 		margin: 6px 12px 12px 0;
-		border: 4px solid var(--ffx-color-primary);
+		border: calc(4px * var(--ffx-loader-scale)) solid var(--ffx-color-primary);
 		border-radius: 50%;
 		animation: ffx-search 1.6s ease-in-out infinite;
 	}
@@ -1133,6 +1147,54 @@
 	.ffx-loader-message {
 		margin: 0;
 		color: var(--ffx-color-muted);
+	}
+
+	/* The texts as a list, ticked off one by one (style checklist). */
+	.ffx-loader-list {
+		display: grid;
+		gap: calc(10px * var(--ffx-loader-scale));
+		margin: 0;
+		padding: 0;
+		font-size: calc(1em * (0.85 + var(--ffx-loader-scale) * 0.15));
+		text-align: start;
+		list-style: none;
+	}
+
+	.ffx-loader-list li {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		color: var(--ffx-color-muted);
+		opacity: 0.55;
+		transition: opacity 0.3s, color 0.3s;
+	}
+
+	.ffx-loader-list li::before {
+		box-sizing: border-box;
+		flex: none;
+		width: 1.3em;
+		height: 1.3em;
+		border: 2px solid var(--ffx-track);
+		border-radius: 50%;
+		content: "";
+	}
+
+	.ffx-loader-list li.is-active,
+	.ffx-loader-list li.is-done {
+		color: inherit;
+		opacity: 1;
+	}
+
+	.ffx-loader-list li.is-active::before {
+		border-color: var(--ffx-track);
+		border-top-color: var(--ffx-color-primary);
+		animation: ffx-spin 0.9s linear infinite;
+	}
+
+	/* A tick in a filled circle. */
+	.ffx-loader-list li.is-done::before {
+		background: var(--ffx-color-primary) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E") center / 70% no-repeat;
+		border-color: var(--ffx-color-primary);
 	}
 
 	/* Popups (shortcode attributes popup_by_delay, popup_by_click). */
@@ -1282,7 +1344,8 @@
 	@media (prefers-reduced-motion: reduce) {
 		.ffx-widget,
 		.ffx-loader-dots span,
-		.ffx-loader-search .ffx-loader-animation {
+		.ffx-loader-search .ffx-loader-animation,
+		.ffx-loader-list li.is-active::before {
 			animation: none;
 		}
 

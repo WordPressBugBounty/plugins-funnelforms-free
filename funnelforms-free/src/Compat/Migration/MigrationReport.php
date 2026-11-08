@@ -176,8 +176,9 @@ final class MigrationReport {
 	/**
 	 * Every form from Funnelforms 3 with its check, where it runs and what keeps it on 3.
 	 *
-	 * @return list<array{id:int,legacy_id:int,title:string,check:string,renderer:string,status:string,blockers:string[],checks:array<string,array{status:string,details:string[]}>,notes:string[],migrated_at:string,entries:array{from3:int,new:int,mirrored:int},in_3x:bool,state:string,pinned:bool,auto:bool}>
+	 * @return list<array{id:int,legacy_id:int,title:string,check:string,renderer:string,status:string,blockers:string[],hints:string[],checks:array<string,array{status:string,details:string[]}>,notes:string[],migrated_at:string,entries:array{from3:int,new:int,mirrored:int},in_3x:bool,state:string,pinned:bool,auto:bool}>
 	 *         check: verified, needs_review, failed or edited (changed in the Funnelforms 5 builder).
+	 *         hints: FormRenderer::hints(), missing parts that do not keep the form on 3.
 	 *         state: see state(); pinned: kept on Funnelforms 3 by hand; auto: moved by AutoRenderer.
 	 */
 	public static function forms(): array {
@@ -232,6 +233,7 @@ final class MigrationReport {
 				'renderer'    => null === $form ? '' : (string) $form['renderer'],
 				'status'      => (string) ( $form['status'] ?? '' ),
 				'blockers'    => $blockers,
+				'hints'       => null === $form ? array() : $renderers->hints( $form ),
 				'checks'      => array_filter( $checks, 'is_array' ),
 				'notes'       => null === $item ? array() : array_map( 'strval', (array) json_decode( (string) $item['notes'], true ) ),
 				'migrated_at' => (string) ( $item['migrated_at'] ?? '' ),

@@ -90,12 +90,25 @@ final class FormRenderer {
 		if ( RendererSupport::has_scripts( $document ) && ! TrackingCode::allowed() ) {
 			$out[] = 'script_in_content';
 		}
-		$maps = Edition::pro( GoogleMaps::class );
-		if ( null !== $maps && $maps::needed( $document ) && '' === $maps::key() ) {
-			$out[] = 'google_maps_key_missing';
-		}
 		$bookings = Edition::pro( Bookings::class );
 		return array_merge( $out, RendererSupport::problems( $document ), null === $bookings ? array() : $bookings::create()->problems( $document ) );
+	}
+
+	/**
+	 * What is still missing in a form that does not keep it from the new renderer; empty when
+	 * nothing is. Without a Google Maps key an address field works without suggestions and map
+	 * (3.x had one key built in for every site, the new renderer uses the site's own).
+	 *
+	 * @param array<string,mixed> $form Form row.
+	 * @return string[]
+	 */
+	public function hints( array $form ): array {
+		$document = null === $form['current_revision_id'] ? null : $this->forms->document( (int) $form['current_revision_id'] );
+		$maps     = Edition::pro( GoogleMaps::class );
+		if ( null !== $document && null !== $maps && $maps::needed( $document ) && '' === $maps::key() ) {
+			return array( 'google_maps_key_missing' );
+		}
+		return array();
 	}
 
 	/**

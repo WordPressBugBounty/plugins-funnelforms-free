@@ -21,6 +21,7 @@ use Funnelforms\Application\SiteDesign;
 use Funnelforms\Compat\Safety\LegacyBackup;
 use Funnelforms\Edition\Edition;
 use Funnelforms\Edition\FreeSite;
+use Funnelforms\Frontend\GoogleMaps;
 use Funnelforms\Frontend\LegacyPreview;
 use Funnelforms\Infrastructure\Database\Schema;
 use Funnelforms\Infrastructure\Repository\FormRepository;
@@ -309,6 +310,12 @@ final class SetupPage {
 						) + $state['choices'],
 					)
 				);
+				// The Google Maps key is optional here (Pro); an empty field leaves a saved key alone.
+				$maps     = Edition::pro( GoogleMaps::class );
+				$maps_key = null !== $maps && isset( $_POST[ $maps::OPTION ] ) ? trim( sanitize_text_field( wp_unslash( $_POST[ $maps::OPTION ] ) ) ) : '';
+				if ( null !== $maps && '' !== $maps_key ) {
+					update_option( $maps::OPTION, $maps_key );
+				}
 				return 'pick' === $forms && empty( $_POST['picked'] ) ? 'nothing_picked' : '';
 			case 'preview':
 				$approved = array_map( 'absint', (array) wp_unslash( $_POST['approved'] ?? array() ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- absint.
@@ -842,7 +849,32 @@ final class SetupPage {
 		<?php
 		if ( 'done' === $status['phase'] ) {
 			self::results( SetupFlow::imported_forms() );
+			self::mail_server();
 		}
+	}
+
+	/**
+	 * The SMTP server of the 3.x contact forms that became the mail server of Funnelforms.
+	 */
+	private static function mail_server(): void {
+		$taken = MigrationPage::adopted_mail_server();
+		if ( null === $taken ) {
+			return;
+		}
+		?>
+		<div class="ffx-setup__note ffx-setup__mailserver">
+			<p><strong><?php esc_html_e( 'Mail server taken over from Funnelforms 3', 'funnelforms-free' ); ?></strong></p>
+			<p>
+				<?php
+				/* translators: %s: name of the SMTP server, e.g. smtp.example.com. */
+				printf( esc_html__( 'Funnelforms now sends its mails through %s, the SMTP server your contact forms used in Funnelforms 3. Forms with their own SMTP server keep using it. If the server cannot be reached or refuses the password, the mails go out through WordPress.', 'funnelforms-free' ), '<strong>' . esc_html( $taken['host'] ) . '</strong>' );
+				?>
+			</p>
+			<?php if ( array() !== $taken['others'] ) : ?>
+				<p><?php esc_html_e( 'Other SMTP servers stay with the forms that used them:', 'funnelforms-free' ); ?> <?php echo esc_html( implode( ', ', $taken['others'] ) ); ?></p>
+			<?php endif; ?>
+		</div>
+		<?php
 	}
 
 	/**
@@ -1039,10 +1071,34 @@ final class SetupPage {
 				?>
 			</div>
 		</fieldset>
+		<?php self::maps_group( $forms ); ?>
 		<?php self::retention_group( 'update', (int) $choices['retention'] ); ?>
 		<fieldset class="ffx-setup__group">
 			<legend><?php esc_html_e( 'Connections', 'funnelforms-free' ); ?></legend>
 			<?php self::connections(); ?>
+		</fieldset>
+		<?php
+	}
+
+	/**
+	 * The Google Maps key, asked only when an imported form suggests addresses and the site has
+	 * none: Funnelforms 3 brought its own key, Funnelforms 5 uses the site's. The forms move without it.
+	 *
+	 * @param list<array<string,mixed>> $forms SetupFlow::imported_forms().
+	 */
+	private static function maps_group( array $forms ): void {
+		$maps   = Edition::pro( GoogleMaps::class );
+		$needed = array_filter( $forms, static fn( array $form ): bool => in_array( 'google_maps_key_missing', (array) ( $form['hints'] ?? array() ), true ) );
+		if ( null === $maps || array() === $needed ) {
+			return;
+		}
+		?>
+		<fieldset class="ffx-setup__group">
+			<legend><?php esc_html_e( 'Address suggestions', 'funnelforms-free' ); ?></legend>
+			<p class="ffx-setup__hint"><?php esc_html_e( 'Some of your forms suggest addresses with Google Maps. Funnelforms 3 brought its own key for that, Funnelforms 5 uses yours. The forms move either way; without a key, visitors type the address themselves.', 'funnelforms-free' ); ?></p>
+			<label class="ffx-field__label" for="ffx-setup-maps-key"><?php esc_html_e( 'Google Maps key (optional)', 'funnelforms-free' ); ?></label>
+			<input type="text" class="regular-text code" id="ffx-setup-maps-key" name="<?php echo esc_attr( $maps::OPTION ); ?>" value="" autocomplete="off">
+			<p class="ffx-setup__hint"><?php esc_html_e( 'Create a Maps JavaScript API key with the Places API in the Google Cloud console and restrict it to your website. You can also add it later under Settings → General.', 'funnelforms-free' ); ?></p>
 		</fieldset>
 		<?php
 	}

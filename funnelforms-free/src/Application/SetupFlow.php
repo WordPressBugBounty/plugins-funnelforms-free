@@ -342,9 +342,9 @@ final class SetupFlow {
 	/**
 	 * The forms imported from 3.x with their check and what keeps them from going live.
 	 *
-	 * @return list<array{id:int,legacy_id:int,title:string,check:string,renderer:string,blockers:string[],state:string,checks:array<string,array<string,mixed>>}>
+	 * @return list<array{id:int,legacy_id:int,title:string,check:string,renderer:string,blockers:string[],hints:string[],state:string,checks:array<string,array<string,mixed>>}>
 	 *         check: verified, needs_review, failed or edited; state: ready, review or stays
-	 *         (MigrationReport::state(), as if the form was not live yet).
+	 *         (MigrationReport::state(), as if the form was not live yet); hints: FormRenderer::hints().
 	 */
 	public static function imported_forms(): array {
 		$forms     = new FormRepository();
@@ -372,6 +372,7 @@ final class SetupFlow {
 				'check'     => $check,
 				'renderer'  => (string) $form['renderer'],
 				'blockers'  => $blockers,
+				'hints'     => $renderers->hints( $form ),
 				'state'     => MigrationReport::state( false, $blockers ),
 				'checks'    => array_filter( is_array( $checks ) ? $checks : array(), 'is_array' ),
 			);

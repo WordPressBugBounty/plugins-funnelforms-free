@@ -20,6 +20,7 @@ export function stepFieldName( type: string ): string {
 		slider: __( 'Slider', 'funnelforms-pro' ),
 		rating: __( 'Rating', 'funnelforms-pro' ),
 		content: __( 'Text and media', 'funnelforms-pro' ),
+		loading: __( 'Loading animation', 'funnelforms-pro' ),
 		file: __( 'File upload', 'funnelforms-pro' ),
 		address: __( 'Address', 'funnelforms-pro' ),
 		signature: __( 'Signature', 'funnelforms-pro' ),
@@ -76,6 +77,10 @@ export function defaultLabels(): Labels {
 		liveResult: __( 'Your estimate', 'funnelforms-pro' ),
 		liveTotal: __( 'Total', 'funnelforms-pro' ),
 		hidden: __( 'Hidden field', 'funnelforms-pro' ),
+		loadingTitle: __( 'One moment, please', 'funnelforms-pro' ),
+		loadingCheck: __( 'Checking your answers…', 'funnelforms-pro' ),
+		loadingCalculate: __( 'Calculating your result…', 'funnelforms-pro' ),
+		loadingAlmost: __( 'Almost done…', 'funnelforms-pro' ),
 	};
 }
 

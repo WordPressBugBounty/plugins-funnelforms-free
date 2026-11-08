@@ -20,6 +20,7 @@ const TOKENS: Array<[ string, string, Kind ]> = [
 	[ 'color.error', '--ffx-color-error', 'color' ],
 	[ 'color.backgroundEnd', '--ffx-color-background-end', 'color' ],
 	[ 'color.heading', '--ffx-color-heading', 'color' ],
+	[ 'color.formHeading', '--ffx-color-form-heading', 'color' ],
 	[ 'color.button', '--ffx-color-button', 'color' ],
 	[ 'color.onButton', '--ffx-color-on-button', 'color' ],
 	[ 'color.back', '--ffx-color-back', 'color' ],

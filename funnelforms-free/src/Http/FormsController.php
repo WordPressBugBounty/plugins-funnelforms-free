@@ -24,6 +24,7 @@ use Funnelforms\Infrastructure\Repository\FileRepository;
 use Funnelforms\Infrastructure\Repository\FormRepository;
 use Funnelforms\Frontend\ExternalEmbed;
 use Funnelforms\Frontend\Renderer;
+use Funnelforms\Integrations\IndependentAnalytics;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -601,6 +602,8 @@ final class FormsController {
 		unset( $result['path'] );
 		$source = FormStats::completed( (int) $form['id'], (string) $request['sid'], time(), (string) ( $path['contact'] ?? '' ), (string) ( $path['end'] ?? '' ) );
 		LeadSources::note( (int) ( $result['entry'] ?? 0 ), $source, (string) ( ( (array) $request['page'] )['query'] ?? '' ) );
+		// In the visitor's request, so that Independent Analytics adds it to their visit.
+		IndependentAnalytics::submitted( $form );
 		self::progress()?->forget( $form, (string) $request['progress'] );
 		return self::response( $result, 201 );
 	}

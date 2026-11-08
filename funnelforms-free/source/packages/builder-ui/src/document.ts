@@ -19,6 +19,22 @@ export const CONTACT_PALETTE = [ 'salutation', 'name', 'email', 'phone', 'text',
 
 export type StepFieldType = ( typeof STEP_FIELD_TYPES )[ number ];
 
+/**
+ * What the builder offers as a step: the field types, and the loading animation. A loading
+ * animation is a content field with props.loader that moves on by itself (fieldKind()).
+ */
+export type StepKind = StepFieldType | 'loading';
+
+/** A loading animation: a content field that shows props.loader and moves on by itself. */
+export function isLoading( field: { type: string; props?: unknown } ): boolean {
+	return 'content' === field.type && Boolean( ( field.props as { loader?: unknown } | undefined )?.loader );
+}
+
+/** The type of a field as the builder names it: "loading" for a loading animation. */
+export function fieldKind( field: { type: string; props?: unknown } ): string {
+	return isLoading( field ) ? 'loading' : field.type;
+}
+
 /** Default texts of new fields, in the form's language; English when missing. */
 export interface Labels {
 	question?: string;
@@ -45,6 +61,10 @@ export interface Labels {
 	liveResult?: string;
 	liveTotal?: string;
 	hidden?: string;
+	loadingTitle?: string;
+	loadingCheck?: string;
+	loadingCalculate?: string;
+	loadingAlmost?: string;
 }
 
 const ENGLISH: Required<Labels> = {
@@ -72,6 +92,10 @@ const ENGLISH: Required<Labels> = {
 	liveResult: 'Your estimate',
 	liveTotal: 'Total',
 	hidden: 'Hidden field',
+	loadingTitle: 'One moment, please',
+	loadingCheck: 'Checking your answers…',
+	loadingCalculate: 'Calculating your result…',
+	loadingAlmost: 'Almost done…',
 };
 
 export interface Context {
@@ -147,7 +171,7 @@ function label( ctx: Context, key: keyof Labels, n?: number ): Text {
 const empty = ( ctx: Context ): Text => ( { [ ctx.locale ]: '' } );
 
 /** A new step field of a type with sensible defaults. */
-export function createField( doc: FormDocument, type: StepFieldType, ctx: Context, taken: Set<string> = usedIds( doc ) ): Field {
+export function createField( doc: FormDocument, type: StepKind, ctx: Context, taken: Set<string> = usedIds( doc ) ): Field {
 	const id = newId( doc, 'q', taken );
 	const base = { id, key: id, label: label( ctx, 'question' ), description: empty( ctx ), required: true };
 	const options = (): Option[] => [ 1, 2 ].map( ( n ) => ( { id: newId( doc, 'o', taken ), label: label( ctx, 'option', n ), value: String( n ) } ) );
@@ -176,6 +200,20 @@ export function createField( doc: FormDocument, type: StepFieldType, ctx: Contex
 			return { ...base, type, props: { min: 1, max: 5, style: 'stars', lowLabel: empty( ctx ), highLabel: empty( ctx ) } };
 		case 'content':
 			return { ...base, required: false, type, props: { html: { [ ctx.locale ]: '<p></p>' }, button: { show: true, label: label( ctx, 'next' ) } } };
+		case 'loading':
+			// A bar with percent and three texts over four seconds, then the form goes on.
+			return {
+				...base,
+				label: label( ctx, 'loadingTitle' ),
+				required: false,
+				type: 'content',
+				props: {
+					html: empty( ctx ),
+					autoAdvanceMs: 4000,
+					button: { show: false, label: label( ctx, 'next' ) },
+					loader: { style: 'bar', percent: true, messages: [ label( ctx, 'loadingCheck' ), label( ctx, 'loadingCalculate' ), label( ctx, 'loadingAlmost' ) ] },
+				},
+			};
 		case 'file':
 			return { ...base, required: false, type, props: { dropzoneText: label( ctx, 'dropzone' ), maxSizeMb: 10, maxFiles: 1, deniedMimeTypes: [], visibility: 'private' } };
 		case 'address':
@@ -301,7 +339,7 @@ function place( doc: FormDocument, nodeId: string, placement: Placement ): void 
 }
 
 /** Adds a step with one field. */
-export function addStep( doc: FormDocument, type: StepFieldType, ctx: Context, placement: Placement = {} ): string {
+export function addStep( doc: FormDocument, type: StepKind, ctx: Context, placement: Placement = {} ): string {
 	const taken = usedIds( doc );
 	const node: StepNode = { id: newId( doc, 'n', taken ), type: 'step', fields: [ createField( doc, type, ctx, taken ) ] };
 	doc.nodes.push( node );

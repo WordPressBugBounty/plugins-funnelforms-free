@@ -76,7 +76,7 @@ export function AddressProps( { field, edit }: { field: AddressField; edit: Edit
 			<Toggle label={ __( 'Ask for the country', 'funnelforms-pro' ) } checked={ p.showCountry } onChange={ ( v ) => props( ( x ) => void ( x.showCountry = v ), 'showCountry' ) } />
 			<Toggle
 				label={ __( 'Suggestions and map from Google', 'funnelforms-pro' ) }
-				hint={ __( 'Needs the Google Maps key of the site (Tools, Funnelforms migration). Visitors then load Google Maps.', 'funnelforms-pro' ) }
+				hint={ __( 'Uses the Google Maps key of the site (Settings → General); without one, visitors type the address themselves. With the key, visitors load Google Maps.', 'funnelforms-pro' ) }
 				checked={ p.placesAutocomplete }
 				onChange={ ( v ) =>
 					props( ( x ) => {

@@ -16,7 +16,7 @@ import { formProtection, setSpam } from '../src/spam';
 import { today } from '../src/experiments';
 import { periodDays } from '../src/stats';
 import { blank } from './blank';
-import { validateDocument, type ChoiceField, type ContactField, type FormDocument, type FormNode } from '@funnelforms/form-schema';
+import { validateDocument, type ChoiceField, type ContactField, type ContentField, type FormDocument, type FormNode } from '@funnelforms/form-schema';
 
 ( globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean } ).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -1040,6 +1040,61 @@ describe( 'builder', () => {
 		expect( container.textContent ).not.toContain( 'This site does not run custom code yet.' );
 	} );
 
+	it( 'adds a loading animation as its own step and sets it up', async () => {
+		const toggle = async ( label: string ): Promise<void> => {
+			const input = [ ...container.querySelectorAll<HTMLInputElement>( 'input[role="switch"]' ) ].find( ( i ) => i.parentElement?.querySelector( 'label' )?.textContent === label );
+			if ( ! input ) {
+				throw new Error( 'No switch ' + label );
+			}
+			await act( async () => input.click() );
+		};
+		const api = fakeApi();
+		const store = createBuilderStore( api, 7, { autosaveMs: 60000 } );
+		await act( async () => root.render( <Builder api={ api } formId={ 7 } onBack={ () => undefined } store={ store } /> ) );
+		await settle();
+		await act( async () => button( 'Loading animation' ).click() );
+		const field = (): ContentField => {
+			const node = store.getState().doc?.nodes.find( ( n ) => n.id === store.getState().selection.node );
+			return ( node && 'step' === node.type ? node.fields[ 0 ] : undefined ) as ContentField;
+		};
+		// A content step that moves on by itself: a bar with percent and three texts over four seconds.
+		expect( field() ).toMatchObject( {
+			type: 'content',
+			required: false,
+			label: { de_DE: 'One moment, please' },
+			props: { autoAdvanceMs: 4000, button: { show: false }, loader: { style: 'bar', percent: true, messages: [ { de_DE: 'Checking your answers…' }, { de_DE: 'Calculating your result…' }, { de_DE: 'Almost done…' } ] } },
+		} );
+		expect( validateDocument( store.getState().doc ).errors ).toEqual( [] );
+		expect( [ ...container.querySelectorAll( '.ffxb-section__title' ) ].map( ( t ) => t.textContent ) ).toContain( 'Loading animation' );
+		const node = container.querySelector( `[data-node="${ store.getState().selection.node }"]` );
+		expect( node?.querySelector( '.ffxb-node__meta' )?.textContent ).toBe( 'Loading animation · 4 s' );
+		expect( container.querySelector( '.ffxb-loader-preview--bar .ffxb-loader-preview__percent' )?.textContent ).toBe( '0 %' );
+		expect( container.querySelector( '.ffxb-loader-preview__message' )?.textContent ).toBe( 'Checking your answers…' );
+
+		await tile( 'Animation', 'checklist' );
+		expect( container.querySelectorAll( '.ffxb-loader-preview__list li' ) ).toHaveLength( 3 );
+		// A list has no percent and its texts stand where they are.
+		expect( [ ...container.querySelectorAll( 'label' ) ].some( ( l ) => 'Texts' === l.textContent?.trim() ) ).toBe( false );
+		await tile( 'Animation', 'bar' );
+		await toggle( 'Show percent' );
+		expect( field().props.loader?.percent ).toBe( false );
+		await choose( 'Size', 'large' );
+		await choose( 'Texts', 'above' );
+		expect( field().props.loader ).toMatchObject( { size: 'large', textPosition: 'above' } );
+		expect( container.querySelector( '.ffxb-loader-preview' )?.className ).toContain( 'ffxb-loader-preview--large' );
+		await choose( 'Size', 'medium' );
+		await choose( 'Texts', 'below' );
+		expect( field().props.loader ).not.toHaveProperty( 'size' );
+		expect( field().props.loader ).not.toHaveProperty( 'textPosition' );
+		await toggle( 'Own colour' );
+		await fill( 'Colour of the animation', '#aa0000' );
+		expect( field().props.loader?.color ).toBe( '#aa0000' );
+		await toggle( 'Own colour' );
+		expect( field().props.loader ).not.toHaveProperty( 'color' );
+		await fill( 'Duration (seconds)', '90' );
+		expect( field().props.autoAdvanceMs ).toBe( 60000 );
+	} );
+
 	it( 'adds an image or video and a loading screen to text and media', async () => {
 		const pickImage = vi.fn( async () => ( { id: 4, url: 'https://example.org/haus.jpg', alt: 'Ein Haus' } ) );
 		const api = fakeApi( { pickImage } );
@@ -1063,8 +1118,10 @@ describe( 'builder', () => {
 		await tile( 'How the form goes on', 'loader' );
 		await tile( 'Animation', 'circle' );
 		await fill( 'Texts while waiting', 'Wir rechnen\n\nGleich fertig' );
-		await fill( 'Waiting time (seconds)', '4.5' );
+		await fill( 'Duration (seconds)', '4.5' );
 		expect( props() ).toMatchObject( { autoAdvanceMs: 4500, button: { show: false }, loader: { style: 'circle', messages: [ { de_DE: 'Wir rechnen' }, { de_DE: 'Gleich fertig' } ] } } );
+		// Text and media stay, folded under the settings of the animation.
+		expect( container.querySelector( '.ffxb-advanced summary' )?.textContent ).toBe( 'Text, image or video above the animation' );
 		await tile( 'How the form goes on', 'button' );
 		expect( props() ).not.toHaveProperty( 'loader' );
 		expect( props() ).not.toHaveProperty( 'autoAdvanceMs' );
@@ -1717,6 +1774,35 @@ describe( 'actions', () => {
 		await settle();
 		expect( api.update ).toHaveBeenLastCalledWith( 7, { publicSlug: '' } );
 		expect( container.querySelector( 'a[href^="https://example.org/funnelforms/"]' ) ).toBeNull();
+	} );
+
+	it( 'sets the heading above every step, with a colour of its own in the design', async () => {
+		const api = fakeApi();
+		const store = createBuilderStore( api, 7, { autosaveMs: 60000 } );
+		await act( async () => root.render( <Builder api={ api } formId={ 7 } onBack={ () => undefined } store={ store } /> ) );
+		await settle();
+		await workspace( 'Settings' );
+		const toggle = (): HTMLInputElement | undefined => [ ...container.querySelectorAll<HTMLInputElement>( 'input[role="switch"]' ) ].find( ( i ) => i.parentElement?.textContent?.includes( 'Heading above every step' ) );
+		expect( toggle()?.checked ).toBe( false );
+		expect( container.textContent ).not.toContain( 'Text of the heading' );
+		await act( async () => toggle()?.click() );
+		expect( store.getState().doc?.settings.heading ).toEqual( {} );
+		await fill( 'Text of the heading', 'Ihr kostenloser Solar-Check' );
+		expect( store.getState().doc?.settings.heading ).toEqual( { de_DE: 'Ihr kostenloser Solar-Check' } );
+
+		await workspace( 'Design' );
+		const color = labelled<HTMLInputElement>( 'Heading above every step' );
+		await act( async () => {
+			Object.getOwnPropertyDescriptor( HTMLInputElement.prototype, 'value' )?.set?.call( color, '#9d41dd' );
+			color.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+		} );
+		expect( store.getState().doc?.style.tokens[ 'color.formHeading' ] ).toBe( '#9d41dd' );
+
+		await workspace( 'Settings' );
+		await act( async () => toggle()?.click() );
+		expect( store.getState().doc?.settings ).not.toHaveProperty( 'heading' );
+		await workspace( 'Design' );
+		expect( () => labelled( 'Heading above every step' ) ).toThrow();
 	} );
 
 	it( 'explains missing rights instead of offering new connections', async () => {

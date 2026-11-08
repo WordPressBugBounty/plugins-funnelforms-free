@@ -374,6 +374,16 @@ function MoreColors( { doc, token }: { doc: FormDocument; token: SetToken } ) {
 			<summary>{ __( 'More colours', 'funnelforms-pro' ) }</summary>
 			<p className="ffxb-hint">{ __( 'Empty fields follow the colours above.', 'funnelforms-pro' ) }</p>
 			<OptionalColor doc={ doc } token={ token } name="color.heading" label={ __( 'Questions and headings', 'funnelforms-pro' ) } fallback={ t[ 'color.text' ] } note={ chip( t[ 'color.heading' ] ?? t[ 'color.text' ], t[ 'color.background' ] ) } />
+			{ undefined !== doc.settings.heading ? (
+				<OptionalColor
+					doc={ doc }
+					token={ token }
+					name="color.formHeading"
+					label={ __( 'Heading above every step', 'funnelforms-pro' ) }
+					fallback={ t[ 'color.heading' ] ?? t[ 'color.text' ] }
+					note={ chip( t[ 'color.formHeading' ] ?? t[ 'color.heading' ] ?? t[ 'color.text' ], t[ 'color.background' ] ) }
+				/>
+			) : null }
 			<OptionalColor doc={ doc } token={ token } name="color.muted" label={ __( 'Descriptions and hints', 'funnelforms-pro' ) } fallback={ t[ 'color.muted' ] } note={ chip( t[ 'color.muted' ], t[ 'color.background' ] ) } />
 			<OptionalColor doc={ doc } token={ token } name="color.button" label={ __( 'Next and send button', 'funnelforms-pro' ) } fallback={ primary } />
 			<OptionalColor doc={ doc } token={ token } name="color.onButton" label={ __( 'Text on that button', 'funnelforms-pro' ) } fallback={ t[ 'color.onPrimary' ] } note={ chip( t[ 'color.onButton' ] ?? t[ 'color.onPrimary' ], t[ 'color.button' ] ?? primary, __( 'On the button', 'funnelforms-pro' ) ) } />

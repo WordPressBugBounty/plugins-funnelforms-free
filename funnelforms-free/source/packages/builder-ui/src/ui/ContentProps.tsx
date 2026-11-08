@@ -1,18 +1,21 @@
 /**
  * Settings of "Text and media": the text, an image or video, and how the step goes on
- * (a button, by itself after a wait, or a loading screen).
+ * (a button, by itself after a wait, or a loading screen). A loading screen is the
+ * "Loading animation" of the palette: its settings come first, with a preview.
  */
-import React from 'react';
-import type { ContentField, ContentMedia } from '@funnelforms/form-schema';
+import React, { useEffect, useState } from 'react';
+import type { ContentField, ContentLoader, ContentMedia } from '@funnelforms/form-schema';
 import type { Edit } from './Answers';
-import { useEnv } from './context';
+import { useBuilder, useEnv } from './context';
 import { __ } from './i18n';
 import { editText, setText } from '../languages';
+import { effectiveTokens } from '../themes';
 import { LinesInput, put, TextProp } from './texts';
-import { Button, ChoiceTiles, NumberInput, Sketch, TextInput } from './ui';
+import { Button, ChoiceTiles, NumberInput, Select, Sketch, TextInput, Toggle } from './ui';
 
 type Mode = 'button' | 'auto' | 'loader';
-type LoaderStyle = NonNullable<ContentField[ 'props' ][ 'loader' ]>[ 'style' ];
+type LoaderStyle = ContentLoader[ 'style' ];
+type LoaderSize = NonNullable<ContentLoader[ 'size' ]> | 'medium';
 
 export function ContentProps( { field, edit, propText }: { field: ContentField; edit: Edit; propText: ( key: string ) => ( value: string ) => void } ) {
 	const { api, ctx, lang, readOnly } = useEnv();
@@ -27,7 +30,7 @@ export function ContentProps( { field, edit, propText }: { field: ContentField; 
 		}, 'media.' + key );
 	const mode: Mode = p.loader ? 'loader' : p.button.show ? 'button' : 'auto';
 	const pickImage = api.pickImage?.bind( api );
-	return (
+	const textAndMedia = (
 		<>
 			<TextProp label={ __( 'Content (HTML)', 'funnelforms-pro' ) } value={ p.html } onChange={ propText( 'html' ) } multiline hint={ 'free' === process.env.FUNNELFORMS_EDITION ? undefined : __( 'Placeholders such as {{field:email}} are filled in with the answers.', 'funnelforms-pro' ) } />
 			<ChoiceTiles
@@ -99,13 +102,17 @@ export function ContentProps( { field, edit, propText }: { field: ContentField; 
 					</div>
 				</>
 			) : null }
+		</>
+	);
+	const goesOn = (
+		<>
 			<ChoiceTiles<Mode>
 				label={ __( 'How the form goes on', 'funnelforms-pro' ) }
 				value={ mode }
 				options={ [
 					{ value: 'button', label: __( 'With a button', 'funnelforms-pro' ), icon: <GoOnSketch mode="button" /> },
 					{ value: 'auto', label: __( 'By itself after a wait', 'funnelforms-pro' ), icon: <GoOnSketch mode="auto" /> },
-					{ value: 'loader', label: __( 'Loading screen', 'funnelforms-pro' ), icon: <GoOnSketch mode="loader" /> },
+					{ value: 'loader', label: __( 'Loading animation', 'funnelforms-pro' ), icon: <GoOnSketch mode="loader" /> },
 				] }
 				onChange={ ( v ) =>
 					content( ( props ) => {
@@ -125,58 +132,206 @@ export function ContentProps( { field, edit, propText }: { field: ContentField; 
 			/>
 			{ 'button' === mode ? (
 				<TextProp label={ __( 'Button', 'funnelforms-pro' ) } value={ p.button.label } onChange={ ( v ) => content( ( props ) => put( props.button, 'label', lang, v, ctx.locale ), 'button' ) } />
-			) : (
-				<NumberInput
-					label={ __( 'Waiting time (seconds)', 'funnelforms-pro' ) }
-					value={ ( p.autoAdvanceMs ?? 0 ) / 1000 }
-					min={ 0.5 }
-					max={ 60 }
-					step={ 0.5 }
-					onChange={ ( v ) => undefined !== v && v > 0 && content( ( props ) => void ( props.autoAdvanceMs = Math.round( Math.min( 60, v ) * 1000 ) ), 'autoAdvanceMs' ) }
+			) : null }
+			{ 'auto' === mode ? <Wait label={ __( 'Waiting time (seconds)', 'funnelforms-pro' ) } field={ field } edit={ edit } /> : null }
+		</>
+	);
+	if ( p.loader ) {
+		return (
+			<>
+				<LoaderProps field={ field } loader={ p.loader } edit={ edit } />
+				<details className="ffxb-advanced">
+					<summary>{ __( 'Text, image or video above the animation', 'funnelforms-pro' ) }</summary>
+					{ textAndMedia }
+				</details>
+				{ goesOn }
+			</>
+		);
+	}
+	return (
+		<>
+			{ textAndMedia }
+			{ goesOn }
+		</>
+	);
+}
+
+/** The waiting time in seconds, from half a second to a minute. */
+function Wait( { label, field, edit }: { label: string; field: ContentField; edit: Edit } ) {
+	return (
+		<NumberInput
+			label={ label }
+			value={ ( field.props.autoAdvanceMs ?? 0 ) / 1000 }
+			min={ 0.5 }
+			max={ 60 }
+			step={ 0.5 }
+			onChange={ ( v ) => undefined !== v && v > 0 && edit( ( f ) => void ( ( f as ContentField ).props.autoAdvanceMs = Math.round( Math.min( 60, v ) * 1000 ) ), 'autoAdvanceMs' ) }
+		/>
+	);
+}
+
+/** Settings of a loading animation: the animation, how long, its texts and its look. */
+function LoaderProps( { field, loader, edit }: { field: ContentField; loader: ContentLoader; edit: Edit } ) {
+	const { ctx, lang } = useEnv();
+	const set = ( recipe: ( l: ContentLoader ) => void, key: string ): void =>
+		edit( ( f ) => {
+			const l = ( f as ContentField ).props.loader;
+			if ( l ) {
+				recipe( l );
+			}
+		}, 'loader.' + key );
+	const style = loader.style;
+	const counts = 'bar' === style || 'circle' === style;
+	return (
+		<>
+			<LoaderPreview loader={ loader } ms={ field.props.autoAdvanceMs ?? 0 } />
+			<ChoiceTiles<LoaderStyle>
+				label={ __( 'Animation', 'funnelforms-pro' ) }
+				value={ style }
+				options={ [
+					{ value: 'bar', label: __( 'Progress bar', 'funnelforms-pro' ), icon: <LoaderSketch style="bar" /> },
+					{ value: 'circle', label: __( 'Ring with percent', 'funnelforms-pro' ), icon: <LoaderSketch style="circle" /> },
+					{ value: 'checklist', label: __( 'Checklist', 'funnelforms-pro' ), icon: <LoaderSketch style="checklist" /> },
+					{ value: 'spinner', label: __( 'Spinner', 'funnelforms-pro' ), icon: <LoaderSketch style="spinner" /> },
+					{ value: 'dots', label: __( 'Dots', 'funnelforms-pro' ), icon: <LoaderSketch style="dots" /> },
+					{ value: 'search', label: __( 'Magnifying glass', 'funnelforms-pro' ), icon: <LoaderSketch style="search" /> },
+				] }
+				onChange={ ( v ) => set( ( l ) => void ( l.style = v ), 'style' ) }
+			/>
+			<Wait label={ __( 'Duration (seconds)', 'funnelforms-pro' ) } field={ field } edit={ edit } />
+			<LinesInput
+				label={ __( 'Texts while waiting', 'funnelforms-pro' ) }
+				hint={ 'checklist' === style ? __( 'One per line; they are ticked off one by one over the duration.', 'funnelforms-pro' ) : __( 'One per line; they change evenly over the waiting time.', 'funnelforms-pro' ) }
+				lines={ loader.messages.map( ( m ) => editText( m, lang, ctx.locale ) ) }
+				resetKey={ field.id + lang }
+				onLines={ ( lines ) =>
+					set( ( l ) => {
+						if ( lang !== ctx.locale ) {
+							l.messages.forEach( ( m, i ) => setText( m, lang, lines[ i ] ?? '', ctx.locale ) );
+						} else {
+							l.messages = lines.slice( 0, 10 ).map( ( line, i ) => {
+								const known = l.messages[ i ];
+								if ( known ) {
+									setText( known, lang, line, ctx.locale );
+									return known;
+								}
+								return { [ lang ]: line };
+							} );
+						}
+					}, 'messages' )
+				}
+			/>
+			{ counts ? <Toggle label={ __( 'Show percent', 'funnelforms-pro' ) } checked={ loader.percent ?? 'circle' === style } onChange={ ( v ) => set( ( l ) => void ( l.percent = v ), 'percent' ) } /> : null }
+			<div className="ffxb-pair">
+				<Select<LoaderSize>
+					label={ __( 'Size', 'funnelforms-pro' ) }
+					value={ loader.size ?? 'medium' }
+					options={ [
+						{ value: 'small', label: __( 'Small', 'funnelforms-pro' ) },
+						{ value: 'medium', label: __( 'Medium', 'funnelforms-pro' ) },
+						{ value: 'large', label: __( 'Large', 'funnelforms-pro' ) },
+					] }
+					onChange={ ( v ) =>
+						set( ( l ) => {
+							if ( 'medium' === v ) {
+								delete l.size;
+							} else {
+								l.size = v;
+							}
+						}, 'size' )
+					}
 				/>
-			) }
-			{ p.loader ? (
-				<>
-					<ChoiceTiles<LoaderStyle>
-						label={ __( 'Animation', 'funnelforms-pro' ) }
-						value={ p.loader.style }
+				{ 'checklist' === style ? null : (
+					<Select<'above' | 'below'>
+						label={ __( 'Texts', 'funnelforms-pro' ) }
+						value={ loader.textPosition ?? 'below' }
 						options={ [
-							{ value: 'spinner', label: __( 'Spinner', 'funnelforms-pro' ), icon: <LoaderSketch style="spinner" /> },
-							{ value: 'dots', label: __( 'Dots', 'funnelforms-pro' ), icon: <LoaderSketch style="dots" /> },
-							{ value: 'bar', label: __( 'Progress bar', 'funnelforms-pro' ), icon: <LoaderSketch style="bar" /> },
-							{ value: 'circle', label: __( 'Ring with percent', 'funnelforms-pro' ), icon: <LoaderSketch style="circle" /> },
-							{ value: 'search', label: __( 'Magnifying glass', 'funnelforms-pro' ), icon: <LoaderSketch style="search" /> },
+							{ value: 'below', label: __( 'Below the animation', 'funnelforms-pro' ) },
+							{ value: 'above', label: __( 'Above the animation', 'funnelforms-pro' ) },
 						] }
-						onChange={ ( v ) => content( ( props ) => void ( props.loader && ( props.loader.style = v ) ), 'loader.style' ) }
-					/>
-					<LinesInput
-						label={ __( 'Texts while waiting', 'funnelforms-pro' ) }
-						hint={ __( 'One per line; they change evenly over the waiting time.', 'funnelforms-pro' ) }
-						lines={ p.loader.messages.map( ( m ) => editText( m, lang, ctx.locale ) ) }
-						resetKey={ field.id + lang }
-						onLines={ ( lines ) =>
-							content( ( props ) => {
-								if ( ! props.loader ) {
-									return;
-								}
-								if ( lang !== ctx.locale ) {
-									props.loader.messages.forEach( ( m, i ) => setText( m, lang, lines[ i ] ?? '', ctx.locale ) );
+						onChange={ ( v ) =>
+							set( ( l ) => {
+								if ( 'below' === v ) {
+									delete l.textPosition;
 								} else {
-									props.loader.messages = lines.slice( 0, 10 ).map( ( line, i ) => {
-										const known = props.loader?.messages[ i ];
-										if ( known ) {
-											setText( known, lang, line, ctx.locale );
-											return known;
-										}
-										return { [ lang ]: line };
-									} );
+									l.textPosition = v;
 								}
-							}, 'loader.messages' )
+							}, 'textPosition' )
 						}
 					/>
-				</>
+				) }
+			</div>
+			<Toggle
+				label={ __( 'Own colour', 'funnelforms-pro' ) }
+				hint={ __( 'Otherwise the accent colour of the design.', 'funnelforms-pro' ) }
+				checked={ undefined !== loader.color }
+				onChange={ ( v ) =>
+					set( ( l ) => {
+						if ( v ) {
+							l.color = '#2563eb';
+						} else {
+							delete l.color;
+						}
+					}, 'color' )
+				}
+			/>
+			{ undefined !== loader.color ? (
+				<TextInput label={ __( 'Colour of the animation', 'funnelforms-pro' ) } type="color" value={ loader.color } onChange={ ( v ) => /^#[0-9a-f]{6}$/i.test( v ) && set( ( l ) => void ( l.color = v ), 'color' ) } />
 			) : null }
 		</>
+	);
+}
+
+/**
+ * The loading animation as visitors see it, over and over: the texts change and the bar or ring
+ * fills in the duration, then it starts again after a short pause.
+ */
+function LoaderPreview( { loader, ms }: { loader: ContentLoader; ms: number } ) {
+	const { ctx, lang } = useEnv();
+	const primary = useBuilder( ( s ) => ( s.doc ? effectiveTokens( s.doc.style.tokens )[ 'color.primary' ] : undefined ) );
+	const wait = Math.max( 500, ms );
+	const [ elapsed, setElapsed ] = useState( 0 );
+	useEffect( () => {
+		const started = Date.now();
+		const timer = setInterval( () => setElapsed( ( Date.now() - started ) % ( wait + 1200 ) ), 100 );
+		return () => clearInterval( timer );
+	}, [ wait ] );
+	const messages = loader.messages.map( ( m ) => editText( m, lang, ctx.locale ).replace( /<[^>]*>/g, '' ).trim() ).filter( Boolean );
+	const done = Math.min( 100, Math.round( ( elapsed / wait ) * 100 ) );
+	const current = Math.min( messages.length - 1, Math.floor( ( elapsed / wait ) * messages.length ) );
+	const style = 'checklist' === loader.style && ! messages.length ? 'spinner' : loader.style;
+	const percent = ( loader.percent ?? 'circle' === style ) && ( 'bar' === style || 'circle' === style );
+	const color = loader.color ?? primary;
+	const css = { '--ffxb-loader-color': color, '--ffxb-loader-done': String( done ) } as React.CSSProperties;
+	const classes = `ffxb-loader-preview ffxb-loader-preview--${ style }${ loader.size ? ` ffxb-loader-preview--${ loader.size }` : '' }${ 'above' === loader.textPosition ? ' ffxb-loader-preview--above' : '' }`;
+	return (
+		<figure className={ classes } style={ css } aria-label={ __( 'Preview of the loading animation', 'funnelforms-pro' ) }>
+			{ 'checklist' === style ? (
+				<ul className="ffxb-loader-preview__list">
+					{ messages.map( ( m, i ) => (
+						<li key={ i } className={ i < current || done >= 100 ? 'is-done' : i === current ? 'is-active' : '' }>
+							{ m }
+						</li>
+					) ) }
+				</ul>
+			) : (
+				<>
+					<div className="ffxb-loader-preview__animation" aria-hidden="true">
+						{ 'dots' === style ? (
+							<>
+								<span />
+								<span />
+								<span />
+							</>
+						) : null }
+						{ 'circle' === style && percent ? <span className="ffxb-loader-preview__percent">{ `${ done } %` }</span> : null }
+					</div>
+					{ 'bar' === style && percent ? <span className="ffxb-loader-preview__percent">{ `${ done } %` }</span> : null }
+					<p className="ffxb-loader-preview__message">{ messages[ Math.max( 0, current ) ] ?? '' }</p>
+				</>
+			) }
+			<figcaption>{ __( 'Preview', 'funnelforms-pro' ) }</figcaption>
+		</figure>
 	);
 }
 
@@ -253,6 +408,14 @@ function LoaderSketch( { style }: { style: LoaderStyle } ) {
 				<>
 					<circle cx="22" cy="14" r="6" />
 					<path d="M26.5 18.5l5 5" strokeWidth="2.4" />
+				</>
+			) : null }
+			{ 'checklist' === style ? (
+				<>
+					<path d="M9 8.5l1.8 1.8 3.2-3.6M9 16.5l1.8 1.8 3.2-3.6" strokeWidth="1.6" />
+					<path d="M18 9h20M18 17h20" />
+					<circle cx="11.5" cy="25" r="2.5" opacity="0.5" />
+					<path d="M18 25h14" opacity="0.5" />
 				</>
 			) : null }
 		</Sketch>

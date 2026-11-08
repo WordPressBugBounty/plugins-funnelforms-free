@@ -34,6 +34,7 @@ final class StyleTokens {
 		'color.error'              => array( '--ffx-color-error', 'color' ),
 		'color.backgroundEnd'      => array( '--ffx-color-background-end', 'color' ),
 		'color.heading'            => array( '--ffx-color-heading', 'color' ),
+		'color.formHeading'        => array( '--ffx-color-form-heading', 'color' ),
 		'color.button'             => array( '--ffx-color-button', 'color' ),
 		'color.onButton'           => array( '--ffx-color-on-button', 'color' ),
 		'color.back'               => array( '--ffx-color-back', 'color' ),

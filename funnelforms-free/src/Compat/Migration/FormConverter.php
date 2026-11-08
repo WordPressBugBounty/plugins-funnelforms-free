@@ -1463,6 +1463,10 @@ final class FormConverter {
 				$tokens[ $token ] = $legacy[ $key ];
 			}
 		}
+		// The heading above the steps (settings.heading from fe_title) keeps its own colour of 3.x.
+		if ( '' !== trim( $legacy['fe_title'] ?? '' ) && '' !== ( $legacy['form_heading_color'] ?? '' ) ) {
+			$tokens['color.formHeading'] = $legacy['form_heading_color'];
+		}
 		$style = array(
 			'preset' => 'classic',
 			'tokens' => (object) $tokens,
@@ -1500,7 +1504,8 @@ final class FormConverter {
 			'heading'   => 'fe_title',
 		) as $key => $legacy_key ) {
 			$value = LegacyValue::str( $styling[ $legacy_key ] ?? '' );
-			if ( '' !== $value ) {
+			// A blank title showed no heading in 3.x; button labels are taken as they are.
+			if ( '' !== ( 'heading' === $key ? trim( $value ) : $value ) ) {
 				$settings[ $key ] = $this->text( $value );
 			}
 		}

@@ -352,6 +352,28 @@ describe( 'FormApp', () => {
 		expect( $( root, '.ffx-lang' ).hidden ).toBe( true );
 	} );
 
+	it( 'shows the heading of the form above every step, and none when it is empty', () => {
+		const base = config();
+		base.document.settings.heading = de( 'Ihr kostenloser Solar-Check' );
+		const root = document.createElement( 'div' );
+		document.body.append( root );
+		new FormApp( root, base, { url: 'https://example.org/seite/', query: '', title: 'Seite' } );
+		const heading = (): HTMLElement | null => root.querySelector( '.ffx-shell > h2.ffx-heading' );
+		expect( heading()?.textContent ).toBe( 'Ihr kostenloser Solar-Check' );
+		expect( heading()?.nextElementSibling?.classList.contains( 'ffx-card' ) ).toBe( true );
+		clickOption( root, 'Immobilie' );
+		vi.runAllTimers();
+		expect( $( root, '.ffx-question' ).textContent ).toContain( 'Budget' );
+		expect( heading()?.textContent ).toBe( 'Ihr kostenloser Solar-Check' );
+
+		const empty = config();
+		empty.document.settings.heading = {};
+		const other = document.createElement( 'div' );
+		document.body.append( other );
+		new FormApp( other, empty, { url: 'https://example.org/seite/', query: '', title: 'Seite' } );
+		expect( other.querySelector( '.ffx-heading' ) ).toBeNull();
+	} );
+
 	it( 'shows the errors the plugin returns', async () => {
 		const root = mount();
 		await toContact( root );
@@ -1509,6 +1531,44 @@ describe( 'loading screens', () => {
 		root.remove();
 		root = contentStep( { autoAdvanceMs: 2000, button: { show: false, label: de( '' ) }, loader: { style: 'dots', messages: [] } } );
 		expect( root.querySelectorAll( '.ffx-loader-dots span' ) ).toHaveLength( 3 );
+	} );
+
+	it( 'ticks a checklist off one text after the other and moves on', async () => {
+		const root = contentStep( { autoAdvanceMs: 3000, button: { show: false, label: de( '' ) }, loader: { style: 'checklist', messages: [ de( 'Angaben prüfen' ), de( 'Preis berechnen' ), de( 'Angebot erstellen' ) ] } } );
+		const items = (): string[] => [ ...root.querySelectorAll( '.ffx-loader-list li' ) ].map( ( li ) => `${ li.textContent }:${ li.className }` );
+		expect( $( root, '.ffx-loader-checklist' ).getAttribute( 'role' ) ).toBe( 'status' );
+		await vi.advanceTimersByTimeAsync( 0 );
+		expect( items() ).toEqual( [ 'Angaben prüfen:is-active', 'Preis berechnen:', 'Angebot erstellen:' ] );
+		await vi.advanceTimersByTimeAsync( 1000 );
+		expect( items() ).toEqual( [ 'Angaben prüfen:is-done', 'Preis berechnen:is-active', 'Angebot erstellen:' ] );
+		await vi.advanceTimersByTimeAsync( 1900 );
+		expect( items() ).toEqual( [ 'Angaben prüfen:is-done', 'Preis berechnen:is-done', 'Angebot erstellen:is-done' ] );
+		await vi.advanceTimersByTimeAsync( 100 );
+		expect( $( root, '[data-node]' ).dataset.node ).not.toBe( 'n3' );
+	} );
+
+	it( 'shows the percent at a bar, and the size, colour and place of the texts', async () => {
+		let root = contentStep( { autoAdvanceMs: 2000, button: { show: false, label: de( '' ) }, loader: { style: 'bar', percent: true, size: 'large', color: '#AA0000', textPosition: 'above', messages: [ de( 'Moment' ) ] } } );
+		const box = $( root, '.ffx-loader' );
+		expect( box.className ).toBe( 'ffx-loader ffx-loader-bar ffx-loader-large ffx-loader-above' );
+		expect( box.style.getPropertyValue( '--ffx-color-primary' ) ).toBe( '#AA0000' );
+		expect( [ ...box.children ].map( ( c ) => c.className ) ).toEqual( [ 'ffx-loader-animation', 'ffx-loader-percent', 'ffx-loader-message' ] );
+		await vi.advanceTimersByTimeAsync( 1000 );
+		expect( $( root, '.ffx-loader-percent' ).textContent ).toBe( '50 %' );
+		root.remove();
+		// Without percent the bar has none, the ring keeps filling without the number; a colour must be one.
+		root = contentStep( { autoAdvanceMs: 2000, button: { show: false, label: de( '' ) }, loader: { style: 'bar', messages: [] } } );
+		expect( root.querySelector( '.ffx-loader-percent' ) ).toBeNull();
+		root.remove();
+		root = contentStep( { autoAdvanceMs: 2000, button: { show: false, label: de( '' ) }, loader: { style: 'circle', percent: false, color: 'red;x', messages: [] } } );
+		expect( root.querySelector( '.ffx-loader-percent' ) ).toBeNull();
+		expect( $( root, '.ffx-loader' ).style.getPropertyValue( '--ffx-color-primary' ) ).toBe( '' );
+		await vi.advanceTimersByTimeAsync( 1000 );
+		expect( $( root, '.ffx-loader' ).style.getPropertyValue( '--ffx-loader-done' ) ).toBe( '50' );
+		root.remove();
+		// A checklist without texts is a spinner.
+		root = contentStep( { autoAdvanceMs: 2000, button: { show: false, label: de( '' ) }, loader: { style: 'checklist', messages: [] } } );
+		expect( root.querySelector( '.ffx-loader-spinner' ) ).not.toBeNull();
 	} );
 
 	it( 'loads YouTube and Vimeo only after a click', () => {

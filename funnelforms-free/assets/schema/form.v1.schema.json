@@ -1581,8 +1581,10 @@
                     "bar",
                     "dots",
                     "circle",
-                    "search"
-                  ]
+                    "search",
+                    "checklist"
+                  ],
+                  "description": "checklist shows the messages as a list that is ticked off one by one over the waiting time."
                 },
                 "messages": {
                   "type": "array",
@@ -1590,6 +1592,29 @@
                   "items": {
                     "$ref": "#/definitions/text"
                   }
+                },
+                "percent": {
+                  "type": "boolean",
+                  "description": "Shows the percent of the waiting time (bar and circle). Without: on for circle, off for bar."
+                },
+                "size": {
+                  "enum": [
+                    "small",
+                    "large"
+                  ],
+                  "description": "Size of the animation; medium without."
+                },
+                "color": {
+                  "type": "string",
+                  "pattern": "^#[0-9a-fA-F]{6}$",
+                  "description": "Colour of the animation; the primary colour of the design without."
+                },
+                "textPosition": {
+                  "enum": [
+                    "above",
+                    "below"
+                  ],
+                  "description": "Where the messages stand next to the animation; below without."
                 }
               }
             },

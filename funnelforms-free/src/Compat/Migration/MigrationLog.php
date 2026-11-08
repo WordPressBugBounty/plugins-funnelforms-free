@@ -26,7 +26,7 @@ defined( 'ABSPATH' ) || exit;
 final class MigrationLog {
 
 	/** Actions shown in the timeline. */
-	public const ACTIONS = array( 'migration_started', 'migration_finished', 'migration_entries_removed', 'migration_removal_held', 'migration_form_reimported', 'form_renderer', 'backup_written', 'backup_failed', 'backups_deleted', 'restore_started', 'restore_done', 'legacy_check', 'rollback', 'rollforward' );
+	public const ACTIONS = array( 'migration_started', 'migration_finished', 'migration_entries_removed', 'migration_removal_held', 'migration_form_reimported', 'migration_mail_server', 'form_renderer', 'backup_written', 'backup_failed', 'backups_deleted', 'restore_started', 'restore_done', 'legacy_check', 'rollback', 'rollforward' );
 
 	/**
 	 * Hooks.

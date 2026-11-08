@@ -1149,7 +1149,7 @@ function ActionEditor( { doc, action, connections, onConnections }: { doc: FormD
 						/>
 					) : null }
 					{ action.config.valueCalculation ? <TextInput label={ __( 'Currency', 'funnelforms-pro' ) } value={ action.config.currency ?? '' } placeholder="EUR" onChange={ ( v ) => set( 'currency', v.trim().toUpperCase() || undefined ) } /> : null }
-					<p className="ffxb-hint">{ __( 'Sent only when the cookie banner of your website reports the visitor\'s consent through the WP Consent API. Without that consent nothing is sent.', 'funnelforms-pro' ) }</p>
+					<p className="ffxb-hint">{ __( 'Sent only when the cookie banner of your website reports the visitor\'s consent through the WP Consent API or Borlabs Cookie. Without that consent nothing is sent.', 'funnelforms-pro' ) }</p>
 					{ common }
 				</>
 			);

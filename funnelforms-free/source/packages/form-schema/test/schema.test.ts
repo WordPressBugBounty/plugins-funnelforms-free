@@ -538,6 +538,21 @@ describe( 'form schema v1', () => {
 		expect( validateDocument( doc ).errors ).toEqual( [ `field ${ field.id } shows a loader but does not move on by itself` ] );
 	} );
 
+	it( 'knows the settings of a loading animation', () => {
+		const doc = load( 'synthetic-kitchen-sink.json' );
+		const step = doc.nodes.find( ( n ) => n.id === 'n1_1' );
+		const field = step?.type === 'step' ? step.fields[ 0 ] : undefined;
+		if ( field?.type !== 'content' ) {
+			throw new Error( 'n1_1 holds a content field' );
+		}
+		field.props = { ...field.props, autoAdvanceMs: 4000, button: { show: false, label: {} }, loader: { style: 'checklist', messages: [ { de_DE: 'Angaben prüfen' } ], percent: false, size: 'large', color: '#aa0000', textPosition: 'above' } };
+		expect( validateDocument( doc ).errors ).toEqual( [] );
+		const loader = field.props.loader as unknown as Record<string, unknown>;
+		loader.color = 'red';
+		loader.size = 'huge';
+		expect( validateDocument( doc ).valid ).toBe( false );
+	} );
+
 	it( 'checks the countries and the text message of phone fields', () => {
 		const doc = load( 'synthetic-kitchen-sink.json' );
 		const contact = doc.nodes.find( ( n ) => n.type === 'contact' );

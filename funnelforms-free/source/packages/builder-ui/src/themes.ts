@@ -20,6 +20,7 @@ export const THEME_TOKENS = [ 'color.primary', 'color.onPrimary', 'color.backgro
  */
 export const THEME_LOOK_TOKENS = [
 	'color.heading',
+	'color.formHeading',
 	'color.button',
 	'color.onButton',
 	'color.back',

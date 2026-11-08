@@ -125,10 +125,10 @@ final class MigrationTexts {
 			),
 			'google_maps_key_missing'    => array(
 				__( 'The Google Maps key is missing', 'funnelforms-free' ),
-				__( 'An address field of this form suggests addresses with Google Maps, which needs your Google Maps key.', 'funnelforms-free' ),
-				__( 'Enter the key under Settings → General.', 'funnelforms-free' ),
+				__( 'An address field of this form suggests addresses with Google Maps. Funnelforms 3 brought its own key for that, Funnelforms 5 uses yours. The form works anyway: until the key is in, visitors type the address themselves, without suggestions and map.', 'funnelforms-free' ),
+				__( 'Create a Maps JavaScript API key with the Places API in the Google Cloud console, restrict it to your website and enter it under Settings → General. Suggestions and the map then come back on their own.', 'funnelforms-free' ),
 				__( 'Open the settings', 'funnelforms-free' ),
-				SettingsPage::url(),
+				SettingsPage::url( 'general', 'ffx-maps-key' ),
 			),
 			'booking_type_missing'       => array(
 				__( 'An appointment type is missing', 'funnelforms-free' ),
@@ -378,6 +378,8 @@ final class MigrationTexts {
 			case 'migration_form_reimported':
 				$title = self::form_title( 0, (int) $event['object'] );
 				return self::line( 'history', FormVerifier::VERIFIED === ( $d['status'] ?? '' ) ? 'success' : 'warning', __( 'Form imported again', 'funnelforms-free' ), $title . ' · ' . wp_strip_all_tags( self::check_badge( (string) ( $d['status'] ?? '' ) ) ) );
+			case 'migration_mail_server':
+				return self::line( 'mail', 'success', __( 'Mail server taken over from Funnelforms 3', 'funnelforms-free' ), (string) ( $d['host'] ?? '' ) );
 			case 'form_renderer':
 				$v5     = FormRepository::RENDERER_V5 === ( $d['renderer'] ?? '' );
 				$reason = (string) ( $d['reason'] ?? '' );
