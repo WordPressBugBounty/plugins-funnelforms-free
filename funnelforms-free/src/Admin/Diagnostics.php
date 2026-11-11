@@ -430,6 +430,8 @@ final class Diagnostics {
 			'connection_created'                => __( 'Connection added', 'funnelforms-free' ),
 			'connection_updated'                => __( 'Connection changed', 'funnelforms-free' ),
 			'connection_deleted'                => __( 'Connection removed', 'funnelforms-free' ),
+			'elevenlabs_agent_created'          => __( 'ElevenLabs agent created', 'funnelforms-free' ),
+			'leadcaller_test_call'              => __( 'AI Phone Agent test call', 'funnelforms-free' ),
 			'api_token_created'                 => __( 'API token created', 'funnelforms-free' ),
 			'api_token_revoked'                 => __( 'API token revoked', 'funnelforms-free' ),
 			'app_paired'                        => __( 'App connected', 'funnelforms-free' ),

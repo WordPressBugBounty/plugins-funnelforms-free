@@ -42,7 +42,7 @@ final class Edition {
 	public const FREE_ACTIONS = array( 'email', 'autoresponder' );
 
 	/** Actions only Pro has. */
-	public const PRO_ACTIONS = array( 'webhook', 'crm', 'chat', 'sms', 'whatsapp', 'conversion', 'googleAds' );
+	public const PRO_ACTIONS = array( 'webhook', 'crm', 'chat', 'sms', 'whatsapp', 'conversion', 'googleAds', 'aiCall' );
 
 	/**
 	 * Conditions of Free: branching by the chosen answer. Paths without a condition and the
@@ -60,6 +60,8 @@ final class Edition {
 		'Funnelforms\\Integrations\\Crm\\CrmController',
 		'Funnelforms\\Application\\Payments',
 		'Funnelforms\\Admin\\AppointmentsPage',
+		'Funnelforms\\Admin\\LeadcallerPage',
+		'Funnelforms\\Http\\LeadcallerController',
 		'Funnelforms\\Admin\\CronofyNotice',
 		'Funnelforms\\Admin\\PredictionPage',
 		'Funnelforms\\Admin\\IntegrationsPage',
@@ -366,6 +368,7 @@ final class Edition {
 			'action:whatsapp'                  => __( 'WhatsApp', 'funnelforms-free' ),
 			'action:conversion'                => __( 'Conversion tracking', 'funnelforms-free' ),
 			'action:googleAds'                 => __( 'Google Ads conversions', 'funnelforms-free' ),
+			'action:aiCall'                    => __( 'AI Phone Agent', 'funnelforms-free' ),
 		);
 	}
 

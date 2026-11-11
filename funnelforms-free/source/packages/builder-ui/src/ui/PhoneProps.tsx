@@ -21,7 +21,7 @@ type Edit = ( recipe: ( props: Props ) => void, key?: string ) => void;
 const CODES = ( data as unknown as { countries: Record<string, [ string ]> } ).countries;
 
 /** Names of the countries in the language of the admin, sorted. */
-function useCountries(): Array<{ iso: string; name: string; code: string }> {
+export function useCountries(): Array<{ iso: string; name: string; code: string }> {
 	return useMemo( () => {
 		const lang = document.documentElement.lang || 'en';
 		let names: Intl.DisplayNames | null = null;

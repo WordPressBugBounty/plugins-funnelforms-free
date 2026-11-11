@@ -825,6 +825,9 @@
                     },
                     "required": true,
                     "props": {
+                        "country": {
+                            "default": "DE"
+                        },
                         "placeholder": {
                             "de_DE": "Ihre Telefonnummer..."
                         },
@@ -1054,15 +1057,10 @@
         }
     ],
     "style": {
-        "preset": "classic",
+        "preset": "default",
         "tokens": {
             "color.primary": "rgba(157,65,221,1)",
-            "color.background": "rgba(255,255,255,1)",
-            "color.text": "rgba(51,51,51,1)",
-            "color.border": "rgba(157,65,221,1)",
-            "font.family": "Montserrat",
-            "radius.card": "10",
-            "radius.input": "10"
+            "font.family": "Montserrat"
         },
         "legacy": {
             "fe_title": "",

@@ -5,6 +5,7 @@
 import type { Experiment, FormDocument } from '@funnelforms/form-schema';
 import type { TEMPLATE_CATEGORIES, TEMPLATE_GOALS } from './templateTaxonomy';
 import type { ConnectApi } from './connect';
+import type { AiAgentSummary } from './aicall';
 import type { EarlierPrediction, PredictionFigures, PredictionParameters, RealFigures, StoredPrediction } from './predict';
 
 export interface UserRef {
@@ -207,6 +208,14 @@ export interface BookingConfig {
 	kind: 'personal' | 'call' | 'video';
 	/** Address, phone number or video link, by kind. */
 	location: string;
+	/**
+	 * Video calls: a meeting of its own for each appointment instead of the one link in location.
+	 * Google Meet and Teams come with the event in the Google or Microsoft calendar the type writes
+	 * into; Zoom is scheduled in the Zoom account of meetingAccount.
+	 */
+	meeting?: '' | 'zoom' | 'meet' | 'teams';
+	/** Zoom connection (zoom:…), or "owner": the Zoom account of the person booked. */
+	meetingAccount?: string;
 	/** Time zone of the hours; empty for the site's. */
 	timezone: string;
 	/** Opening hours: weekdays (1 Monday … 7 Sunday) with a time span each. */
@@ -265,14 +274,33 @@ export interface CalendarAccount {
 	createdAt: string;
 }
 
+/** A Zoom account for the meetings of video calls, as Funnelforms → Integrations shows it. */
+export interface ZoomAccount {
+	ref: string;
+	type: 'zoom';
+	label: string;
+	/** E-mail address of the Zoom account. */
+	account: string;
+	/** User ID of the team member it belongs to; 0 for the website. */
+	owner: number;
+	ownerName: string;
+	/** auth_failed: connect again. */
+	error: string | null;
+	/** Appointment types that schedule their meetings in it. */
+	usedBy: Array<{ ref: string; title: string }>;
+	createdAt: string;
+}
+
 /** GET calendars. */
 export interface CalendarsOverview {
 	connections: CalendarAccount[];
+	/** Zoom accounts (missing on sites from before Zoom). */
+	zoom?: ZoomAccount[];
 	/** Team members a calendar can belong to (they see entries). */
 	people: Array<{ id: number; name: string }>;
 	/** Google and Microsoft sign in through the Funnelforms account of the website. */
 	website: { connected: boolean; accountUrl: string };
-	types: Array<{ ref: string; title: string; staff: number[]; write: string }>;
+	types: Array<{ ref: string; title: string; staff: number[]; write: string; meeting?: BookingConfig[ 'meeting' ] }>;
 	timezone: string;
 }
 
@@ -298,6 +326,8 @@ export interface BookingTypes {
 	 * the calendar could not be read lately (auth_failed: it has to be connected again).
 	 */
 	calendars: CalendarConnection[];
+	/** Zoom accounts for the meetings of video calls; owner: the team member whose it is (0: the website). */
+	zoom?: Array<{ ref: string; label: string; owner: number; error: string | null }>;
 	/** The site's time zone. */
 	timezone: string;
 	defaults: BookingConfig;
@@ -683,12 +713,14 @@ export interface FormsApi {
 	testConnection?( ref: string, test: ConnectionTest ): Promise<ConnectionTestResult | undefined>;
 	/** Published pages of the site whose title holds the search, for redirects. */
 	pages?( search: string ): Promise<SitePage[]>;
+	/** Agents of Funnelforms → AI Phone Agent, for the action aiCall. */
+	aiAgents?(): Promise<AiAgentSummary[]>;
 	/** Templates of a WhatsApp connection; fails with connection_incomplete without the business account ID. */
 	whatsAppTemplates?( ref: string ): Promise<WhatsAppTemplate[]>;
 	/** Submits a WhatsApp template to Meta for review; needs the right to change settings. */
 	createWhatsAppTemplate?( ref: string, template: NewWhatsAppTemplate ): Promise<WhatsAppTemplate>;
 	/** Starts signing in to a Google or Microsoft calendar (ref: connect that one again); open url in a window. */
-	startCalendarSignIn( provider: 'google' | 'microsoft', ref?: string ): Promise<{ url: string; state: string }>;
+	startCalendarSignIn( provider: 'google' | 'microsoft' | 'zoom', ref?: string ): Promise<{ url: string; state: string }>;
 	/** The end of a sign-in; null while it runs. */
 	calendarSignIn( state: string ): Promise<CalendarSignIn | null>;
 	/** The calendar connections of the website (Funnelforms → Integrations); needs the right to change settings. */
@@ -880,7 +912,7 @@ export interface Appointment {
 	duration: number;
 	/** Time zone of the appointment type. */
 	timezone: string;
-	type: { ref: string; title: string; kind: 'personal' | 'call' | 'video'; location: string } | null;
+	type: { ref: string; title: string; kind: 'personal' | 'call' | 'video'; location: string; meeting?: '' | 'zoom' | 'meet' | 'teams' } | null;
 	/** People booked; empty when the type books the site. */
 	people: UserRef[];
 	visitor: { name: string; email: string };
@@ -904,7 +936,32 @@ export interface EntryDetail extends EntrySummary {
 	/** Actions that can run again for this entry. */
 	actions: Array<{ id: string; kind: string }>;
 	appointments: Appointment[];
+	/** Calls of the AI Phone Agent (Funnelforms Pro), per action of the form. */
+	aiCalls?: EntryAiCall[];
 	visit: EntryVisit | null;
+}
+
+/** The calls of one AI Phone Agent action for an entry (Application\AiCalls::history()). */
+export interface EntryAiCall {
+	action: string;
+	/** Name of the agent; '' when it is gone. */
+	agent: string;
+	/** scheduled, calling, called (result pending) or done. */
+	status: string;
+	/** When the next call is planned (scheduled only). */
+	next: string | null;
+	attempts: Array<{
+		attempt: number;
+		at: string | null;
+		/** No result from ElevenLabs within two hours. */
+		timeout: boolean;
+		reached: boolean;
+		goal: boolean | null;
+		duration: number;
+		summary: string;
+		details: Array<{ label: string; value: string }>;
+		transcript: Array<{ role: 'lead' | 'agent'; text: string }>;
+	}>;
 }
 
 export interface EntryFilter {

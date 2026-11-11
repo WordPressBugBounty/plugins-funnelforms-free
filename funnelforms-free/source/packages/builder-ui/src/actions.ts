@@ -3,10 +3,11 @@
  * each function changes the document it gets and returns the id of what it created.
  */
 import type { Action, ContactField, FormDocument, Text } from '@funnelforms/form-schema';
+import { consentFields, phoneFields } from './aicall';
 import { newId } from './document';
 
 /** Kinds the builder creates. */
-export const ACTION_KINDS = [ 'email', 'autoresponder', 'webhook', 'crm', 'chat', 'sms', 'whatsapp', 'conversion', 'googleAds' ] as const;
+export const ACTION_KINDS = [ 'email', 'autoresponder', 'webhook', 'crm', 'chat', 'sms', 'whatsapp', 'aiCall', 'conversion', 'googleAds' ] as const;
 
 export type ActionKind = ( typeof ACTION_KINDS )[ number ];
 
@@ -135,6 +136,9 @@ export function createAction( doc: FormDocument, kind: ActionKind, texts: Partia
 			return { id, on: 'submit', kind, config: { connectionRef: '', to: t( locale, '' ), sender: '', message: t( locale, x.chatMessage ) } };
 		case 'whatsapp':
 			return { id, on: 'submit', kind, config: { connectionRef: '', to: t( locale, '' ), template: '', language: locale.slice( 0, 2 ), parameters: [] } };
+		case 'aiCall':
+			// The agent comes from Funnelforms → AI Phone Agent; the fields of the form are found here.
+			return { id, on: 'submit', kind, config: { agent: '', phoneField: phoneFields( doc )[ 0 ]?.id ?? '', consentField: consentFields( doc )[ 0 ]?.id ?? '' } };
 		case 'conversion':
 			return { id, on: 'submit', kind, config: { platform: 'meta', connectionRef: '', eventName: '', requireConsent: true } };
 		case 'googleAds':
@@ -226,7 +230,7 @@ export function deliveryWarnings( doc: FormDocument ): Array<'nobody' | 'recipie
 }
 
 /** What is still missing for an action to work; empty when it is complete. */
-export function actionGaps( action: Action, locale: string ): Array<'recipient' | 'url' | 'connection' | 'template' | 'sendTo'> {
+export function actionGaps( action: Action, locale: string ): Array<'recipient' | 'url' | 'connection' | 'template' | 'sendTo' | 'agent' | 'consent'> {
 	const value = ( text: Text | undefined ): string => ( text?.[ locale ] ?? Object.values( text ?? {} )[ 0 ] ?? '' ).trim();
 	switch ( action.kind ) {
 		case 'email':
@@ -246,6 +250,11 @@ export function actionGaps( action: Action, locale: string ): Array<'recipient' 
 				...( '' === action.config.connectionRef ? [ 'connection' as const ] : [] ),
 				...( '' === value( action.config.to ) ? [ 'recipient' as const ] : [] ),
 				...( '' === action.config.template.trim() ? [ 'template' as const ] : [] ),
+			];
+		case 'aiCall':
+			return [
+				...( '' === ( action.config.agent ?? '' ) ? [ 'agent' as const ] : [] ),
+				...( '' === action.config.consentField ? [ 'consent' as const ] : [] ),
 			];
 		case 'googleAds':
 			return ADS_SEND_TO.test( action.config.sendTo ) ? [] : [ 'sendTo' ];

@@ -7,7 +7,7 @@ import { Builder } from '../src/ui/Builder';
 import { FormsList } from '../src/ui/FormsList';
 import { parseExtensions } from '../src/ui/UploadProps';
 import { placement } from '../src/ui/Tour';
-import { addStep, defaultPlacement } from '../src/document';
+import { addField, addStep, defaultPlacement } from '../src/document';
 import { setPrivacy } from '../src/privacy';
 import { setCode } from '../src/code';
 import { setIntegrationsUrl } from '../src/actions';
@@ -3408,5 +3408,153 @@ describe( 'design from the website and in the preview', () => {
 		} finally {
 			delete ( globalThis as { EyeDropper?: unknown } ).EyeDropper;
 		}
+	} );
+} );
+
+describe( 'values of Funnelforms 3 that were only migrated', () => {
+	const contactNode = ( store: ReturnType<typeof createBuilderStore> ): Extract<FormNode, { type: 'contact' }> => store.getState().doc?.nodes.find( ( n ) => 'contact' === n.type ) as Extract<FormNode, { type: 'contact' }>;
+	const toggle = async ( label: string ): Promise<void> => {
+		const found = [ ...container.querySelectorAll( '.ffxb-toggle label' ) ].find( ( l ) => l.textContent === label ) as HTMLLabelElement | undefined;
+		if ( ! found ) {
+			throw new Error( 'No switch ' + label );
+		}
+		await act( async () => ( document.getElementById( found.htmlFor ) as HTMLInputElement ).click() );
+	};
+	const switchOn = ( label: string ): boolean | undefined => ( [ ...container.querySelectorAll<HTMLLabelElement>( '.ffxb-toggle label' ) ].find( ( l ) => l.textContent === label )?.previousElementSibling as HTMLInputElement | null )?.checked;
+	const type = async ( input: HTMLInputElement, value: string ): Promise<void> => {
+		await act( async () => {
+			Object.getOwnPropertyDescriptor( HTMLInputElement.prototype, 'value' )?.set?.call( input, value );
+			input.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+		} );
+	};
+
+	async function open( prepare?: ( d: FormDocument ) => void, overrides: Partial<FormsApi> = {} ) {
+		const doc = blank();
+		prepare?.( doc );
+		const api = fakeApi( { get: vi.fn( async () => ( { ...summary, document: doc, lockTtl: 150 } ) ), ...overrides } );
+		const store = createBuilderStore( api, 7, { autosaveMs: 60000 } );
+		await act( async () => root.render( <Builder api={ api } formId={ 7 } onBack={ () => undefined } store={ store } /> ) );
+		await settle();
+		return store;
+	}
+
+	it( 'shows, edits and removes the hidden values of answers', async () => {
+		let step = '';
+		const store = await open( ( d ) => {
+			step = addStep( d, 'choice', { locale: 'de_DE' }, { before: 'contact' } );
+			const field = ( d.nodes.find( ( n ) => n.id === step ) as Extract<FormNode, { type: 'step' }> ).fields[ 0 ] as ChoiceField;
+			( field.options[ 0 ] as ChoiceField[ 'options' ][ number ] ).hiddenValue = 'SKU-1';
+		} );
+		const field = (): ChoiceField => ( store.getState().doc?.nodes.find( ( n ) => n.id === step ) as Extract<FormNode, { type: 'step' }> ).fields[ 0 ] as ChoiceField;
+		await act( async () => store.getState().select( { node: step, field: field().id } ) );
+		// A value from 3.x shows its column right away.
+		expect( switchOn( 'Hidden values' ) ).toBe( true );
+		const inputs = (): HTMLInputElement[] => [ ...container.querySelectorAll<HTMLInputElement>( 'input.ffxb-options__hidden' ) ];
+		expect( inputs().map( ( i ) => i.value ) ).toEqual( field().options.map( ( o, i ) => ( 0 === i ? 'SKU-1' : '' ) ) );
+		await type( inputs()[ 1 ] as HTMLInputElement, 'SKU-2' );
+		expect( field().options[ 1 ]?.hiddenValue ).toBe( 'SKU-2' );
+		await type( inputs()[ 1 ] as HTMLInputElement, '' );
+		expect( field().options[ 1 ] ).not.toHaveProperty( 'hiddenValue' );
+		// Switching off removes them all.
+		await toggle( 'Hidden values' );
+		expect( field().options.some( ( o ) => undefined !== o.hiddenValue ) ).toBe( false );
+		expect( inputs() ).toHaveLength( 0 );
+		expect( validateDocument( store.getState().doc as FormDocument ).errors ).toEqual( [] );
+	} );
+
+	it( 'edits length, number, mask and pattern of a contact text field and the salutations', async () => {
+		let text = '';
+		let salutation = '';
+		const store = await open( ( d ) => {
+			text = addField( d, 'contact', 'text', { locale: 'de_DE' } ) as string;
+			salutation = addField( d, 'contact', 'salutation', { locale: 'de_DE' } ) as string;
+		} );
+		const field = ( id: string ): ContactField => contactNode( store ).fields.find( ( f ) => f.id === id ) as ContactField;
+		await act( async () => store.getState().select( { node: 'contact', field: text } ) );
+		await fill( 'Minimum length', '5' );
+		await fill( 'Maximum length', '5' );
+		await choose( 'Allowed input', 'number' );
+		await fill( 'Input mask', '99999' );
+		expect( field( text ).props ).toMatchObject( { minLength: 5, maxLength: 5, inputType: 'number', mask: '99999' } );
+		expect( container.textContent ).not.toContain( 'cannot apply this mask' );
+		await fill( 'Input mask', '(999)' );
+		expect( container.textContent ).toContain( 'The new form display cannot apply this mask' );
+		await fill( 'Input mask', '' );
+		expect( field( text ).props ).not.toHaveProperty( 'mask' );
+		await fill( 'Pattern (regular expression)', '[0-9{5}' );
+		expect( container.textContent ).toContain( 'This pattern is not a valid regular expression' );
+		await fill( 'Pattern (regular expression)', '[0-9]{5}' );
+		expect( field( text ).props.pattern ).toBe( '[0-9]{5}' );
+		expect( container.textContent ).not.toContain( 'not a valid regular expression' );
+		await choose( 'Allowed input', 'text' );
+		expect( field( text ).props ).not.toHaveProperty( 'inputType' );
+
+		await act( async () => store.getState().select( { node: 'contact', field: salutation } ) );
+		await toggle( 'Diverse' );
+		await toggle( 'Company' );
+		expect( field( salutation ).props.allow ).toEqual( { diverse: false, company: false } );
+		await toggle( 'Mr.' );
+		// The last salutation cannot be switched off.
+		const last = [ ...container.querySelectorAll<HTMLLabelElement>( '.ffxb-toggle label' ) ].find( ( l ) => 'Ms.' === l.textContent )?.previousElementSibling as HTMLInputElement;
+		expect( last.disabled ).toBe( true );
+		await toggle( 'Mr.' );
+		await toggle( 'Diverse' );
+		await toggle( 'Company' );
+		expect( field( salutation ).props ).not.toHaveProperty( 'allow' );
+		expect( validateDocument( store.getState().doc as FormDocument ).errors ).toEqual( [] );
+	} );
+
+	it( 'switches the bar below the contact step', async () => {
+		const store = await open();
+		await act( async () => store.getState().select( { node: 'contact' } ) );
+		expect( switchOn( 'Back button and progress bar' ) ).toBe( true );
+		await toggle( 'Back button and progress bar' );
+		expect( contactNode( store ).showBottomBar ).toBe( false );
+	} );
+
+	it( 'sets the texts of next and back, the fading while sending and the language of buttons', async () => {
+		const store = await open( ( d ) => {
+			d.settings.nextLabel = { de_DE: 'Weiter geht\'s' };
+		} );
+		await workspace( 'Settings' );
+		expect( labelled<HTMLInputElement>( 'Text of the next button' ).value ).toBe( 'Weiter geht\'s' );
+		await fill( 'Text of the back button', 'Zurück' );
+		expect( store.getState().doc?.settings.prevLabel ).toEqual( { de_DE: 'Zurück' } );
+		await fill( 'Text of the next button', '' );
+		expect( store.getState().doc?.settings.nextLabel ).toBeUndefined();
+		expect( switchOn( 'Fade the form while sending' ) ).toBe( false );
+		await toggle( 'Fade the form while sending' );
+		expect( store.getState().doc?.settings.loadingAnimation ).toBe( true );
+		expect( labelled<HTMLSelectElement>( 'Language of buttons and messages' ).value ).toBe( '' );
+		await choose( 'Language of buttons and messages', 'en_US' );
+		expect( store.getState().doc?.settings.uiLocale ).toBe( 'en_US' );
+		expect( validateDocument( store.getState().doc as FormDocument ).errors ).toEqual( [] );
+	} );
+
+	it( 'chooses and removes the picture above a slider and names the typed number', async () => {
+		let step = '';
+		const pickImage = vi.fn( async () => ( { id: 42, url: 'https://example.org/haus.png', alt: '' } ) );
+		const store = await open(
+			( d ) => {
+				step = addStep( d, 'slider', { locale: 'de_DE' }, { before: 'contact' } );
+				const field = ( d.nodes.find( ( n ) => n.id === step ) as Extract<FormNode, { type: 'step' }> ).fields[ 0 ] as Extract<FormNode, { type: 'step' }>[ 'fields' ][ number ] & { type: 'slider' };
+				field.props.media = { kind: 'icon', value: 'fas fa-home' };
+			},
+			{ pickImage }
+		);
+		const props = () => ( ( store.getState().doc?.nodes.find( ( n ) => n.id === step ) as Extract<FormNode, { type: 'step' }> ).fields[ 0 ] as Extract<FormNode, { type: 'step' }>[ 'fields' ][ number ] & { type: 'slider' } ).props;
+		await act( async () => store.getState().select( { node: step, field: ( ( store.getState().doc?.nodes.find( ( n ) => n.id === step ) as Extract<FormNode, { type: 'step' }> ).fields[ 0 ] as { id: string } ).id } ) );
+		expect( container.textContent ).toContain( 'Icon from Funnelforms 3: fas fa-home.' );
+		await act( async () => button( 'Change picture' ).click() );
+		await settle();
+		expect( props().media ).toEqual( { kind: 'image', value: 'https://example.org/haus.png' } );
+		expect( container.querySelector<HTMLImageElement>( 'img.ffxb-slider-media' )?.getAttribute( 'src' ) ).toBe( 'https://example.org/haus.png' );
+		await act( async () => button( 'Remove picture' ).click() );
+		expect( props() ).not.toHaveProperty( 'media' );
+
+		expect( () => labelled( 'Label of the input' ) ).toThrow();
+		await toggle( 'Visitors can type the number' );
+		await fill( 'Label of the input', 'Wohnfläche' );
+		expect( props().manualInput ).toEqual( { enabled: true, label: { de_DE: 'Wohnfläche' } } );
 	} );
 } );

@@ -277,6 +277,28 @@ final class EntryRepository {
 	}
 
 	/**
+	 * Puts a job back in the queue until a later time (an AI call waiting for its call window):
+	 * not an attempt, so it keeps the attempts it had. Its row counts as updated when it is due.
+	 *
+	 * @param int $id       Job ID.
+	 * @param int $attempts Attempts so far.
+	 * @param int $delay    Seconds from now.
+	 */
+	public function defer_job( int $id, int $attempts, int $delay ): void {
+		global $wpdb;
+		$wpdb->update(
+			Schema::table( 'jobs_log' ),
+			array(
+				'status'     => 'queued',
+				'attempts'   => max( 0, $attempts ),
+				'last_error' => 'waiting',
+				'updated_at' => gmdate( 'Y-m-d H:i:s', time() + max( 0, $delay ) ),
+			),
+			array( 'id' => $id )
+		);
+	}
+
+	/**
 	 * Jobs of an entry.
 	 *
 	 * @param int $entry_id Entry ID.
@@ -374,6 +396,44 @@ final class EntryRepository {
 			),
 			array( 'id' => $id )
 		);
+	}
+
+	/**
+	 * Changes the meta of an entry from what it is now: $change gets the stored meta and returns
+	 * the new meta, or null to leave it. The write only lands when nobody changed the meta since it
+	 * was read (otherwise $change runs again on the newer meta), so two requests at once never both
+	 * act on the same state, e.g. both place the same AI call.
+	 *
+	 * @param int      $id     Entry ID.
+	 * @param callable $change Gets the meta (array), returns the new meta or null.
+	 * @return array<string,mixed>|null The meta written, null when $change left it or the entry is gone.
+	 */
+	public function change_meta( int $id, callable $change ): ?array {
+		global $wpdb;
+		$table = Schema::table( 'entries' );
+		for ( $try = 0; $try < 5; $try++ ) {
+			$row = $wpdb->get_row( $wpdb->prepare( 'SELECT id, meta FROM %i WHERE id = %d', $table, $id ), ARRAY_A );
+			if ( ! is_array( $row ) ) {
+				return null;
+			}
+			$raw  = $row['meta'];
+			$meta = is_string( $raw ) ? json_decode( $raw, true ) : null;
+			$next = $change( is_array( $meta ) ? $meta : array() );
+			if ( null === $next ) {
+				return null;
+			}
+			$json = (string) wp_json_encode( $next, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+			if ( $json === $raw ) {
+				return $next;
+			}
+			$done = null === $raw
+				? $wpdb->query( $wpdb->prepare( 'UPDATE %i SET meta = %s WHERE id = %d AND meta IS NULL', $table, $json, $id ) )
+				: $wpdb->query( $wpdb->prepare( 'UPDATE %i SET meta = %s WHERE id = %d AND BINARY meta = BINARY %s', $table, $json, $id, $raw ) );
+			if ( 1 === (int) $done ) {
+				return $next;
+			}
+		}
+		return null;
 	}
 
 	/**

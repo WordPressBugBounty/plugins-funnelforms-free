@@ -71,21 +71,24 @@ export function createHubApi( request: Request ): HubApi {
 	};
 }
 
-export type HubCategory = 'payments' | 'crm' | 'newsletter' | 'spreadsheet' | 'calendars' | 'messages' | 'tracking' | 'automation';
+export type HubCategory = 'payments' | 'crm' | 'newsletter' | 'spreadsheet' | 'calendars' | 'meetings' | 'messages' | 'tracking' | 'automation';
 
-export const HUB_CATEGORIES: HubCategory[] = [ 'payments', 'crm', 'newsletter', 'spreadsheet', 'calendars', 'messages', 'tracking', 'automation' ];
+export const HUB_CATEGORIES: HubCategory[] = [ 'payments', 'crm', 'newsletter', 'spreadsheet', 'calendars', 'meetings', 'messages', 'tracking', 'automation' ];
 
 /**
  * A service of the overview. connection: credentials typed in here (ConnectionsController);
  * crm: a CRM, newsletter or spreadsheet tool (CrmController); calendar: the calendar section of
- * the page; link: set up on another page.
+ * the page; meeting: the video meetings section of the page (Google Meet and Teams count the
+ * Google and Microsoft calendars, which make them); link: set up on another page.
  */
 export interface HubService {
 	id: string;
 	/** Brand name; not translated. */
 	name: string;
 	category: HubCategory;
-	kind: 'connection' | 'crm' | 'calendar' | 'link';
+	kind: 'connection' | 'crm' | 'calendar' | 'meeting' | 'link';
+	/** For kind link: the page the tile opens (default the interfaces in the settings). */
+	page?: 'interfaces' | 'leadcaller';
 	/** Connection types that count for it. */
 	types: string[];
 	/** Where the customer finds the keys. */
@@ -104,11 +107,16 @@ export const SERVICES: HubService[] = [
 	{ id: 'microsoft', name: 'Microsoft Outlook', category: 'calendars', kind: 'calendar', types: [ 'microsoft' ], mark: 'O', color: '#0078d4' },
 	{ id: 'icloud', name: 'Apple iCloud', category: 'calendars', kind: 'calendar', types: [ 'caldav' ], mark: '', color: '#6e6e73' },
 	{ id: 'caldav', name: 'CalDAV', category: 'calendars', kind: 'calendar', types: [ 'caldav' ], mark: '', color: '#4b5563' },
+	{ id: 'zoom', name: 'Zoom', category: 'meetings', kind: 'meeting', types: [ 'zoom' ], mark: 'Z', color: '#0b5cff' },
+	{ id: 'meet', name: 'Google Meet', category: 'meetings', kind: 'meeting', types: [ 'google' ], mark: 'M', color: '#137333' },
+	{ id: 'teams-meetings', name: 'Microsoft Teams', category: 'meetings', kind: 'meeting', types: [ 'microsoft' ], mark: 'T', color: '#5b5fc7' },
 	{ id: 'slack', name: 'Slack', category: 'messages', kind: 'connection', types: [ 'slack' ], dashboard: 'https://api.slack.com/messaging/webhooks', mark: 'S', color: '#4a154b' },
 	{ id: 'teams', name: 'Microsoft Teams', category: 'messages', kind: 'connection', types: [ 'teams' ], mark: 'T', color: '#5b5fc7' },
 	{ id: 'whatsapp', name: 'WhatsApp Business', category: 'messages', kind: 'connection', types: [ 'whatsapp' ], dashboard: 'https://business.facebook.com/wa/manage/home/', mark: 'W', color: '#25d366' },
 	{ id: 'twilio', name: 'Twilio', category: 'messages', kind: 'connection', types: [ 'twilio' ], dashboard: 'https://console.twilio.com/', mark: 'T', color: '#f22f46' },
 	{ id: 'bird', name: 'Bird', category: 'messages', kind: 'connection', types: [ 'bird' ], dashboard: 'https://app.bird.com/', mark: 'B', color: '#0b0b0b' },
+	// ElevenLabs is connected on the page of the AI Phone Agent only, so there is one place for it.
+	{ id: 'elevenlabs', name: 'ElevenLabs', category: 'messages', kind: 'link', page: 'leadcaller', types: [ 'elevenlabs' ], dashboard: 'https://elevenlabs.io/app/settings/api-keys', mark: 'XI', color: '#000000' },
 	{ id: 'meta', name: 'Meta', category: 'tracking', kind: 'connection', types: [ 'meta' ], dashboard: 'https://business.facebook.com/events_manager2', mark: 'M', color: '#0866ff' },
 	{ id: 'ga4', name: 'Google Analytics 4', category: 'tracking', kind: 'connection', types: [ 'ga4' ], dashboard: 'https://analytics.google.com/', mark: 'G', color: '#e37400' },
 	{ id: 'tiktok', name: 'TikTok', category: 'tracking', kind: 'connection', types: [ 'tiktok' ], dashboard: 'https://ads.tiktok.com/i18n/events_manager', mark: 'T', color: '#010101' },

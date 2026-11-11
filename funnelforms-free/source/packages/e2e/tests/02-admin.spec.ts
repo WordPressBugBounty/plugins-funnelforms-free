@@ -9,8 +9,8 @@ const PAGES = [
 	'funnelforms-stats',
 	'funnelforms-settings',
 	'funnelforms-import',
-	// Free leaves out integrations, appointments, the account, the app and support (editions/free/exclude.txt).
-	...( 'pro' === EDITION ? [ 'funnelforms-integrations', 'funnelforms-appointments', 'funnelforms-account', 'funnelforms-app', 'funnelforms-support' ] : [] ),
+	// Free leaves out integrations, appointments, the AI Phone Agent, the account, the app and support (editions/free/exclude.txt).
+	...( 'pro' === EDITION ? [ 'funnelforms-integrations', 'funnelforms-appointments', 'funnelforms-leadcaller', 'funnelforms-account', 'funnelforms-app', 'funnelforms-support' ] : [] ),
 ];
 
 for ( const slug of PAGES ) {

@@ -7,6 +7,7 @@ import { base64Json, item, questionRedirectUrl, summary } from '../src/summary';
 import type { RuntimeConfig } from '../src/types';
 import { checkStepField, isWebAddress, siteToday } from '../src/validate';
 import { referrerOf } from '../src/visit';
+import { ORIGIN_KEY } from '../src/origin';
 // The chunks of address, booking and repeat fields are there from the start, as on the plugin's pages.
 import '../src/chunks/address';
 import '../src/chunks/booking';
@@ -309,6 +310,53 @@ describe( 'FormApp', () => {
 		const entry = requests.find( ( r ) => r.path === '/entries' );
 		expect( entry?.body.answers ).toEqual( { q1: [ 'o1' ], q2: 50, q3: 'Bonn' } );
 		expect( entry?.body.contact ).toEqual( { c_name: 'Erika Muster', c_mail: 'erika@example.org', c_ok: true, c_kdnr: '123456' } );
+	} );
+
+	it( 'sends the source of the page the visit began on when the site remembers it', async () => {
+		window.wp_has_consent = () => true;
+		vi.stubGlobal( 'IntersectionObserver', class {
+			constructor( private readonly callback: ( entries: Array<{ isIntersecting: boolean }> ) => void ) {}
+			observe(): void {
+				this.callback( [ { isIntersecting: true } ] );
+			}
+			disconnect(): void {}
+		} );
+		// The visitor came from a Meta ad to the home page and went on to the page with the form.
+		sessionStorage.setItem( ORIGIN_KEY, JSON.stringify( { referrer: 'https://l.facebook.com/', query: 'utm_source=facebook&utm_medium=paid_social' } ) );
+		const base = { ...config(), origin: true };
+		const contact = ( base.document.nodes as unknown as Array<{ id: string; fields: unknown[] }> ).find( ( n ) => n.id === 'n4' ) as { fields: unknown[] };
+		contact.fields.push( { id: 'c_src', key: 'quelle', type: 'text', label: de( 'Quelle' ), required: false, props: { placeholder: de( '' ), hidden: true, prefillFromQuery: 'utm_source' } } );
+		const root = document.createElement( 'div' );
+		document.body.append( root );
+		new FormApp( root, base, { url: 'https://example.org/kontakt/', query: 'id=7', title: 'Kontakt' } );
+		await toContact( root );
+		type( $<HTMLInputElement>( root, '.ffx-contact-name input' ), 'Erika' );
+		type( $<HTMLInputElement>( root, '.ffx-contact-email input' ), 'erika@example.org' );
+		$<HTMLInputElement>( root, '.ffx-contact-consent input' ).click();
+		reply( '/entries', 201, { ok: true, entry: 9, eventId: 'ffx-1-9', end: { success: { show: true, html: '<p>Danke!</p>', image: null }, redirect: null } } );
+		$( root, '.ffx-button-submit' ).click();
+		await vi.advanceTimersByTimeAsync( 4000 );
+		const entry = requests.find( ( r ) => r.path === '/entries' );
+		expect( entry?.body.page ).toEqual( { url: 'https://example.org/kontakt/', query: 'id=7', title: 'Kontakt', origin: 'utm_source=facebook&utm_medium=paid_social' } );
+		expect( ( entry?.body.contact as Record<string, unknown> ).c_src ).toBe( 'facebook' );
+		const events = requests.filter( ( r ) => r.path === '/events' ).flatMap( ( r ) => r.body.events as Array<{ event: string }> );
+		expect( events ).toContainEqual( { event: 'source', step: 'https://l.facebook.com/', variant: '?utm_source=facebook&utm_medium=paid_social' } );
+		sessionStorage.clear();
+	} );
+
+	it( 'sends only the page itself while the site does not remember the origin', async () => {
+		window.wp_has_consent = () => true;
+		sessionStorage.setItem( ORIGIN_KEY, JSON.stringify( { referrer: '', query: 'utm_source=facebook' } ) );
+		const root = mount( 'id=7' );
+		await toContact( root );
+		type( $<HTMLInputElement>( root, '.ffx-contact-name input' ), 'Erika' );
+		type( $<HTMLInputElement>( root, '.ffx-contact-email input' ), 'erika@example.org' );
+		$<HTMLInputElement>( root, '.ffx-contact-consent input' ).click();
+		reply( '/entries', 201, { ok: true, entry: 9, eventId: 'ffx-1-9', end: { success: { show: true, html: '<p>Danke!</p>', image: null }, redirect: null } } );
+		$( root, '.ffx-button-submit' ).click();
+		await vi.advanceTimersByTimeAsync( 4000 );
+		expect( requests.find( ( r ) => r.path === '/entries' )?.body.page ).toEqual( { url: 'https://example.org/seite/', query: 'id=7', title: 'Seite' } );
+		sessionStorage.clear();
 	} );
 
 	it( 'sends the Google Ads conversions of the answer through the Google tag', async () => {
@@ -2686,6 +2734,26 @@ describe( 'dates and ranges', () => {
 		expect( checkStepField( period, '01.02.2030' ) ).toBe( 'invalid_date' );
 		expect( checkStepField( period, '01.02.2030 – 31.01.2030' ) ).toBe( 'invalid_range' );
 		expect( checkStepField( period, '01.02.2030 – 01.02.2030' ) ).toBeNull();
+	} );
+
+	it( 'shows the picture or 3.x icon above a slider', () => {
+		const props = { min: 0, max: 100, step: 1, start: 50, thousandsSeparator: false, unit: { text: de( '' ), position: 'after' }, manualInput: { enabled: false, label: de( '' ) } };
+		const image = withQuestion( { type: 'slider', props: { ...props, media: { kind: 'image', value: 'https://example.org/haus.png' } } } );
+		const img = $( image, '.ffx-slider > img.ffx-slider-media' ) as HTMLImageElement;
+		expect( img.getAttribute( 'src' ) ).toBe( 'https://example.org/haus.png' );
+		expect( img.getAttribute( 'alt' ) ).toBe( '' );
+		// Only web addresses; a 3.x icon only while the form loads its icon font.
+		expect( withQuestion( { type: 'slider', props: { ...props, media: { kind: 'image', value: 'javascript:alert(1)' } } } ).querySelector( '.ffx-slider-media' ) ).toBeNull();
+		expect( withQuestion( { type: 'slider', props: { ...props, media: { kind: 'icon', value: 'fas fa-home' } } } ).querySelector( '.ffx-slider-media' ) ).toBeNull();
+		const base = config();
+		( base.document as unknown as { settings: { iconFont: boolean } } ).settings.iconFont = true;
+		const doc = base.document as unknown as { nodes: Array<{ fields?: Array<Record<string, unknown>> }>; edges: Array<{ id: string }> };
+		doc.edges = doc.edges.filter( ( e ) => e.id !== 'x1' );
+		( doc.nodes[ 0 ]?.fields as Array<Record<string, unknown>> )[ 0 ] = { ...( doc.nodes[ 0 ]?.fields as Array<Record<string, unknown>> )[ 0 ], type: 'slider', props: { ...props, media: { kind: 'icon', value: 'fas fa-home' } } };
+		const root = document.createElement( 'div' );
+		document.body.append( root );
+		new FormApp( root, base, { url: '', query: '', title: '' } );
+		expect( $( root, '.ffx-slider > i.ffx-slider-media' ).className ).toBe( 'ffx-slider-media ffx-option-icon fas fa-home' );
 	} );
 
 	it( 'moves two handles that cannot pass each other and shows the range', () => {

@@ -152,7 +152,7 @@ final class PublicDocument {
 			$field['props']['html'] = self::html( $field['props']['html'] );
 		}
 		if ( isset( $field['props']['media'] ) ) {
-			$field['props']['media'] = self::media( (array) $field['props']['media'] );
+			$field['props']['media'] = 'slider' === $field['type'] ? self::slider_media( (array) $field['props']['media'] ) : self::media( (array) $field['props']['media'] );
 			if ( null === $field['props']['media'] ) {
 				unset( $field['props']['media'] );
 			}
@@ -242,6 +242,28 @@ final class PublicDocument {
 			$visit( $by[ $next ]['expression'] ?? null );
 		}
 		return array_map( 'strval', array_keys( $keys ) );
+	}
+
+	/**
+	 * Picture above a slider (3.x slider_image): an http(s) image, or the classes of a 3.x icon.
+	 *
+	 * @param array<string,mixed> $media Media.
+	 * @return array{kind:string,value:string}|null
+	 */
+	private static function slider_media( array $media ): ?array {
+		$value = (string) ( $media['value'] ?? '' );
+		if ( 'image' === ( $media['kind'] ?? '' ) ) {
+			$url = esc_url_raw( $value, array( 'http', 'https' ) );
+			return '' === $url ? null : array(
+				'kind'  => 'image',
+				'value' => $url,
+			);
+		}
+		$classes = trim( (string) preg_replace( '/[^A-Za-z0-9_ -]/', '', $value ) );
+		return 'icon' === ( $media['kind'] ?? '' ) && '' !== $classes ? array(
+			'kind'  => 'icon',
+			'value' => $classes,
+		) : null;
 	}
 
 	/**

@@ -14,6 +14,7 @@ use Funnelforms\Application\PrivacyMode;
 use Funnelforms\Application\Retention;
 use Funnelforms\Application\SpamCheck;
 use Funnelforms\Edition\Edition;
+use Funnelforms\Frontend\Origin;
 use Funnelforms\Frontend\TrackingCode;
 use Funnelforms\Http\Captcha;
 use Funnelforms\Integrations\Akismet;
@@ -35,7 +36,7 @@ final class SettingsPage {
 	public const GROUP = 'funnelforms-migration';
 
 	/** Option groups (suffixes of GROUP) that users who manage the settings may save. */
-	public const MANAGED_GROUPS = array( '', '_privacy', '_retention', '_embed', '_spam', '_spamrules' );
+	public const MANAGED_GROUPS = array( '', '_privacy', '_origin', '_retention', '_embed', '_spam', '_spamrules' );
 
 	private const CAPTCHA = 'funnelforms_captcha';
 
@@ -144,6 +145,15 @@ final class SettingsPage {
 				'type'              => 'string',
 				'sanitize_callback' => array( PrivacyMode::class, 'save' ),
 				'default'           => PrivacyMode::EU,
+			)
+		);
+		register_setting(
+			self::GROUP . '_origin',
+			Origin::OPTION,
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( Origin::class, 'sanitize' ),
+				'default'           => '1',
 			)
 		);
 		register_setting(
@@ -257,6 +267,7 @@ final class SettingsPage {
 				break;
 			default:
 				self::render_privacy();
+				self::render_origin();
 				if ( null !== $pro ) {
 					$pro::render_maps();
 				}
@@ -376,6 +387,24 @@ final class SettingsPage {
 		$when = wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), (int) strtotime( $confirmed['at'] . ' UTC' ) );
 		/* translators: 1: user name, 2: date and time. */
 		return sprintf( __( 'The unrestricted mode is on, confirmed by %1$s on %2$s.', 'funnelforms-free' ), $user ? $user->display_name : __( 'a deleted user', 'funnelforms-free' ), (string) $when );
+	}
+
+	/**
+	 * Whether the site remembers where a visit began (Origin).
+	 */
+	private static function render_origin(): void {
+		self::card( __( 'Source of visits', 'funnelforms-free' ), __( 'Ads and newsletters often lead to another page than the one with the form. A small script on every page then notes where the visit began, so the lead keeps its source and UTM values. It stores only these values and the website the visitor came from, for the browser tab and only with consent to statistics.', 'funnelforms-free' ), 'ffx-origin' );
+		?>
+			<form method="post" action="<?php echo esc_url( admin_url( 'options.php' ) ); ?>">
+				<?php settings_fields( self::GROUP . '_origin' ); ?>
+				<label class="ffx-toggle">
+					<input type="checkbox" name="<?php echo esc_attr( Origin::OPTION ); ?>" value="1" <?php checked( Origin::enabled() ); ?>>
+					<span class="ffx-toggle__text"><?php esc_html_e( 'Remember where a visit began', 'funnelforms-free' ); ?></span>
+				</label>
+				<?php self::save_row(); ?>
+			</form>
+		</section>
+		<?php
 	}
 
 	/**

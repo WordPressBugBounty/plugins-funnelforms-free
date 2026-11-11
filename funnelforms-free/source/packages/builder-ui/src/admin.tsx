@@ -18,11 +18,12 @@ import { AppointmentsScreen } from './ui/Appointments';
 import type { AppointmentsConfig } from './appointments';
 import { IntegrationsScreen, type IntegrationsConfig } from './ui/Integrations';
 import { PredictionScreen, type PredictionScreenConfig } from './ui/PredictionScreen';
+import { LeadcallerScreen, type LeadcallerConfig } from './ui/Leadcaller';
 import { FunnelformsImport, ImportScreen, type ImportConfig } from './ui/ImportScreen';
 
 interface PageConfig extends AppConfig, EntriesConfig, ImportConfig {
 	/** Which screen the page shows; the builder without it. */
-	screen?: 'entries' | 'import' | 'import-funnelforms' | 'integrations' | 'form-stats' | 'prediction';
+	screen?: 'entries' | 'import' | 'import-funnelforms' | 'integrations' | 'form-stats' | 'prediction' | 'leadcaller';
 	/** The figures of one form (screen form-stats, Funnelforms Free): the form, whether it is published, the editor with its figures on the canvas. */
 	formId?: number;
 	published?: boolean;
@@ -70,6 +71,15 @@ function start(): void {
 		createRoot( element ).render(
 			<div className="ffxb ffxb--embedded">
 				<IntegrationsScreen api={ api } config={ config as unknown as IntegrationsConfig } />
+			</div>
+		);
+		return;
+	}
+	if ( 'free' !== process.env.FUNNELFORMS_EDITION && 'leadcaller' === config.screen ) {
+		// Funnelforms → AI Phone Agent (Admin\LeadcallerPage): ElevenLabs, numbers and agents.
+		createRoot( element ).render(
+			<div className="ffxb ffxb--embedded">
+				<LeadcallerScreen api={ api.leadcaller } config={ config as unknown as LeadcallerConfig } />
 			</div>
 		);
 		return;

@@ -18,6 +18,7 @@ import type { Recipe } from '../store';
 import { useBuilder, useEnv } from './context';
 import { describeCondition, fieldTitle } from './describe';
 import { __, sprintf } from './i18n';
+import { AiCallEditor } from './AiCall';
 import { CrmAction } from './CrmAction';
 import { useCrmCatalog } from './CrmConnections';
 import { ConditionEditor } from './Logic';
@@ -37,6 +38,7 @@ export function kindName( kind: string ): string {
 		chat: __( 'Slack or Teams message', 'funnelforms-pro' ),
 		sms: __( 'Text message (SMS)', 'funnelforms-pro' ),
 		whatsapp: __( 'WhatsApp message', 'funnelforms-pro' ),
+		aiCall: __( 'AI Phone Agent', 'funnelforms-pro' ),
 		conversion: __( 'Conversion (Meta, GA4, TikTok)', 'funnelforms-pro' ),
 		googleAds: __( 'Google Ads conversion', 'funnelforms-pro' ),
 		crm: __( 'CRM, newsletter or spreadsheet', 'funnelforms-pro' ),
@@ -51,6 +53,7 @@ function connectionTypeName( type: string ): string {
 		twilio: 'Twilio',
 		bird: 'Bird',
 		whatsapp: 'WhatsApp Business',
+		elevenlabs: 'ElevenLabs',
 		meta: 'Meta',
 		ga4: 'Google Analytics 4',
 		tiktok: 'TikTok',
@@ -164,6 +167,8 @@ function gapText( gap: ReturnType<typeof actionGaps>[ number ] ): string {
 		connection: __( 'Choose a connection.', 'funnelforms-pro' ),
 		template: __( 'Enter the name of the approved template.', 'funnelforms-pro' ),
 		sendTo: __( 'Enter the conversion ID and label, e.g. AW-123456789/AbC-D_efG.', 'funnelforms-pro' ),
+		agent: __( 'Choose the agent that calls.', 'funnelforms-pro' ),
+		consent: __( 'Choose the consent field: the lead is called only when it is checked.', 'funnelforms-pro' ),
 	};
 	return texts[ gap ];
 }
@@ -183,6 +188,8 @@ function target( action: Action, locale: string, connections: Connection[] ): st
 		case 'whatsapp':
 		case 'conversion':
 			return label( action.config.connectionRef );
+		case 'aiCall':
+			return '';
 		case 'crm':
 			return [ CRM_NAMES[ action.config.provider ] ?? action.config.provider, label( action.config.connectionRef ) ].filter( Boolean ).join( ' · ' );
 		case 'googleAds':
@@ -246,7 +253,8 @@ export function ActionsSection( { doc, node }: { doc: FormDocument; node?: strin
 							<div className="ffxb-action__head">
 								<button type="button" className="ffxb-action__toggle" aria-expanded={ expanded } onClick={ () => setOpen( expanded ? null : action.id ) }>
 									<strong>{ kindName( action.kind ) }</strong>
-									<span className="ffxb-action__target">{ target( action, locale, connections ) || '—' }</span>
+									{ /* The Leadcaller names its agent inside; no line instead of a dash. */ }
+									{ 'aiCall' === action.kind && ! target( action, locale, connections ) ? null : <span className="ffxb-action__target">{ target( action, locale, connections ) || '—' }</span> }
 									{ node && several && ! action.node ? <span className="ffxb-action__scope">{ __( 'Every contact step', 'funnelforms-pro' ) }</span> : null }
 									{ action.when ? <span className="ffxb-action__scope" title={ whenText( doc, action.when ) }>{ __( 'Some entries', 'funnelforms-pro' ) }</span> : null }
 									{ gaps.length ? <span className="ffxb-action__gap">{ __( 'Incomplete', 'funnelforms-pro' ) }</span> : null }
@@ -519,7 +527,12 @@ export function ConnectionPicker( {
 		setTested( null );
 		try {
 			await api.testConnection( chosen.ref, given );
-			setTested( { ok: true, message: [ 'caldav', 'google', 'microsoft' ].includes( chosen.type ) ? __( 'The connection works: the calendar was read.', 'funnelforms-pro' ) : __( 'The test message was sent. Check that it arrived.', 'funnelforms-pro' ) } );
+			setTested( {
+				ok: true,
+				message: [ 'caldav', 'google', 'microsoft' ].includes( chosen.type )
+					? __( 'The connection works: the calendar was read.', 'funnelforms-pro' )
+					: __( 'The test message was sent. Check that it arrived.', 'funnelforms-pro' ),
+			} );
 			setDialog( null );
 		} catch ( e ) {
 			setTested( { ok: false, message: e instanceof Error ? e.message : String( e ) } );
@@ -1113,6 +1126,18 @@ function ActionEditor( { doc, action, connections, onConnections }: { doc: FormD
 					</Button>
 					{ common }
 				</>
+			);
+		case 'aiCall':
+			return 'free' === process.env.FUNNELFORMS_EDITION ? (
+				<ProAction kind={ action.kind } />
+			) : (
+				<AiCallEditor
+					doc={ doc }
+					id={ action.id }
+					config={ action.config }
+					change={ change }
+					common={ common }
+				/>
 			);
 		case 'conversion':
 			return 'free' === process.env.FUNNELFORMS_EDITION ? <ProAction kind={ action.kind } /> : (

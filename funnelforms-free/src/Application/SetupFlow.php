@@ -157,7 +157,6 @@ final class SetupFlow {
 			'retention'            => 'new' === $path ? Retention::NEW_SITE_DAYS : Retention::site_days(),
 			'forms'                => 'verified',
 			'picked'               => array(),
-			'look'                 => 'classic',
 			'approved'             => array(),
 			'goal'                 => '',
 			'template'             => '',
@@ -400,8 +399,8 @@ final class SetupFlow {
 
 	/**
 	 * Puts the chosen forms live. Forms whose old version the user sent back in the preview stay
-	 * on 3.x. With the new look, a form gets the Funnelforms design as a new version (unless it has
-	 * an unpublished draft from the builder, which is never overwritten).
+	 * on 3.x. Their look is the one of the import: the Funnelforms design with the colours, font
+	 * and corners of the 3.x form (FormConverter::style()).
 	 *
 	 * @param array<string,mixed> $choices Choices.
 	 * @return array{switched:int,stayed:array<int,string[]>,old_hidden:bool}
@@ -415,7 +414,6 @@ final class SetupFlow {
 		}
 		self::apply_diagnostics( $choices );
 		$forms     = new FormRepository();
-		$editor    = FormEditor::create();
 		$renderers = new FormRenderer( $forms, new MigrationStore( SecretBox::for_site() ) );
 		$rejected  = array_map( 'intval', (array) ( $choices['rejected'] ?? array() ) );
 		$out       = array(
@@ -426,23 +424,6 @@ final class SetupFlow {
 		foreach ( self::chosen( $choices ) as $form_id ) {
 			if ( in_array( $form_id, $rejected, true ) ) {
 				continue;
-			}
-			$form = (array) $forms->by_id( $form_id );
-			if ( 'new' === $choices['look'] && null === $forms->draft( $form_id ) ) {
-				$document = $editor->editing( $form );
-				if ( null !== $document ) {
-					$document->style = self::new_look( $document->style ?? null );
-					$editor->save_draft( $form, $document );
-					$result   = $editor->publish( $form, 'setup:new_look' );
-					$blockers = $result['ok'] ? (array) $result['warnings'] : array( (string) $result['code'] );
-					FormRepository::flush();
-					if ( $result['ok'] && FormRepository::RENDERER_V5 === ( $forms->by_id( $form_id )['renderer'] ?? '' ) ) {
-						++$out['switched'];
-					} else {
-						$out['stayed'][ $form_id ] = array() === $blockers ? array( 'unknown' ) : $blockers;
-					}
-					continue;
-				}
 			}
 			$blockers = $renderers->switch_to( $form_id, FormRepository::RENDERER_V5 );
 			if ( array() === $blockers ) {

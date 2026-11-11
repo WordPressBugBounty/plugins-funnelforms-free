@@ -21,7 +21,7 @@ final class RendererSupport {
 
 	public const FIELD_TYPES   = array( 'choice', 'dropdown', 'text', 'textarea', 'date', 'slider', 'content', 'file', 'address', 'email', 'phone', 'url', 'number', 'time', 'rating', 'signature', 'repeat', 'booking', 'result' );
 	public const CONTACT_TYPES = array( 'salutation', 'name', 'email', 'phone', 'text', 'consent', 'html', 'captcha', 'select', 'textarea', 'checkbox', 'phone_verification' );
-	public const ACTION_KINDS  = array( 'email', 'autoresponder', 'webhook', 'chat', 'sms', 'whatsapp', 'conversion', 'googleAds' );
+	public const ACTION_KINDS  = array( 'email', 'autoresponder', 'webhook', 'chat', 'sms', 'whatsapp', 'conversion', 'googleAds', 'aiCall' );
 	/**
 	 * CRM providers with an adapter (Integrations\Crm\CrmAdapters).
 	 */

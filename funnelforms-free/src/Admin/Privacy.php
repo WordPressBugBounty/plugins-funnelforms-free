@@ -27,9 +27,10 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Finds the entries whose contact data holds the e-mail address of the request (any contact
  * field, compared without case). Erasing deletes them like the retention job does, including
- * bookings that have not happened yet. Saved progress and 3.x leads with the address (also those
- * not imported yet) are exported and erased too; an erased 3.x lead goes with its uploads and a
- * restore of Funnelforms 3 leaves it out.
+ * bookings that have not happened yet. Saved progress and 3.x leads with the address in their
+ * contact data (also those not imported yet) are exported and erased too; an erased 3.x lead goes
+ * with the files of its upload questions (LeadMirror::erase()) and a restore of Funnelforms 3
+ * leaves it out.
  */
 final class Privacy {
 
@@ -185,11 +186,32 @@ final class Privacy {
 				continue;
 			}
 			$content = $codec->decode( (string) get_post_field( 'post_content', $id, 'raw' ) );
-			if ( is_array( $content ) && self::holds( $content, $email ) ) {
+			if ( is_array( $content ) && self::lead_holds( $content, $email ) ) {
 				$found[ $id ] = $content;
 			}
 		}
 		return $found;
+	}
+
+	/**
+	 * Whether a 3.x lead belongs to the address: one of its contact fields holds it, as for entries
+	 * (EntryRepository::with_contact_value()). Answers are not looked at, since any visitor can
+	 * type an address there. Leads older than the contact form (no contact_form) had the address
+	 * among their values.
+	 *
+	 * @param array<mixed> $content Decoded lead.
+	 * @param string       $email   Lower-case address.
+	 */
+	private static function lead_holds( array $content, string $email ): bool {
+		if ( ! array_key_exists( 'contact_form', $content ) ) {
+			return self::holds( $content, $email );
+		}
+		foreach ( (array) $content['contact_form'] as $field ) {
+			if ( is_array( $field ) && is_scalar( $field['input'] ?? null ) && strtolower( trim( (string) $field['input'] ) ) === $email ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -377,6 +399,10 @@ final class Privacy {
 				++$other;
 			}
 			foreach ( array_keys( self::legacy_leads( (string) $email, false ) ) as $id ) {
+				// A lead the plugin wrote for an entry goes with that entry, never on its own.
+				if ( LeadMirror::is_mirror( $id ) ) {
+					continue;
+				}
 				$store->mark_removed( $id, 'privacy_erasure' );
 				LeadMirror::erase( $id );
 				++$legacy;

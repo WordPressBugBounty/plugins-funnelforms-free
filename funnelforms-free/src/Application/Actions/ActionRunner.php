@@ -26,7 +26,8 @@ defined( 'ABSPATH' ) || exit;
  * Runs a job from ffx_jobs_log. A failed delivery is retried twice with growing pauses; error texts
  * in the log name the cause only (HTTP status, error code), never visitor data. The mails are
  * delivered here; the actions of Funnelforms Pro (webhooks, CRM, messages, conversions, double
- * opt-in, appointments) by ProActions, which Funnelforms Free does not have.
+ * opt-in, appointments, AI calls) by ProActions, which Funnelforms Free does not have. An action
+ * that answers "later:<seconds>" runs again then, without using up an attempt.
  */
 final class ActionRunner {
 
@@ -82,7 +83,7 @@ final class ActionRunner {
 			return;
 		}
 
-		if ( ! in_array( $action['kind'], array( 'optin', 'booking', 'abandon' ), true ) && ! Edition::has_action( (string) $action['kind'] ) ) {
+		if ( ! in_array( $action['kind'], array( 'optin', 'booking', 'abandon', 'aiCallResult', 'aiCallRetry' ), true ) && ! Edition::has_action( (string) $action['kind'] ) ) {
 			$this->entries->update_job( $job_id, 'skipped', $attempts, 'pro_action:' . $action['kind'] );
 			return;
 		}
@@ -102,6 +103,14 @@ final class ActionRunner {
 			return;
 		}
 
+		// Not yet (an AI call waits for its call window or for the end of the call): runs again
+		// then, without counting as an attempt.
+		if ( null !== $error && str_starts_with( $error, 'later:' ) ) {
+			$delay = max( 30, min( 8 * DAY_IN_SECONDS, (int) substr( $error, 6 ) ) );
+			$this->entries->defer_job( $job_id, $attempts - 1, $delay );
+			ActionQueue::schedule( $job_id, $delay );
+			return;
+		}
 		// Nobody to send to, no consent, no GA4 client or an appointment changed since: nothing to
 		// do, not a failure.
 		if ( null === $error || in_array( $error, array_merge( array( 'no_recipient' ), null === $pro ? array() : $pro::NOTHING_TO_DO ), true ) ) {

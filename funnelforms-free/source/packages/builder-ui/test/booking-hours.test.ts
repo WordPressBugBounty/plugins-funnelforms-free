@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { BookingConfig } from '../src/api';
-import { bookingProblems, hoursOf, nextSpan, noticeMinutes, noticeOf, overlapping, previewSlots, validSpan, weekOf, weekSummary } from '../src/booking-hours';
+import { bookingProblems, hoursOf, meetingProblem, nextSpan, noticeMinutes, noticeOf, overlapping, previewSlots, validSpan, weekOf, weekSummary } from '../src/booking-hours';
 
 describe( 'weekly hours', () => {
 	it( 'turns rules into one row per weekday and back', () => {
@@ -84,6 +84,20 @@ describe( 'appointment type editor', () => {
 			)
 		).toEqual( [ 'invalid_special', 'invalid_closed', 'invalid_range', 'invalid_video_link' ] );
 		expect( bookingProblems( 'Beratung', config( { kind: 'video', location: 'https://meet.example.test/abc', special: [ { date: '2026-12-24', hours: [] } ] } ) ) ).toEqual( [] );
+	} );
+
+	it( 'needs the calendar or account a video meeting service is made in, not a fixed link', () => {
+		const video = ( change: Partial<BookingConfig> ) => config( { kind: 'video', ...change } );
+		expect( bookingProblems( 'Beratung', video( { meeting: 'meet' } ) ) ).toEqual( [ 'meeting_needs_google' ] );
+		expect( meetingProblem( video( { meeting: 'meet', calendars: { write: 'google:abc', conflicts: [] } } ) ) ).toBeNull();
+		expect( meetingProblem( video( { meeting: 'meet', calendars: { write: 'microsoft:abc', conflicts: [] } } ) ) ).toBe( 'meeting_needs_google' );
+		expect( meetingProblem( video( { meeting: 'teams', calendars: { write: 'microsoft:abc', conflicts: [] } } ) ) ).toBeNull();
+		expect( meetingProblem( video( { meeting: 'teams', calendars: { write: 'owner', conflicts: [] } } ) ) ).toBeNull();
+		expect( meetingProblem( video( { meeting: 'teams' } ) ) ).toBe( 'meeting_needs_microsoft' );
+		expect( meetingProblem( video( { meeting: 'zoom' } ) ) ).toBe( 'meeting_needs_zoom' );
+		expect( meetingProblem( video( { meeting: 'zoom', meetingAccount: 'owner' } ) ) ).toBeNull();
+		// Only video calls make meetings; the stored service of another kind does not count.
+		expect( meetingProblem( config( { kind: 'call', meeting: 'zoom' } ) ) ).toBeNull();
 	} );
 
 	it( 'previews the first free times from the notice on, without closed days and with special days', () => {

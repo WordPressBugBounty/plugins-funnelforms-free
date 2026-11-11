@@ -11,6 +11,7 @@ namespace Funnelforms\Admin;
 
 use Funnelforms\Application\Capabilities;
 use Funnelforms\Edition\Edition;
+use Funnelforms\Http\EntriesController;
 use Funnelforms\Http\FileDownload;
 use Funnelforms\Http\LeadStagesController;
 use Funnelforms\Infrastructure\Repository\FormRepository;
@@ -92,6 +93,8 @@ final class EntriesPage {
 			),
 			// The export link without filters; the app adds them. Null without the right to export.
 			'exportUrl'  => current_user_can( EntriesExport::capability() ) ? EntriesExport::url() : null,
+			// Whether the delete buttons are shown (the server checks again).
+			'canDelete'  => EntriesController::may_delete(),
 			'builderUrl' => current_user_can( Capabilities::EDIT_FORMS ) ? admin_url( 'admin.php?page=' . BuilderPage::SLUG ) : null,
 			// The lead stages of the site, the columns of the board (Funnelforms Pro).
 			'stages'     => Edition::is_pro() ? LeadStagesController::list() : null,

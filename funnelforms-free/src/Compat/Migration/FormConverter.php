@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace Funnelforms\Compat\Migration;
 
 use Funnelforms\Domain\Form\JsNumber;
+use Funnelforms\Domain\Form\PhoneNumbers;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -1226,6 +1227,13 @@ final class FormConverter {
 				case 'html_content':
 					$props['html'] = $this->text( $q['html_content'] ?? '' );
 					break;
+				case 'text_type_phone':
+					// 3.x showed a country picker with the calling code (+49) on every phone field, starting
+					// with the country of the visitor's IP address (ipinfo.io). Here the picker starts with
+					// the country of the form's language, as phone fields of 5.x without a country of their
+					// own; it is named so the builder shows it ("Start with").
+					$props['country'] = array( 'default' => PhoneNumbers::start_country( array(), $this->locale ) );
+					break;
 				case 'text_type_phone_verification':
 					$props['sms'] = array(
 						'sender'        => LegacyValue::str( $cf['smsSender'] ?? '' ),
@@ -1436,7 +1444,28 @@ final class FormConverter {
 	}
 
 	/**
-	 * Style: the 3.x values are kept and drive the "classic" preset.
+	 * 3.x defaults of the style values that only count when a site changed them (the builder of
+	 * 3.x saved every value, also the untouched ones; field-inventory C.2).
+	 */
+	private const STYLE_DEFAULTS = array(
+		'form_background_color'             => 'rgba(255,255,255,1)',
+		'form_question_heading_color'       => 'rgba(51,51,51,1)',
+		'form_answer_card_text_color'       => 'rgba(51,51,51,1)',
+		'form_answer_card_background_color' => 'rgba(255,255,255,1)',
+		'form_question_description_color'   => 'rgba(51,51,51,1)',
+		'form_contact_form_button_color'    => 'rgba(255,255,255,1)',
+		'form_answer_card_border_radius'    => '10',
+		'form_text_input_border_radius'     => '10',
+	);
+
+	/**
+	 * Style: the Funnelforms 5 design with the values that carry the brand of the 3.x form
+	 * (decision of the GF, 09.11.2026). The main colour (the 3.x button colour) and the font always
+	 * come along; the other colours and the corners only where the site changed them in 3.x, and
+	 * colours that only repeated the button colour (the 3.x main colour spread to them) not at all,
+	 * because they follow the main colour in 5.0. Sizes, weights, line heights, shadows, borders
+	 * and the colours of the date picker, loader and slider take the 5.0 design. All 3.x values
+	 * stay under style.legacy.
 	 *
 	 * @param array<mixed> $form Form content.
 	 * @return array<string,mixed>
@@ -1448,33 +1477,90 @@ final class FormConverter {
 				$legacy[ (string) $key ] = (string) $value;
 			}
 		}
+		$value  = static fn( string $key ): string => trim( $legacy[ $key ] ?? '' );
 		$tokens = array();
-		$map    = array(
-			'color.primary'    => 'form_button_background_color',
-			'color.background' => 'form_background_color',
-			'color.text'       => 'form_question_heading_color',
-			'color.border'     => 'form_border_color',
-			'font.family'      => 'global_font',
-			'radius.card'      => 'form_answer_card_border_radius',
-			'radius.input'     => 'form_text_input_border_radius',
-		);
-		foreach ( $map as $token => $key ) {
-			if ( isset( $legacy[ $key ] ) && '' !== $legacy[ $key ] ) {
-				$tokens[ $token ] = $legacy[ $key ];
+		foreach ( array(
+			'color.primary' => 'form_button_background_color',
+			'font.family'   => 'global_font',
+		) as $token => $key ) {
+			if ( '' !== $value( $key ) ) {
+				$tokens[ $token ] = $value( $key );
 			}
 		}
 		// The heading above the steps (settings.heading from fe_title) keeps its own colour of 3.x.
-		if ( '' !== trim( $legacy['fe_title'] ?? '' ) && '' !== ( $legacy['form_heading_color'] ?? '' ) ) {
-			$tokens['color.formHeading'] = $legacy['form_heading_color'];
+		if ( '' !== trim( $legacy['fe_title'] ?? '' ) && '' !== $value( 'form_heading_color' ) ) {
+			$tokens['color.formHeading'] = $value( 'form_heading_color' );
+		}
+		// Changed in 3.x: a dark form stays dark, own text colours stay.
+		foreach ( array(
+			'color.background' => 'form_background_color',
+			'color.heading'    => 'form_question_heading_color',
+			'color.text'       => 'form_answer_card_text_color',
+			'color.option'     => 'form_answer_card_background_color',
+			'color.muted'      => 'form_question_description_color',
+			'color.onButton'   => 'form_contact_form_button_color',
+		) as $token => $key ) {
+			if ( '' !== $value( $key ) && ! self::same_color( $value( $key ), self::STYLE_DEFAULTS[ $key ] ) ) {
+				$tokens[ $token ] = $value( $key );
+			}
+		}
+		// Own colours next to the main colour: the send button, the icons, the progress.
+		$primary = $tokens['color.primary'] ?? '';
+		foreach ( array(
+			'color.button'   => 'form_contact_form_button_background_color',
+			'color.icon'     => 'form_answer_card_icon_color',
+			'color.progress' => 'form_progress_bar_color',
+		) as $token => $key ) {
+			if ( '' !== $value( $key ) && '' !== $primary && ! self::same_color( $value( $key ), $primary ) ) {
+				$tokens[ $token ] = $value( $key );
+			}
+		}
+		foreach ( array(
+			'radius.card'  => 'form_answer_card_border_radius',
+			'radius.input' => 'form_text_input_border_radius',
+		) as $token => $key ) {
+			if ( is_numeric( $value( $key ) ) && (float) $value( $key ) !== (float) self::STYLE_DEFAULTS[ $key ] ) {
+				$tokens[ $token ] = $value( $key );
+			}
 		}
 		$style = array(
-			'preset' => 'classic',
+			'preset' => 'default',
 			'tokens' => (object) $tokens,
 		);
 		if ( array() !== $legacy ) {
 			$style['legacy'] = $legacy;
 		}
 		return $style;
+	}
+
+	/**
+	 * Whether two CSS colours of 3.x (rgb/rgba, hex) are the same colour.
+	 *
+	 * @param string $a Colour.
+	 * @param string $b Colour.
+	 */
+	private static function same_color( string $a, string $b ): bool {
+		$x = self::rgba( $a );
+		$y = self::rgba( $b );
+		return null === $x || null === $y ? strtolower( str_replace( ' ', '', $a ) ) === strtolower( str_replace( ' ', '', $b ) ) : $x === $y;
+	}
+
+	/**
+	 * Red, green, blue (0-255) and alpha (0-100) of an rgb(), rgba() or hex colour.
+	 *
+	 * @param string $color Colour.
+	 * @return int[]|null
+	 */
+	private static function rgba( string $color ): ?array {
+		$color = strtolower( trim( $color ) );
+		if ( preg_match( '/^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)$/', $color, $m ) ) {
+			return array( (int) round( (float) $m[1] ), (int) round( (float) $m[2] ), (int) round( (float) $m[3] ), (int) round( 100 * (float) ( $m[4] ?? 1 ) ) );
+		}
+		if ( preg_match( '/^#([0-9a-f]{3}|[0-9a-f]{6})$/', $color, $m ) ) {
+			$hex = 3 === strlen( $m[1] ) ? $m[1][0] . $m[1][0] . $m[1][1] . $m[1][1] . $m[1][2] . $m[1][2] : $m[1];
+			return array( (int) hexdec( substr( $hex, 0, 2 ) ), (int) hexdec( substr( $hex, 2, 2 ) ), (int) hexdec( substr( $hex, 4, 2 ) ), 100 );
+		}
+		return null;
 	}
 
 	/**

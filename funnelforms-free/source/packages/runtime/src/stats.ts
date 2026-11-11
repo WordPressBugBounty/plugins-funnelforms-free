@@ -75,8 +75,11 @@ export class Stats {
 	/** Whether the extended level applies to this page view; decided with the view. */
 	private extended = false;
 
-	/** @param enabled False for previews in the block editor and Elementor (inert), which count nothing. */
-	constructor( private readonly api: Api, private readonly enabled = true ) {
+	/**
+	 * @param enabled False for previews in the block editor and Elementor (inert), which count nothing.
+	 * @param source  Where the visit began when this page has no source of its own (origin.ts); else this page's referrer and query.
+	 */
+	constructor( private readonly api: Api, private readonly enabled = true, source?: { referrer: string; search: string } ) {
 		if ( ! enabled ) {
 			return;
 		}
@@ -90,8 +93,9 @@ export class Stats {
 		}
 		// For the plugin to read the host and the UTM parameters from (TrafficSources); both were in
 		// the request of the page anyway. Nothing for a direct visit.
-		if ( document.referrer || location.search ) {
-			this.withView.push( { event: 'source', step: document.referrer, variant: location.search } );
+		const { referrer, search } = source ?? { referrer: document.referrer, search: location.search };
+		if ( referrer || search ) {
+			this.withView.push( { event: 'source', step: referrer, variant: search } );
 		}
 		document.addEventListener( 'visibilitychange', () => {
 			if ( document.visibilityState === 'hidden' ) {

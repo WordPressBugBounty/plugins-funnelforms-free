@@ -5,6 +5,7 @@ import type { FormDocument } from '@funnelforms/form-schema';
 import { ApiError } from './api';
 import { createConnectApi, type ConnectApi } from './connect';
 import { createHubApi, type HubApi } from './hub';
+import { createLeadcallerApi, type AiAgentSummary, type LeadcallerApi } from './aicall';
 import { restFetch } from './rest-bridge';
 import { __ } from './ui/i18n';
 import type { PredictionFigures, PredictionParameters, StoredPrediction } from './predict';
@@ -69,6 +70,8 @@ export class WpRestAdapter implements FormsApi, EntriesApi {
 	readonly connect: ConnectApi = createConnectApi( ( method, path, body ) => this.request( method, path, body ) );
 	/** The overview of Funnelforms → Integrations. */
 	readonly hub: HubApi = createHubApi( ( method, path, body ) => this.request( method, path, body ) );
+	/** Funnelforms → AI Phone Agent: ElevenLabs, numbers and agents. */
+	readonly leadcaller: LeadcallerApi = createLeadcallerApi( ( method, path, body ) => this.request( method, path, body ) );
 
 	constructor( private readonly options: WpRestOptions ) {
 		// Through admin-ajax.php where the login cookie does not reach /wp-json/ (rest-bridge.ts).
@@ -328,8 +331,12 @@ export class WpRestAdapter implements FormsApi, EntriesApi {
 		return list.map( ( p ) => ( { id: p.id, title: decode( p.title?.rendered ?? '' ), url: p.link } ) );
 	}
 
-	startCalendarSignIn( provider: 'google' | 'microsoft', ref?: string ): Promise<{ url: string; state: string }> {
+	startCalendarSignIn( provider: 'google' | 'microsoft' | 'zoom', ref?: string ): Promise<{ url: string; state: string }> {
 		return this.request( 'POST', '~/connections/oauth', { provider, ...( ref ? { ref } : {} ) } );
+	}
+
+	aiAgents(): Promise<AiAgentSummary[]> {
+		return this.request( 'GET', '~/leadcaller/agents' );
 	}
 
 	async whatsAppTemplates( ref: string ): Promise<WhatsAppTemplate[]> {

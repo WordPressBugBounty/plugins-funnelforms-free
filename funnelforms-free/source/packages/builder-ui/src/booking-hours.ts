@@ -153,10 +153,33 @@ export function bookingProblems( title: string, config: BookingConfig ): string[
 	if ( 'range' === config.horizon.mode && ( ! config.horizon.from || ! config.horizon.to ) ) {
 		problems.push( 'invalid_range' );
 	}
-	if ( 'video' === config.kind && '' !== config.location.trim() && ! /^https:\/\//i.test( config.location.trim() ) ) {
+	const meeting = 'video' === config.kind ? config.meeting ?? '' : '';
+	if ( 'video' === config.kind && '' === meeting && '' !== config.location.trim() && ! /^https:\/\//i.test( config.location.trim() ) ) {
 		problems.push( 'invalid_video_link' );
 	}
+	const problem = meetingProblem( config );
+	if ( problem ) {
+		problems.push( problem );
+	}
 	return problems;
+}
+
+/**
+ * Why the meetings of a video call type cannot be made (as BookingType::meeting_problem): Google
+ * Meet needs a Google calendar to write into, Teams a Microsoft one, Zoom a Zoom account. With the
+ * calendar of the person booked ("owner") it shows when it is booked.
+ */
+export function meetingProblem( config: BookingConfig ): 'meeting_needs_google' | 'meeting_needs_microsoft' | 'meeting_needs_zoom' | null {
+	const write = config.calendars.write;
+	switch ( 'video' === config.kind ? config.meeting ?? '' : '' ) {
+		case 'meet':
+			return 'owner' === write || write.startsWith( 'google:' ) ? null : 'meeting_needs_google';
+		case 'teams':
+			return 'owner' === write || write.startsWith( 'microsoft:' ) ? null : 'meeting_needs_microsoft';
+		case 'zoom':
+			return config.meetingAccount ? null : 'meeting_needs_zoom';
+	}
+	return null;
 }
 
 /** A local day as Y-m-d. */

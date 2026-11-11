@@ -4168,6 +4168,92 @@
             "kind",
             "config"
           ],
+          "description": "AI Phone Agent (Funnelforms Pro): an agent of Funnelforms → AI Phone Agent calls the lead once the entry is sent, only when the consent field is checked, inside the agent's call hours; the result goes to the entry. Voice, number, questions, hours and retries are the agent's.",
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/id"
+            },
+            "on": {
+              "enum": [
+                "submit",
+                "paid"
+              ],
+              "description": "submit: when the entry is sent; paid: once its payment went through (settings.payment)."
+            },
+            "kind": {
+              "const": "aiCall"
+            },
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "agent",
+                "consentField"
+              ],
+              "properties": {
+                "agent": {
+                  "type": "string",
+                  "pattern": "^agent_[a-z0-9]{1,40}$",
+                  "description": "ID of the agent (Funnelforms → AI Phone Agent) that calls."
+                },
+                "phoneField": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9_-]{0,80}$",
+                  "description": "Contact field with the number to call; the first phone field of the entry when missing or empty."
+                },
+                "countryCode": {
+                  "type": "string",
+                  "pattern": "^[1-9][0-9]{0,2}$",
+                  "description": "Country code for numbers entered without one (0171… becomes +49171… with 49); the country of the site when missing."
+                },
+                "consentField": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9_-]{0,80}$",
+                  "description": "Contact field of type consent; the lead is called only when it is checked. Empty until one is chosen: then nobody is called."
+                },
+                "share": {
+                  "enum": [
+                    "all",
+                    "some",
+                    "none"
+                  ],
+                  "description": "Which answers of the steps the agent gets: all (the default), some (those in fields) or none. Never contact details; the agent gets the name to address the person."
+                },
+                "fields": {
+                  "type": "array",
+                  "maxItems": 200,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_-]{1,80}$"
+                  },
+                  "description": "Step fields whose answers the agent gets when share is some."
+                },
+                "context": {
+                  "type": "string",
+                  "maxLength": 1000,
+                  "description": "What the form is about, in the site owner's words, for the agent (for example: request for a heat pump)."
+                }
+              }
+            },
+            "node": {
+              "$ref": "#/definitions/id",
+              "description": "Only when the entry is submitted through this contact node; all submits when missing."
+            },
+            "when": {
+              "$ref": "#/definitions/condition",
+              "description": "Runs only when this condition holds for the entry (answers, calculations, A/B variants); always when missing. Funnelforms Pro."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "on",
+            "kind",
+            "config"
+          ],
           "description": "Google Ads conversion, sent in the browser through the site's Google tag (gtag.js) once the entry is stored; the plugin answers the submit with the value. Click IDs (gclid, gbraid, wbraid) are kept with the UTM values for offline imports.",
           "properties": {
             "id": {

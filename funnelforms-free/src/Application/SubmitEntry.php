@@ -382,11 +382,14 @@ final class SubmitEntry {
 		}
 
 		// Only the steps on the path count; answers the visitor left by going back are dropped.
-		$field_errors = array();
-		$path_answers = array();
+		// Fields of the contact step on the path are checked below; their ids can repeat in other
+		// contact steps (the site captcha is ffx_site_captcha in each), so they are taken from it.
+		$field_errors   = array();
+		$path_answers   = array();
+		$contact_fields = array_column( (array) ( $doc->node( $walk['contact'] )['fields'] ?? array() ), 'id' );
 		foreach ( $walk['fields'] as $field_id ) {
 			$field = $doc->field( $field_id );
-			if ( self::node_of( $doc, $field_id ) === $walk['contact'] ) {
+			if ( in_array( $field_id, $contact_fields, true ) ) {
 				continue;
 			}
 			if ( isset( $errors[ $field_id ] ) ) {
@@ -473,9 +476,11 @@ final class SubmitEntry {
 			$path_answers,
 			$contact,
 			array(
-				'url'   => self::page_value( $page['url'] ?? '', 2000 ),
-				'query' => self::page_value( $page['query'] ?? '', 2000 ),
-				'title' => self::page_value( $page['title'] ?? '', 500 ),
+				'url'    => self::page_url( $page['url'] ?? '', 2000 ),
+				'query'  => self::page_value( $page['query'] ?? '', 2000 ),
+				'title'  => self::page_value( $page['title'] ?? '', 500 ),
+				// Marketing parameters of the page the visitor came to the website on (EntryConverter::campaign()).
+				'origin' => self::page_value( $page['origin'] ?? '', 2000 ),
 			),
 			0,
 			gmdate( 'Y-m-d H:i:s' )
@@ -616,9 +621,11 @@ final class SubmitEntry {
 			$path_answers,
 			array(),
 			array(
-				'url'   => self::page_value( $page['url'] ?? '', 2000 ),
-				'query' => self::page_value( $page['query'] ?? '', 2000 ),
-				'title' => self::page_value( $page['title'] ?? '', 500 ),
+				'url'    => self::page_url( $page['url'] ?? '', 2000 ),
+				'query'  => self::page_value( $page['query'] ?? '', 2000 ),
+				'title'  => self::page_value( $page['title'] ?? '', 500 ),
+				// Marketing parameters of the page the visitor came to the website on (EntryConverter::campaign()).
+				'origin' => self::page_value( $page['origin'] ?? '', 2000 ),
 			),
 			0,
 			gmdate( 'Y-m-d H:i:s' )
@@ -987,6 +994,18 @@ final class SubmitEntry {
 	public static function page_value( $value, int $max ): string {
 		// Kept as text (escaped on output); sanitize_text_field would strip the %-encoding of URLs.
 		return is_string( $value ) ? mb_substr( (string) preg_replace( '/[\x00-\x1F\x7F]/', '', wp_check_invalid_utf8( $value ) ), 0, $max ) : '';
+	}
+
+	/**
+	 * The address of the page sent by the browser: only a web address (http or https), since the
+	 * entry shows it as a link; anything else is dropped.
+	 *
+	 * @param mixed $value Value.
+	 * @param int   $max   Maximum length.
+	 */
+	public static function page_url( $value, int $max ): string {
+		$url = self::page_value( $value, $max );
+		return 1 === preg_match( '#^https?://[^/\s]#i', $url ) ? $url : '';
 	}
 
 	/**

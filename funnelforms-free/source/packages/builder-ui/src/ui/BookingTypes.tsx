@@ -27,7 +27,7 @@ export const MAX_DURATIONS = 5;
 const INTERVALS = [ 5, 10, 15, 20, 30, 45, 60, 90, 120 ];
 
 /** Problems shown at their field as soon as they come up; the others once saving was tried. */
-const LIVE_PROBLEMS = [ 'no_durations', 'no_hours', 'invalid_hours', 'invalid_special', 'invalid_video_link' ];
+const LIVE_PROBLEMS = [ 'no_durations', 'no_hours', 'invalid_hours', 'invalid_special', 'invalid_video_link', 'meeting_needs_google', 'meeting_needs_microsoft', 'meeting_needs_zoom' ];
 
 /** Problems with a place in the form; others (from the plugin) are shown above it. */
 const FIELD_PROBLEMS = [ 'no_title', 'invalid_closed', 'invalid_range', ...LIVE_PROBLEMS ];
@@ -72,6 +72,9 @@ export function bookingProblemText( code: string ): string {
 		invalid_range: __( 'Choose the first and the last day.', 'funnelforms-pro' ),
 		invalid_timezone: __( 'This time zone is not known.', 'funnelforms-pro' ),
 		invalid_video_link: __( 'The video link has to start with https://.', 'funnelforms-pro' ),
+		meeting_needs_google: __( 'Google Meet needs a Google calendar for the appointments. Choose it under Calendars, or the calendar of the person booked.', 'funnelforms-pro' ),
+		meeting_needs_microsoft: __( 'Microsoft Teams needs a Microsoft calendar for the appointments. Choose it under Calendars, or the calendar of the person booked.', 'funnelforms-pro' ),
+		meeting_needs_zoom: __( 'Choose the Zoom account the meetings are scheduled in.', 'funnelforms-pro' ),
 	};
 	return texts[ code ] ?? __( 'The appointment type is incomplete.', 'funnelforms-pro' );
 }
@@ -318,6 +321,25 @@ export function BookingTypeEditor( { data, type, api: given, canConnect, onSaved
 	const startExamples = firstSpan && Number.isFinite( minutesOf( firstSpan.from ) ) ? [ 0, 1, 2 ].map( ( i ) => clockOf( minutesOf( firstSpan.from ) + i * config.interval ) ) : [];
 	const reminders = [ ...new Set( [ ...REMINDERS, ...config.reminders ] ) ].sort( ( a, b ) => a - b );
 	const staffed = config.staff.length > 0;
+	const zoom = data.zoom ?? [];
+	const meeting: NonNullable<BookingConfig[ 'meeting' ]> = 'video' === config.kind ? config.meeting ?? '' : '';
+	const meetingOptions: Array<{ value: NonNullable<BookingConfig[ 'meeting' ]>; label: string }> = [
+		{ value: '', label: __( 'One link for all appointments', 'funnelforms-pro' ) },
+		{ value: 'zoom', label: __( 'Zoom: a meeting for each appointment', 'funnelforms-pro' ) },
+		{ value: 'meet', label: __( 'Google Meet: a meeting for each appointment', 'funnelforms-pro' ) },
+		{ value: 'teams', label: __( 'Microsoft Teams: a meeting for each appointment', 'funnelforms-pro' ) },
+	];
+	const meetingHint = {
+		'': __( 'Enter the link below; every appointment gets the same one.', 'funnelforms-pro' ),
+		zoom: __( 'Each booking gets its own Zoom meeting. It moves with the appointment and is deleted when the appointment is cancelled.', 'funnelforms-pro' ),
+		meet: __( 'Each booking gets its own Google Meet in the event of the Google calendar the appointments go into (Calendars below).', 'funnelforms-pro' ),
+		teams: __( 'Each booking gets its own Teams meeting in the event of the Microsoft calendar the appointments go into (Calendars below). Needs Microsoft 365 for work or school with Teams.', 'funnelforms-pro' ),
+	}[ meeting ];
+	const zoomOptions = [
+		{ value: '', label: __( 'Choose an account', 'funnelforms-pro' ) },
+		...( staffed || 'owner' === config.meetingAccount ? [ { value: 'owner', label: __( 'The Zoom account of the person booked', 'funnelforms-pro' ) } ] : [] ),
+		...zoom.map( ( z ) => ( { value: z.ref, label: z.label } ) ),
+	];
 	const writeOptions = [
 		{ value: '', label: __( 'No calendar', 'funnelforms-pro' ) },
 		...( staffed || 'owner' === config.calendars.write ? [ { value: 'owner', label: __( 'The calendar of the person booked', 'funnelforms-pro' ) } ] : [] ),
@@ -410,7 +432,36 @@ export function BookingTypeEditor( { data, type, api: given, canConnect, onSaved
 								</label>
 							) ) }
 						</fieldset>
-						<div className={ invalid( 'invalid_video_link' ) ? 'ffxb-bt__invalid' : undefined }>
+						{ 'video' === config.kind ? (
+							<div className={ invalid( 'meeting_needs_google' ) || invalid( 'meeting_needs_microsoft' ) || invalid( 'meeting_needs_zoom' ) ? 'ffxb-bt__invalid' : undefined }>
+								<Select<NonNullable<BookingConfig[ 'meeting' ]>>
+									label={ __( 'Video meeting', 'funnelforms-pro' ) }
+									value={ meeting }
+									options={ meetingOptions }
+									onChange={ ( v ) =>
+										change( ( c ) => {
+											c.meeting = v;
+											// One Zoom account at hand is the obvious choice.
+											c.meetingAccount = 'zoom' === v ? c.meetingAccount || ( 1 === zoom.length ? zoom[ 0 ]?.ref ?? '' : '' ) : '';
+										} )
+									}
+									hint={ meetingHint }
+								/>
+								{ 'zoom' === meeting ? (
+									<Select<string>
+										label={ __( 'Zoom account', 'funnelforms-pro' ) }
+										value={ config.meetingAccount ?? '' }
+										options={ zoomOptions }
+										onChange={ ( v ) => change( ( c ) => void ( c.meetingAccount = v ) ) }
+										hint={ zoom.length ? undefined : __( 'Connect Zoom under Funnelforms → Integrations, then choose the account here.', 'funnelforms-pro' ) }
+									/>
+								) : null }
+								<Problem code="meeting_needs_google" shown={ shown } id={ errorId( 'meeting_needs_google' ) } />
+								<Problem code="meeting_needs_microsoft" shown={ shown } id={ errorId( 'meeting_needs_microsoft' ) } />
+								<Problem code="meeting_needs_zoom" shown={ shown } id={ errorId( 'meeting_needs_zoom' ) } />
+							</div>
+						) : null }
+						<div className={ invalid( 'invalid_video_link' ) ? 'ffxb-bt__invalid' : undefined } hidden={ '' !== meeting }>
 							<Field label={ kind.location } hint={ __( 'Shown in the confirmation and in the calendar invitation.', 'funnelforms-pro' ) }>
 								{ ( id ) => (
 									<input
@@ -734,7 +785,11 @@ export function BookingTypeEditor( { data, type, api: given, canConnect, onSaved
 							</li>
 							<li>
 								<LineIcon name={ config.kind } />
-								<span className={ config.location.trim() ? undefined : 'is-empty' }>{ config.location.trim() || sprintf( /* translators: %s: Address, Phone number or Video link */ __( '%s: not entered yet', 'funnelforms-pro' ), kind.location ) }</span>
+								{ '' !== meeting ? (
+									<span>{ ( meetingOptions.find( ( o ) => o.value === meeting ) as ( typeof meetingOptions )[ number ] ).label }</span>
+								) : (
+									<span className={ config.location.trim() ? undefined : 'is-empty' }>{ config.location.trim() || sprintf( /* translators: %s: Address, Phone number or Video link */ __( '%s: not entered yet', 'funnelforms-pro' ), kind.location ) }</span>
+								) }
 							</li>
 						</ul>
 						<div className="ffxb-bt-card__slots">
@@ -860,6 +915,54 @@ export type CalendarApi = Pick<FormsApi, 'startCalendarSignIn' | 'calendarSignIn
 const SIGN_IN_SECONDS = 900;
 
 /**
+ * Waits for the sign-in window of the broker: it tells at once when it can, and since some sign-in
+ * pages cut the tie to the opener, the state is asked every two seconds too. current: whether the
+ * dialog still waits for this sign-in (null is answered when not).
+ */
+export function waitForSignIn( api: Pick<CalendarApi, 'calendarSignIn'>, state: string, current: () => boolean ): Promise<CalendarSignIn | null> {
+	return new Promise( ( resolve ) => {
+		let over = false;
+		let timer: ReturnType<typeof setTimeout> | undefined;
+		const done = ( result: CalendarSignIn | null ): void => {
+			if ( ! over ) {
+				over = true;
+				window.removeEventListener( 'message', listen );
+				clearTimeout( timer );
+				resolve( result );
+			}
+		};
+		const listen = ( event: MessageEvent ): void => {
+			const data = event.data as ( CalendarSignIn & { source?: string } ) | null;
+			if ( event.origin === window.location.origin && 'funnelforms-calendar' === data?.source && data.state === state ) {
+				done( data );
+			}
+		};
+		const poll = async ( left: number ): Promise<void> => {
+			if ( over || ! current() ) {
+				done( null );
+				return;
+			}
+			if ( left <= 0 ) {
+				done( { ok: false, state, code: 'timeout', message: __( 'The sign-in took too long. Please try again.', 'funnelforms-pro' ) } );
+				return;
+			}
+			try {
+				const result = await api.calendarSignIn( state );
+				if ( result ) {
+					done( result );
+					return;
+				}
+			} catch {
+				// Asked again on the next turn.
+			}
+			timer = setTimeout( () => void poll( left - 2 ), 2000 );
+		};
+		window.addEventListener( 'message', listen );
+		timer = setTimeout( () => void poll( SIGN_IN_SECONDS ), 2000 );
+	} );
+}
+
+/**
  * Connects a calendar: Google and Microsoft by signing in, in a window, through the Funnelforms
  * broker; Apple iCloud and other CalDAV servers with an app-specific password (the server finds
  * the calendars and asks which one when there are several). again: a Google or Microsoft
@@ -893,48 +996,7 @@ export function CalendarDialog( { again, service: chosen, api: given, onClose, o
 	const server = 'icloud' === service ? 'caldav.icloud.com' : url.trim();
 	const writable = ( signedIn?.calendars ?? [] ).filter( ( c ) => c.writable );
 
-	const waitFor = ( state: string, mine: number ): Promise<CalendarSignIn | null> =>
-		new Promise( ( resolve ) => {
-			let over = false;
-			let timer: ReturnType<typeof setTimeout> | undefined;
-			const done = ( result: CalendarSignIn | null ): void => {
-				if ( ! over ) {
-					over = true;
-					window.removeEventListener( 'message', listen );
-					clearTimeout( timer );
-					resolve( result );
-				}
-			};
-			// The window tells at once when it can; some sign-in pages cut it off, so the state is asked too.
-			const listen = ( event: MessageEvent ): void => {
-				const data = event.data as ( CalendarSignIn & { source?: string } ) | null;
-				if ( event.origin === window.location.origin && 'funnelforms-calendar' === data?.source && data.state === state ) {
-					done( data );
-				}
-			};
-			const poll = async ( left: number ): Promise<void> => {
-				if ( over || mine !== attempt.current ) {
-					done( null );
-					return;
-				}
-				if ( left <= 0 ) {
-					done( { ok: false, state, code: 'timeout', message: __( 'The sign-in took too long. Please try again.', 'funnelforms-pro' ) } );
-					return;
-				}
-				try {
-					const result = await api.calendarSignIn( state );
-					if ( result ) {
-						done( result );
-						return;
-					}
-				} catch {
-					// Asked again on the next turn.
-				}
-				timer = setTimeout( () => void poll( left - 2 ), 2000 );
-			};
-			window.addEventListener( 'message', listen );
-			timer = setTimeout( () => void poll( SIGN_IN_SECONDS ), 2000 );
-		} );
+	const waitFor = ( state: string, mine: number ): Promise<CalendarSignIn | null> => waitForSignIn( api, state, () => mine === attempt.current );
 
 	const finish = ( result: CalendarSignIn ): void => {
 		setBusy( false );

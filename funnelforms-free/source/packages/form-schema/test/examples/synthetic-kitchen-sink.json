@@ -345,7 +345,7 @@
         }
     ],
     "style": {
-        "preset": "classic",
+        "preset": "default",
         "tokens": {}
     },
     "settings": {

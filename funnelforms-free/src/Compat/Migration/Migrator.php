@@ -46,6 +46,11 @@ class Migrator {
 	/** What became of the SMTP servers of the 3.x contact forms (adopt_mail_server()). */
 	public const MAIL_SERVER = 'funnelforms_migration_mail_server';
 
+	/**
+	 * Option: the 3.x form IDs whose category the import gave their 5.0 form (adopt_categories).
+	 */
+	public const CATEGORIES = 'funnelforms_migration_categories';
+
 	/** Vanished leads below this number are always followed. */
 	private const HOLD_MIN = 20;
 
@@ -268,6 +273,7 @@ class Migrator {
 		$phase = self::PHASES[ $this->state['phase'] ] ?? null;
 		if ( null === $phase ) {
 			$this->adopt_mail_server();
+			$this->adopt_categories();
 			$this->state['status']       = 'done';
 			$this->state['finished_at']  = gmdate( 'Y-m-d H:i:s' );
 			$this->state['last_sync_at'] = $this->state['run_started_at'];
@@ -501,6 +507,42 @@ class Migrator {
 			$smtp[ $ref ] = (int) ( $smtp[ $ref ] ?? 0 ) + 1;
 		}
 		$this->state['smtp'] = $smtp;
+	}
+
+	/**
+	 * The categories of the 3.x forms (af2_categories: one post with a list of id, label and the
+	 * post IDs of its elements) become the category of their 5.0 forms. Each 3.x form gives its
+	 * category once and only to a form without one, so a category chosen or removed in 5.0 stays.
+	 */
+	private function adopt_categories(): void {
+		$post = (int) get_option( 'af2_categories', 0 );
+		$row  = $post > 0 ? $this->legacy->row( $post ) : null;
+		$list = null === $row ? null : ( new LegacyCodec() )->decode( (string) $row['post_content'] );
+		if ( ! is_array( $list ) ) {
+			return;
+		}
+		$done  = array_map( 'intval', (array) get_option( self::CATEGORIES, array() ) );
+		$forms = $this->store->form_map();
+		$given = array();
+		foreach ( $list as $category ) {
+			$label = is_array( $category ) ? trim( LegacyValue::str( $category['label'] ?? '' ) ) : '';
+			if ( '' === $label || ! is_array( $category['elements'] ?? null ) ) {
+				continue;
+			}
+			foreach ( $category['elements'] as $element ) {
+				$legacy_id = is_scalar( $element ) ? (int) $element : 0;
+				// Questions, contact forms and appointment types share the list; only forms count.
+				if ( ! isset( $forms[ $legacy_id ] ) || in_array( $legacy_id, $done, true ) || isset( $given[ $legacy_id ] ) ) {
+					continue;
+				}
+				$this->store->set_category( $forms[ $legacy_id ], $label );
+				$given[ $legacy_id ] = true;
+			}
+		}
+		if ( array() !== $given ) {
+			update_option( self::CATEGORIES, array_merge( $done, array_keys( $given ) ), false );
+			FormRepository::flush();
+		}
 	}
 
 	/**

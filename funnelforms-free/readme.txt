@@ -4,7 +4,7 @@ Tags: contact form, multi step form, form builder, lead generation, conversation
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 5.0.7
+Stable tag: 5.0.8
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -221,6 +221,18 @@ If you set up a mail server under Funnelforms > Settings > E-mail, the mails of 
 The scripts in assets/builder and assets/runtime are built and minified from TypeScript. The sources, with the build scripts, are in the folder source/ of this plugin. To build them: `pnpm install` and `pnpm -r build` in that folder (Node.js 20 or newer).
 
 == Changelog ==
+
+= 5.0.8 =
+* Security: erasing personal data (Tools > Erase Personal Data) now removes only the files a person uploaded to their own Funnelforms 3 leads, and finds those leads by their contact data only.
+* Security: requests of the Funnelforms screens through admin-ajax.php now respect plugins that restrict the REST API, and pass on only the routes the screens need.
+* Security: new right "Delete entries" under Settings > Rights. Up to now "See entries" also allowed deleting; roles that could see entries get the new right with this update, so nothing changes until you take it away. Archiving stays with "See entries".
+* Security: the page address of an entry keeps only web addresses, and a form can be sent only once with one submit token, also by requests sent at the same moment.
+* Fix: with the site-wide captcha on, forms with two contact steps can be sent through the second one again.
+* Editor: values that forms moved from Funnelforms 3 brought along can be edited now: hidden values of answers, checks of contact text fields (length, numbers only, input mask, pattern), the salutations offered, back button and progress bar of the contact step, the texts of the next and back buttons, fading the form while sending, the language of buttons and messages, and the picture above a slider.
+* Moving from Funnelforms 3: forms now get the Funnelforms 5 design with the colours, font and corners of the 3.x form, and the categories of 3.x forms are taken over. Forms moved earlier keep their look.
+* Lead sources: a lead keeps the source of the visit when the ad, newsletter or search led to another page than the one with the form (UTM values and referrer, only with consent to statistics). Switch "Remember where a visit began" under Settings > General, on by default. Clicks from Facebook and Instagram apps count as Facebook, TikTok click ids as TikTok ads.
+* Forms: the consent box in the contact step sits centred next to its text with room in between, and links in texts take the colour of the form. Phone fields of forms moved from Funnelforms 3 keep their country picker with the calling code.
+* Menu: the pages of the Funnelforms menu always appear in the same order, also when other plugins add their pages earlier or later.
 
 = 5.0.7 =
 * Forms: new block "Loading animation": shows an animation with changing texts and moves on by itself after the set duration. Choose progress bar, ring with percent, checklist, spinner, dots or magnifier, plus duration, percent display, size, position of the texts and your own colour, with a preview in the editor.

@@ -738,7 +738,30 @@ export type Action = { id: string; on: 'submit' | 'paid'; node?: string; when?: 
 	| { kind: 'whatsapp'; config: WhatsAppConfig }
 	| { kind: 'conversion'; config: ConversionConfig }
 	| { kind: 'googleAds'; config: GoogleAdsConfig }
+	| { kind: 'aiCall'; config: AiCallConfig }
 );
+
+/**
+ * AI Phone Agent (Funnelforms Pro): an agent of Funnelforms → AI Phone Agent calls the lead, only
+ * when the consent field is checked and inside the agent's call hours. The agent brings voice,
+ * number, questions, hours and retries; the form only links to it.
+ */
+export interface AiCallConfig {
+	/** Agent ID (agent_…); empty until one is chosen. */
+	agent: string;
+	/** Contact field with the number; the first phone field when missing. */
+	phoneField?: string;
+	/** Country code for numbers without one; the country of the site when missing. */
+	countryCode?: string;
+	/** Contact field of type consent; nobody is called while it is empty. */
+	consentField: string;
+	/** Which answers of the steps the agent gets: all (when missing), only `fields`, or none. Never contact details. */
+	share?: 'all' | 'some' | 'none';
+	/** Step fields the agent gets with share "some". */
+	fields?: string[];
+	/** What the form is about, for the agent, e.g. "Request for a heat pump". */
+	context?: string;
+}
 
 /**
  * Google Ads conversion. Sent in the browser through the site's Google tag (gtag.js) after the
@@ -836,7 +859,11 @@ export interface PdfSettings {
 }
 
 export interface Style {
-	/** "classic" reproduces the 3.x look from the stored legacy values. */
+	/**
+	 * "classic": forms migrated before 5.0.9, with more 3.x values as tokens. Since then migrated
+	 * forms are "default" too, with only the brand values of 3.x (FormConverter::style()). Either
+	 * way the tokens alone decide the look; `legacy` keeps every 3.x value.
+	 */
 	preset: 'default' | 'classic';
 	/** Theme the tokens started from (builder); the tokens alone decide the look. */
 	theme?: string;

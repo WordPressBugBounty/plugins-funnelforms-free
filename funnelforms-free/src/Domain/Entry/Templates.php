@@ -82,9 +82,11 @@ final class Templates {
 			return self::escape( $value ?? '', $mode );
 		}
 		if ( str_starts_with( $token, 'url:' ) ) {
-			// Any parameter of the page address, e.g. {{url:gclid}} or {{url:partner}}.
+			// Any parameter of the page address, e.g. {{url:gclid}} or {{url:partner}}; a marketing
+			// parameter also from the page the visitor came to the website on.
 			parse_str( ltrim( (string) ( $s->page['query'] ?? '' ), '?' ), $params );
-			$param = $params[ substr( $token, 4 ) ] ?? '';
+			$key   = substr( $token, 4 );
+			$param = $params[ $key ] ?? ( EntryConverter::utm( EntryConverter::campaign( $s->page ) )[ $key ] ?? '' );
 			return self::escape( is_string( $param ) ? $param : '', $mode );
 		}
 		if ( str_starts_with( $token, 'calc:' ) && str_ends_with( $token, ':text' ) ) {
@@ -162,11 +164,11 @@ final class Templates {
 			case 'visit:referrer':
 				return self::escape( (string) ( $s->visit['referrer'] ?? '' ), $mode );
 			case 'utm':
-				$utm = EntryConverter::utm( (string) ( $s->page['query'] ?? '' ) );
+				$utm = EntryConverter::utm( EntryConverter::campaign( $s->page ) );
 				return self::escape( implode( ', ', array_map( static fn( $key, $value ) => $key . ': ' . $value, array_keys( $utm ), $utm ) ), $mode );
 		}
 		if ( preg_match( '/^utm:(source|medium|campaign|term|content)$/', $token, $m ) ) {
-			$utm = EntryConverter::utm( (string) ( $s->page['query'] ?? '' ) );
+			$utm = EntryConverter::utm( EntryConverter::campaign( $s->page ) );
 			return self::escape( (string) ( $utm[ 'utm_' . $m[1] ] ?? '' ), $mode );
 		}
 		return null;
@@ -407,7 +409,7 @@ final class Templates {
 				'href'  => $url,
 			);
 		}
-		$utm = EntryConverter::utm( (string) ( $s->page['query'] ?? '' ) );
+		$utm = EntryConverter::utm( EntryConverter::campaign( $s->page ) );
 		if ( array() !== $utm ) {
 			$rows[] = array(
 				'label' => __( 'Campaign', 'funnelforms-free' ),

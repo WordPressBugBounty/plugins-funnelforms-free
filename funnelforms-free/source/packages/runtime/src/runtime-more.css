@@ -15,6 +15,13 @@
 		gap: 14px;
 	}
 
+	.ffx-slider-media {
+		align-self: center;
+		max-width: 100%;
+		max-height: var(--ffx-icon-size, 96px);
+		object-fit: contain;
+	}
+
 	.ffx-slider-value {
 		align-self: center;
 		padding: 6px 18px;
@@ -130,22 +137,6 @@
 	.ffx-salutation :focus-visible + label {
 		outline: 3px solid var(--ffx-color-primary);
 		outline-offset: 2px;
-	}
-
-	.ffx-consent {
-		display: flex;
-		align-items: flex-start;
-		gap: 12px;
-		font-size: 0.9375em;
-	}
-
-	.ffx-consent input {
-		margin-top: 0.1em;
-	}
-
-	.ffx-consent a,
-	.ffx-content a {
-		color: var(--ffx-color-primary);
 	}
 
 	/* Dropdown with a search box or several answers */

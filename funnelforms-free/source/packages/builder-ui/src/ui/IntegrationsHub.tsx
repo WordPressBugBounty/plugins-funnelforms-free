@@ -19,6 +19,8 @@ import { Button, Dialog, Notice, Spinner, TextInput, Toggle } from './ui';
 
 export interface HubConfig {
 	interfacesUrl?: string;
+	/** Funnelforms → AI Phone Agent, where ElevenLabs is connected. */
+	leadcallerUrl?: string;
 	builderUrl?: string;
 }
 
@@ -49,6 +51,7 @@ export function categoryName( category: HubCategory ): string {
 		newsletter: __( 'Newsletter', 'funnelforms-pro' ),
 		spreadsheet: __( 'Spreadsheets', 'funnelforms-pro' ),
 		calendars: __( 'Calendars', 'funnelforms-pro' ),
+		meetings: __( 'Video meetings', 'funnelforms-pro' ),
 		messages: __( 'Messages', 'funnelforms-pro' ),
 		tracking: __( 'Conversion tracking', 'funnelforms-pro' ),
 		automation: __( 'Automation', 'funnelforms-pro' ),
@@ -66,11 +69,15 @@ function hint( service: HubService ): string {
 		microsoft: __( 'Microsoft 365, Outlook.com and Exchange Online', 'funnelforms-pro' ),
 		icloud: __( 'With an app-specific password', 'funnelforms-pro' ),
 		caldav: __( 'Nextcloud, Fastmail, mailbox.org and more', 'funnelforms-pro' ),
+		zoom: __( 'A Zoom meeting for each appointment', 'funnelforms-pro' ),
+		meet: __( 'With your Google calendar', 'funnelforms-pro' ),
+		'teams-meetings': __( 'With your Microsoft 365 calendar', 'funnelforms-pro' ),
 		slack: __( 'A message in a channel for each entry', 'funnelforms-pro' ),
 		teams: __( 'A message in a channel for each entry', 'funnelforms-pro' ),
 		whatsapp: __( 'WhatsApp message', 'funnelforms-pro' ),
 		twilio: __( 'Text message (SMS)', 'funnelforms-pro' ),
 		bird: __( 'Text message (SMS)', 'funnelforms-pro' ),
+		elevenlabs: __( 'An AI agent calls new leads', 'funnelforms-pro' ),
 		meta: __( 'Conversions from the server, with consent', 'funnelforms-pro' ),
 		ga4: __( 'Conversions from the server, with consent', 'funnelforms-pro' ),
 		tiktok: __( 'Conversions from the server, with consent', 'funnelforms-pro' ),
@@ -95,6 +102,9 @@ export function usage( service: Pick<HubService, 'id' | 'category' | 'kind'> ): 
 	if ( 'twilio' === service.id || 'bird' === service.id ) {
 		return __( 'In the form builder select the contact step and open “After sending”: the connection is listed under “Your connected tools” and sends a text message for each entry, to you or to the visitor. A phone field can also confirm numbers by text message.', 'funnelforms-pro' );
 	}
+	if ( 'elevenlabs' === service.id ) {
+		return __( 'Under Funnelforms → AI Phone Agent you create agents once. In the form builder add “AI Phone Agent” after sending and choose the agent: each lead who agreed is called within its call hours.', 'funnelforms-pro' );
+	}
 	if ( 'crm' === service.kind || 'messages' === service.category || 'tracking' === service.category ) {
 		return __( 'In the form builder select the contact step and open “After sending”: the connection is listed under “Your connected tools”. One click adds it, and every entry of the form goes there.', 'funnelforms-pro' );
 	}
@@ -112,6 +122,7 @@ function steps( type: string ): string {
 		whatsapp: __( 'In the WhatsApp Manager of Meta open API Setup and copy the phone number ID and a permanent access token of a system user.', 'funnelforms-pro' ),
 		twilio: __( 'In the Twilio console copy the account SID and the auth token from the account info.', 'funnelforms-pro' ),
 		bird: __( 'In Bird open Settings → Developer and copy the workspace ID, the channel ID of your SMS channel and an access key.', 'funnelforms-pro' ),
+		elevenlabs: __( 'In ElevenLabs open Developers → API keys and create a key with access to the Agents Platform. Everything else is set up under Funnelforms → AI Phone Agent.', 'funnelforms-pro' ),
 		meta: __( 'In the Meta Events Manager open your pixel, then Settings → Conversions API: copy the pixel ID and generate an access token.', 'funnelforms-pro' ),
 		ga4: __( 'In Google Analytics open Admin → Data streams → your web stream, copy the measurement ID and create a Measurement Protocol API secret.', 'funnelforms-pro' ),
 		tiktok: __( 'In the TikTok Events Manager open your pixel, then Settings: copy the pixel code and generate an access token.', 'funnelforms-pro' ),
@@ -159,6 +170,7 @@ function credentials( type: string ): Array<[ string, string, boolean, boolean? 
 			[ 'clientSecret', __( 'Client secret', 'funnelforms-pro' ), true ],
 		],
 		mollie: [ [ 'apiKey', __( 'API key (live_… or test_…)', 'funnelforms-pro' ), true ] ],
+		elevenlabs: [ [ 'apiKey', __( 'API key', 'funnelforms-pro' ), true ] ],
 	};
 	return all[ type ] ?? [];
 }
@@ -298,6 +310,10 @@ export function IntegrationsHub( { api, config, onCalendar, stamp }: { api: HubS
 			onCalendar( s.id as CalendarService );
 			return;
 		}
+		if ( 'meeting' === s.kind ) {
+			document.getElementById( 'ffx-meetings-title' )?.scrollIntoView( { behavior: 'smooth', block: 'start' } );
+			return;
+		}
 		if ( 'crm' === s.kind && ! connectionsOf( s, connections ).length ) {
 			setCrm( { provider: s.id } );
 			return;
@@ -399,7 +415,7 @@ export function IntegrationsHub( { api, config, onCalendar, stamp }: { api: HubS
 									{ list.map( ( s ) => (
 										<li key={ s.id }>
 											{ 'link' === s.kind ? (
-												<a className="ffx-hub-tile" href={ config.interfacesUrl }>
+												<a className="ffx-hub-tile" href={ 'leadcaller' === s.page ? config.leadcallerUrl : config.interfacesUrl }>
 													<Mark service={ s } />
 													<span className="ffx-hub-tile__text">
 														<strong>{ s.name }</strong>
@@ -644,6 +660,8 @@ function ConnectionRow( {
 	const payment = PAYMENTS.includes( c.type );
 	const number = SMS.includes( c.type ) || 'whatsapp' === c.type;
 	const direct = [ 'slack', 'teams' ].includes( c.type );
+	// The voice connection places no call for a test: it reads the account.
+	const voice = 'elevenlabs' === c.type;
 	// CRM tools brought over from Funnelforms 3 are still used there: they can be changed, not deleted.
 	const legacy = crm && ! deletable( c.ref );
 	const formUrl = ( id: number ): string => ( config.builderUrl ? config.builderUrl + ( config.builderUrl.includes( '?' ) ? '&' : '?' ) + 'form=' + id : '' );
@@ -656,6 +674,11 @@ function ConnectionRow( {
 				// Reading the choices of the account (lists, pipelines) checks the access data.
 				const result = await api.connect.crmOptions( c.ref );
 				setOwn( result.checked ? { tone: 'success', text: __( 'The connection works: the tool accepted the access data.', 'funnelforms-pro' ) } : { tone: 'info', text: __( 'This tool cannot be checked from here. Send a test entry to try the connection.', 'funnelforms-pro' ) } );
+				return;
+			}
+			if ( voice ) {
+				await api.testConnection( c.ref, {} );
+				setOwn( { tone: 'success', text: __( 'The connection works. Agents are set up under Funnelforms → AI Phone Agent.', 'funnelforms-pro' ) } );
 				return;
 			}
 			await api.testConnection( c.ref, number ? ( 'whatsapp' === c.type ? { to: to.trim(), template: 'hello_world', language: 'en_US' } : { to: to.trim() } ) : {} );
@@ -784,7 +807,7 @@ function ConnectionRow( {
 							{ testing ? __( 'Sending…', 'funnelforms-pro' ) : __( 'Send test', 'funnelforms-pro' ) }
 						</Button>
 					) : null }
-					{ crm ? (
+					{ crm || voice ? (
 						<Button size="sm" disabled={ testing } onClick={ () => void test() }>
 							{ testing ? __( 'Testing…', 'funnelforms-pro' ) : __( 'Test', 'funnelforms-pro' ) }
 						</Button>

@@ -16,8 +16,9 @@ use Funnelforms\Infrastructure\Repository\FormRepository;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Funnelforms 5 owns the menu "Funnelforms": Overview, Forms, Entries, Appointments,
- * Integrations, Settings, Recommend, Account and Support. The menu of Funnelforms 3 (two dozen pages, or only its license page while 3.x is
+ * Funnelforms 5 owns the menu "Funnelforms": Overview, Forms, Entries, Appointments, Statistics,
+ * Predictive AI, AI Phone Agent, Integrations, the two imports, Settings, Account, Connect app,
+ * Recommend and Support. The menu of Funnelforms 3 (two dozen pages, or only its license page while 3.x is
  * not activated) shrinks to one entry "Funnelforms 3" while a form still needs it and disappears
  * on its own once the imported forms run on Funnelforms 5 (no switch). Its pages stay reachable
  * by address, and its code is not touched.
@@ -34,16 +35,38 @@ final class Menu {
 		'bookings'     => 3,
 		'stats'        => 4,
 		'prediction'   => 5,
-		'import_own'   => 6,
-		'import'       => 7,
+		'leadcaller'   => 6,
+		'integrations' => 7,
+		'import_own'   => 8,
+		'import'       => 9,
 		'migration'    => 70,
-		'integrations' => 75,
-		'app'          => 77,
 		'settings'     => 80,
+		'account'      => 81,
+		'app'          => 82,
 		'refer'        => 85,
-		'account'      => 90,
 		'support'      => 91,
 		'legacy'       => 99,
+	);
+
+	/** Position (key of POSITIONS) of each page by slug, for sort(). */
+	private const PAGES = array(
+		'funnelforms'                    => 'overview',
+		'funnelforms-builder'            => 'forms',
+		'funnelforms-entries'            => 'entries',
+		'funnelforms-appointments'       => 'bookings',
+		'funnelforms-stats'              => 'stats',
+		'funnelforms-prediction'         => 'prediction',
+		'funnelforms-leadcaller'         => 'leadcaller',
+		'funnelforms-integrations'       => 'integrations',
+		'funnelforms-import-funnelforms' => 'import_own',
+		'funnelforms-import'             => 'import',
+		'funnelforms-migration'          => 'migration',
+		'funnelforms-settings'           => 'settings',
+		'funnelforms-account'            => 'account',
+		'funnelforms-app'                => 'app',
+		'funnelforms-refer'              => 'refer',
+		'funnelforms-support'            => 'support',
+		'funnelforms-upgrade'            => 'support',
 	);
 
 	/**
@@ -81,6 +104,7 @@ final class Menu {
 	 */
 	public static function fold_legacy(): void {
 		global $admin_page_hooks;
+		self::sort();
 		self::$legacy = '';
 		if ( Rollback::active() ) {
 			// The old menu stays as it was, with one way forward added.
@@ -103,6 +127,30 @@ final class Menu {
 		if ( '' !== self::$legacy && self::legacy_shown() ) {
 			add_submenu_page( self::SLUG, __( 'Funnelforms 3', 'funnelforms-free' ), __( 'Funnelforms 3', 'funnelforms-free' ), 'manage_options', self::legacy_url(), '', self::POSITIONS['legacy'] );
 		}
+	}
+
+	/**
+	 * Puts the pages of the menu in the order of POSITIONS. WordPress appends a page whose
+	 * position lies beyond the list, so without this the order of the admin_menu hooks would
+	 * decide. Pages it does not know keep their order, after the known ones.
+	 */
+	public static function sort(): void {
+		global $submenu;
+		if ( empty( $submenu[ self::SLUG ] ) || ! is_array( $submenu[ self::SLUG ] ) ) {
+			return;
+		}
+		$items = array_values( $submenu[ self::SLUG ] );
+		$rank  = array();
+		foreach ( $items as $i => $item ) {
+			$key        = self::PAGES[ (string) ( $item[2] ?? '' ) ] ?? null;
+			$rank[ $i ] = ( null === $key ? self::POSITIONS['legacy'] - 1 : self::POSITIONS[ $key ] ) * 1000 + $i;
+		}
+		asort( $rank );
+		$sorted = array();
+		foreach ( array_keys( $rank ) as $i ) {
+			$sorted[] = $items[ $i ];
+		}
+		$submenu[ self::SLUG ] = $sorted; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- the order of our own menu.
 	}
 
 	/**

@@ -88,6 +88,8 @@ export interface PageInfo {
 	url: string;
 	query: string;
 	title: string;
+	/** Marketing parameters of the page the visit began on, when this page has none of its own (origin.ts). */
+	origin?: string;
 }
 
 /**

@@ -21,10 +21,11 @@ defined( 'ABSPATH' ) || exit;
  * so sites that worked with 3.x broke with the update to 5.0. The screens send such a request
  * once more here (builder-ui/src/rest-bridge.ts), where the cookie always arrives.
  *
- * The request runs through the REST server like one to /wp-json/: same routes, same permission
- * checks, same answers. Like the REST API with a cookie it needs the wp_rest nonce, which
- * protects against requests from other sites. Only the routes of Funnelforms and wp/v2 (pages of
- * the site) go through.
+ * The request runs through the REST server like one to /wp-json/: same authentication check
+ * (the filter rest_authentication_errors, which plugins that limit the REST API use), same routes,
+ * same permission checks, same answers. Like the REST API with a cookie it needs the wp_rest
+ * nonce, which protects against requests from other sites. Only the routes of Funnelforms and the
+ * pages of the site (/wp/v2/pages, the page picker of the builder) go through.
  */
 final class RestBridge {
 
@@ -32,7 +33,7 @@ final class RestBridge {
 	public const ACTION = 'funnelforms_rest';
 
 	/** Routes the bridge passes on. */
-	private const ROUTES = array( '/funnelforms/v1/', '/wp/v2/' );
+	private const ROUTES = array( '/funnelforms/v1/', '/wp/v2/pages/' );
 
 	/** Parameters of the bridge itself, not of the route. */
 	private const OWN = array( 'action', 'rest_route', '_wpnonce', '_method' );
@@ -119,7 +120,9 @@ final class RestBridge {
 	}
 
 	/**
-	 * Runs a request through the REST server, as /wp-json/ would.
+	 * Runs a request through the REST server, as /wp-json/ would: first the authentication check
+	 * of WP_REST_Server::serve_request(), so a site that refuses the REST API to some users
+	 * (filter rest_authentication_errors) refuses it here too.
 	 *
 	 * @param \WP_REST_Request|\WP_Error $request Request, or the error of request().
 	 */
@@ -127,6 +130,10 @@ final class RestBridge {
 		$server = rest_get_server();
 		if ( is_wp_error( $request ) ) {
 			return rest_convert_error_to_response( $request );
+		}
+		$auth = $server->check_authentication();
+		if ( is_wp_error( $auth ) ) {
+			return rest_convert_error_to_response( $auth );
 		}
 		$response = rest_ensure_response( $server->dispatch( $request ) );
 		if ( is_wp_error( $response ) ) {

@@ -15,10 +15,11 @@ use Funnelforms\Infrastructure\Crypto\SecretBox;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Four WordPress capabilities. Users who can manage options (administrators) always have all
+ * Five WordPress capabilities. Users who can manage options (administrators) always have all
  * of them, without a change to their role; other roles get them on the Funnelforms page or
- * through the roles API. Exporting entries includes seeing them. The 3.x admin pages keep their
- * own check (manage_options).
+ * through the roles API. Exporting and deleting entries include seeing them; seeing includes
+ * changing status, tags and archive, which can be undone, but not deleting, which cannot.
+ * The 3.x admin pages keep their own check (manage_options).
  */
 final class Capabilities {
 
@@ -28,13 +29,16 @@ final class Capabilities {
 	/** See entries, their files and statistics, use the app, be assigned entries. */
 	public const VIEW_ENTRIES = 'funnelforms_view_entries';
 
+	/** Delete entries for good (one or many). Until 5.0.7 seeing entries included it. */
+	public const DELETE_ENTRIES = 'funnelforms_delete_entries';
+
 	/** Export entries as CSV. */
 	public const EXPORT_ENTRIES = 'funnelforms_export_entries';
 
 	/** Change the plugin's settings (spam protection, mail, webhooks, automation tokens). */
 	public const MANAGE_SETTINGS = 'funnelforms_manage_settings';
 
-	public const ALL = array( self::EDIT_FORMS, self::VIEW_ENTRIES, self::EXPORT_ENTRIES, self::MANAGE_SETTINGS );
+	public const ALL = array( self::EDIT_FORMS, self::VIEW_ENTRIES, self::EXPORT_ENTRIES, self::DELETE_ENTRIES, self::MANAGE_SETTINGS );
 
 	/**
 	 * Hooks.
@@ -85,6 +89,7 @@ final class Capabilities {
 			self::EDIT_FORMS      => __( 'Edit forms', 'funnelforms-free' ),
 			self::VIEW_ENTRIES    => __( 'See entries', 'funnelforms-free' ),
 			self::EXPORT_ENTRIES  => __( 'Export entries', 'funnelforms-free' ),
+			self::DELETE_ENTRIES  => __( 'Delete entries', 'funnelforms-free' ),
 			self::MANAGE_SETTINGS => __( 'Change settings', 'funnelforms-free' ),
 		);
 	}
@@ -110,7 +115,7 @@ final class Capabilities {
 
 	/**
 	 * Sets the Funnelforms capabilities of roles. Roles that can manage options and unknown roles
-	 * are left alone; exporting brings seeing entries with it.
+	 * are left alone; exporting and deleting bring seeing entries with it.
 	 *
 	 * @param array<string,array<int,mixed>> $grants Role slug => capabilities it should have.
 	 * @return array<string,string[]> What changed: role slug => its capabilities now.
@@ -123,7 +128,7 @@ final class Capabilities {
 				continue;
 			}
 			$caps = array_values( array_intersect( self::ALL, array_map( 'strval', (array) $caps ) ) );
-			if ( in_array( self::EXPORT_ENTRIES, $caps, true ) && ! in_array( self::VIEW_ENTRIES, $caps, true ) ) {
+			if ( array() !== array_intersect( array( self::EXPORT_ENTRIES, self::DELETE_ENTRIES ), $caps ) && ! in_array( self::VIEW_ENTRIES, $caps, true ) ) {
 				$caps[] = self::VIEW_ENTRIES;
 			}
 			$before = array_values( array_filter( self::ALL, array( $role, 'has_cap' ) ) );
@@ -151,5 +156,18 @@ final class Capabilities {
 			);
 		}
 		return $changed;
+	}
+
+	/**
+	 * Update from 5.0.7 or older, where seeing entries included deleting them: roles that may see
+	 * entries keep deleting them, now as a right of its own that the table shows and an
+	 * administrator can take away. Runs once (Schema::maybe_upgrade()).
+	 */
+	public static function split_delete_right(): void {
+		foreach ( wp_roles()->role_objects as $role ) {
+			if ( ! $role->has_cap( 'manage_options' ) && $role->has_cap( self::VIEW_ENTRIES ) && ! $role->has_cap( self::DELETE_ENTRIES ) ) {
+				$role->add_cap( self::DELETE_ENTRIES );
+			}
+		}
 	}
 }

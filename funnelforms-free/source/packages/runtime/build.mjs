@@ -48,6 +48,20 @@ for ( const name of chunks ) {
 		banner: { js: '/*! Funnelforms runtime | GPL-2.0-or-later */' },
 	} );
 }
+// The script on every page of a site that remembers where visits began (src/site-origin.ts,
+// Frontend\Origin); it loads on pages without a form, so it has a budget of its own.
+const originBudget = 2 * 1024;
+await build( {
+	entryPoints: [ join( here, 'src/site-origin.ts' ) ],
+	outfile: join( out, 'origin.js' ),
+	bundle: true,
+	minify: true,
+	format: 'iife',
+	target: [ 'es2021' ],
+	legalComments: 'none',
+	define: { 'process.env.FUNNELFORMS_EDITION': edition },
+	banner: { js: '/*! Funnelforms runtime | GPL-2.0-or-later */' },
+} );
 for ( const style of [ 'runtime.css', 'runtime-more.css' ] ) {
 	await build( {
 		entryPoints: [ join( here, 'src', style ) ],
@@ -73,6 +87,12 @@ for ( const name of chunks ) {
 		console.error( `runtime-${ name }.js is ${ ( size / 1024 ).toFixed( 1 ) } KB gzip, over the budget of 15 KB.` );
 		process.exit( 1 );
 	}
+}
+const origin = gzipSync( readFileSync( join( out, 'origin.js' ) ) ).length;
+console.log( `origin.js: ${ ( origin / 1024 ).toFixed( 1 ) } KB gzip, on every page while the site remembers the origin` );
+if ( origin > originBudget ) {
+	console.error( `origin.js is ${ ( origin / 1024 ).toFixed( 1 ) } KB gzip, over the budget of 2 KB.` );
+	process.exit( 1 );
 }
 writeFileSync( join( out, 'index.php' ), '<?php\n/**\n * Silence is golden.\n *\n * @package Funnelforms\n */\n' );
 if ( total > budget ) {

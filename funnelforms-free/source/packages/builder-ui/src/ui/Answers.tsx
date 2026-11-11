@@ -289,6 +289,11 @@ export function Options( { node, field, edit }: { node: FormNode; field: Extract
 	const knowledge = useBuilder( ( st ) => 'knowledge' === st.doc?.settings.quiz?.kind );
 	const calculations = useBuilder( ( st ) => ( st.doc?.calculations.length ?? 0 ) > 0 );
 	const calc = ! knowledge && ( calculations || field.options.some( ( o ) => undefined !== o.calcValue ) );
+	// Hidden values (3.x "hidden field"): only choice fields send them; shown while one is set or switched on.
+	const hiddenable = 'choice' === field.type;
+	const hasHidden = field.options.some( ( o ) => undefined !== o.hiddenValue );
+	const [ hiddenOn, setHiddenOn ] = useState( false );
+	const showHidden = hiddenable && ( hasHidden || hiddenOn );
 	const move = ( id: string, to: number ): void => change( ( d ) => void moveOption( d, node.id, field.id, id, to ) );
 	const option = ( id: string, recipe: ( o: Option ) => void, key: string ): void =>
 		edit( ( f ) => {
@@ -438,6 +443,28 @@ export function Options( { node, field, edit }: { node: FormNode; field: Extract
 								) : null }
 								<IconButton label={ __( 'Remove answer', 'funnelforms-pro' ) } icon={ icons.close } disabled={ readOnly || field.options.length <= 1 } onClick={ () => removeWithNotice( store, ( d ) => removeOption( d, node.id, field.id, o.id ), asksFor( field.id, o.id ) ) } />
 							</span>
+							{ showHidden ? (
+								<input
+									className="ffxb-input ffxb-options__hidden"
+									aria-label={ sprintf( __( 'Hidden value of answer %d', 'funnelforms-pro' ), i + 1 ) }
+									placeholder={ __( 'Hidden value', 'funnelforms-pro' ) }
+									value={ o.hiddenValue ?? '' }
+									disabled={ readOnly }
+									onChange={ ( e ) =>
+										option(
+											o.id,
+											( x ) => {
+												if ( '' === e.target.value ) {
+													delete x.hiddenValue;
+												} else {
+													x.hiddenValue = e.target.value;
+												}
+											},
+											'hiddenValue'
+										)
+									}
+								/>
+							) : null }
 						</div>
 					) ) }
 					<div className="ffxb-options__add">
@@ -448,6 +475,24 @@ export function Options( { node, field, edit }: { node: FormNode; field: Extract
 							{ __( 'Paste a list', 'funnelforms-pro' ) }
 						</Button>
 					</div>
+					{ hiddenable ? (
+						<Toggle
+							label={ __( 'Hidden values', 'funnelforms-pro' ) }
+							hint={ __( 'A value per answer that visitors do not see. It goes with the entry into mails, webhooks and integrations when the answer is chosen, e.g. a product number for the CRM.', 'funnelforms-pro' ) }
+							checked={ showHidden }
+							disabled={ readOnly }
+							onChange={ ( on ) => {
+								setHiddenOn( on );
+								if ( ! on && hasHidden ) {
+									edit( ( f ) => {
+										for ( const x of ( f as typeof field ).options ) {
+											delete x.hiddenValue;
+										}
+									}, 'hiddenValue' );
+								}
+							} }
+						/>
+					) : null }
 					{ calc ? <p className="ffxb-hint">{ __( '"Counts as" is the number an answer adds to calculations, e.g. its price; empty counts as 0. "Saved as" is what entries, mails and integrations get; it does not count.', 'funnelforms-pro' ) }</p> : null }
 					{ pasting ? <PasteOptions onClose={ () => setPasting( false ) } onAdd={ ( labels ) => change( ( d ) => void addOptions( d, node.id, field.id, labels, ctx ) ) } /> : null }
 				</div>

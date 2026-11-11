@@ -9216,3 +9216,173 @@ span.ffx-abline--3,
 		grid-template-columns: minmax(0, 1fr);
 	}
 }
+
+/* AI Phone Agent (Admin\LeadcallerPage, packages/builder-ui/src/ui/Leadcaller.tsx) */
+
+.ffx-lc {
+	display: grid;
+	gap: 16px;
+}
+
+.ffx-lc .ffx-card + .ffx-card {
+	margin-top: 0;
+}
+
+.ffx-lc__said:empty {
+	display: none;
+}
+
+.ffx-lc__said {
+	margin: 0;
+	padding: 10px 14px;
+	border-radius: var(--ffb-radius-card);
+	background: var(--ffb-brand-50);
+	color: var(--ffb-text);
+}
+
+.ffx-lc-steps {
+	display: grid;
+	gap: 0;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ffx-lc-step {
+	display: grid;
+	grid-template-columns: 40px minmax(0, 1fr);
+	gap: 16px;
+	margin: 0;
+	padding: 18px 0;
+}
+
+.ffx-lc-step + .ffx-lc-step {
+	border-top: 1px solid var(--ffb-border);
+}
+
+.ffx-lc-step__mark {
+	display: grid;
+	place-items: center;
+	width: 40px;
+	height: 40px;
+	border-radius: 12px;
+	background: var(--ffb-surface-2);
+	color: var(--ffb-text-subtle);
+}
+
+.ffx-lc-step.is-current .ffx-lc-step__mark {
+	background: var(--ffb-brand-gradient);
+	color: #fff;
+	box-shadow: var(--ffb-shadow-brand);
+}
+
+.ffx-lc-step.is-done .ffx-lc-step__mark {
+	background: #e7f5ec;
+	color: #1d7a46;
+}
+
+.ffx-lc-step__body {
+	display: grid;
+	gap: 8px;
+	min-width: 0;
+}
+
+.ffx-lc-step__body h3 {
+	margin: 8px 0 0;
+	font-size: 15px;
+}
+
+.ffx-lc-step:not(.is-current):not(.is-done) .ffx-lc-step__body h3 {
+	color: var(--ffb-text-subtle);
+}
+
+.ffx-lc-step__body p {
+	margin: 0;
+}
+
+.ffx-lc-step__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.ffx-lc-howto {
+	margin: 0 0 0 20px;
+	padding: 0;
+	color: var(--ffb-text-muted);
+}
+
+.ffx-lc-howto li {
+	margin: 0 0 4px;
+}
+
+.ffx-lc-connect {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 8px 12px;
+}
+
+.ffx-lc-connect .ffxb-field {
+	flex: 1 1 280px;
+	max-width: 440px;
+	margin: 0;
+}
+
+.ffx-lc-numbers {
+	display: grid;
+	gap: 6px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ffx-lc-numbers li {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	font-variant-numeric: tabular-nums;
+}
+
+.ffx-lc-list__missing {
+	color: #8a5a00;
+	font-size: 12.5px;
+}
+
+.ffx-lc-how h2 {
+	margin-top: 0;
+}
+
+.ffx-lc-how__list {
+	margin: 0 0 12px 20px;
+	padding: 0;
+}
+
+.ffx-lc-how__list li {
+	margin: 0 0 6px;
+}
+
+@media (max-width: 600px) {
+	.ffx-lc-step {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 8px;
+	}
+}
+
+/* Video meetings (Funnelforms → Integrations): marks in the colours of the services. */
+.ffx-cal-mark--zoom {
+	background: #e8efff;
+	color: #0b5cff;
+}
+
+.ffx-cal-mark--meet {
+	background: #e6f4ea;
+	color: #137333;
+}
+
+.ffx-cal-mark--teams {
+	background: #ecebfa;
+	color: #5b5fc7;
+}

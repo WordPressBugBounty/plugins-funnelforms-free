@@ -298,13 +298,11 @@ final class SetupPage {
 				return 'done' === SetupFlow::import_status()['phase'] ? '' : 'import_running';
 			case 'keep':
 				$forms = isset( $_POST['forms'] ) ? sanitize_key( wp_unslash( $_POST['forms'] ) ) : 'verified';
-				$look  = isset( $_POST['look'] ) ? sanitize_key( wp_unslash( $_POST['look'] ) ) : 'classic';
 				SetupFlow::save(
 					array(
 						'choices' => array(
 							'forms'     => in_array( $forms, array( 'verified', 'pick' ), true ) ? $forms : 'verified',
 							'picked'    => array_map( 'absint', (array) wp_unslash( $_POST['picked'] ?? array() ) ), // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- absint.
-							'look'      => 'new' === $look ? 'new' : 'classic',
 							'rejected'  => array(),
 							'retention' => SetupFlow::clean_retention( wp_unslash( $_POST['retention'] ?? null ), 'update' ), // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- checked against the offered values.
 						) + $state['choices'],
@@ -432,7 +430,7 @@ final class SetupPage {
 	}
 
 	/**
-	 * AJAX: the preview page of a form, in the new look when asked.
+	 * AJAX: the preview page of a form.
 	 */
 	public static function ajax_preview(): void {
 		check_ajax_referer( self::PREVIEW );
@@ -443,9 +441,6 @@ final class SetupPage {
 		$doc  = null === $form ? null : FormEditor::create()->editing( $form );
 		if ( null === $form || null === $doc ) {
 			wp_send_json_error( array( 'message' => __( 'This form has no version to show yet.', 'funnelforms-free' ) ), 404 );
-		}
-		if ( isset( $_GET['look'] ) && 'new' === $_GET['look'] ) {
-			$doc->style = SetupFlow::new_look( $doc->style ?? null );
 		}
 		$page = FormPreview::page_with( $form, $doc, get_current_user_id(), time() );
 		if ( ! $page['ok'] ) {
@@ -1062,15 +1057,6 @@ final class SetupPage {
 				</p>
 			<?php endif; ?>
 		</fieldset>
-		<fieldset class="ffx-setup__group">
-			<legend><?php esc_html_e( 'How should your forms look?', 'funnelforms-free' ); ?></legend>
-			<div class="ffx-setup__options-row">
-				<?php
-				self::option( 'look', 'classic', 'classic' === $choices['look'], __( 'As before', 'funnelforms-free' ), __( 'Colours, fonts and sizes of Funnelforms 3, exactly as your visitors know them.', 'funnelforms-free' ), 'history' );
-				self::option( 'look', 'new', 'new' === $choices['look'], __( 'The new Funnelforms design', 'funnelforms-free' ), __( 'Calmer, more modern and made for phones, with your main colour and font.', 'funnelforms-free' ), 'sparkles' );
-				?>
-			</div>
-		</fieldset>
 		<?php self::maps_group( $forms ); ?>
 		<?php self::retention_group( 'update', (int) $choices['retention'] ); ?>
 		<fieldset class="ffx-setup__group">
@@ -1269,7 +1255,7 @@ final class SetupPage {
 					<?php endif; ?>
 					<figure>
 						<figcaption><?php esc_html_e( 'New (Funnelforms 5)', 'funnelforms-free' ); ?></figcaption>
-						<div class="ffx-setup__frame"><iframe title="<?php esc_attr_e( 'New (Funnelforms 5)', 'funnelforms-free' ); ?>" data-form="<?php echo esc_attr( (string) $form['id'] ); ?>" data-look="<?php echo esc_attr( (string) $state['choices']['look'] ); ?>" sandbox="allow-scripts allow-forms"></iframe></div>
+						<div class="ffx-setup__frame"><iframe title="<?php esc_attr_e( 'New (Funnelforms 5)', 'funnelforms-free' ); ?>" data-form="<?php echo esc_attr( (string) $form['id'] ); ?>" sandbox="allow-scripts allow-forms"></iframe></div>
 					</figure>
 				</div>
 			</details>
@@ -1307,7 +1293,7 @@ final class SetupPage {
 						?>
 					</li>
 				<?php endif; ?>
-				<li><?php echo Ui::icon( 'check' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?><?php echo esc_html( 'new' === $choices['look'] ? __( 'Look: the new Funnelforms design', 'funnelforms-free' ) : __( 'Look: as before', 'funnelforms-free' ) ); ?></li>
+				<li><?php echo Ui::icon( 'check' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?><?php esc_html_e( 'Look: the new Funnelforms design', 'funnelforms-free' ); ?></li>
 				<li><?php echo Ui::icon( 'check' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?><?php esc_html_e( 'Entries, connections and e-mails come along', 'funnelforms-free' ); ?></li>
 				<li><?php echo Ui::icon( 'check' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?><?php echo esc_html( self::retention_fact( (int) $choices['retention'] ) ); ?></li>
 				<?php if ( ! empty( $choices['diagnostics'] ) ) : ?>

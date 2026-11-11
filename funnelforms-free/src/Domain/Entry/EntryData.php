@@ -109,7 +109,7 @@ final class EntryData {
 			'created_at'   => $s->created_at,
 			'completed_at' => $s->created_at,
 			'source_url'   => $s->page['url'] ?? null,
-			'utm'          => EntryConverter::utm( (string) ( $s->page['query'] ?? '' ) ),
+			'utm'          => EntryConverter::utm( EntryConverter::campaign( $s->page ) ),
 			'data'         => array(
 				'version'      => EntryConverter::DATA_VERSION,
 				'answers'      => $answers,
@@ -120,7 +120,7 @@ final class EntryData {
 					'title' => $s->page['title'] ?? null,
 					'url'   => $s->page['url'] ?? null,
 					'query' => $s->page['query'] ?? null,
-				),
+				) + ( '' === (string) ( $s->page['origin'] ?? '' ) ? array() : array( 'origin' => $s->page['origin'] ) ),
 			),
 			'consent'      => $consent,
 			'score'        => self::score( $s ),

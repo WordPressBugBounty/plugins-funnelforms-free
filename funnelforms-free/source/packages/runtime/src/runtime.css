@@ -631,6 +631,33 @@
 		accent-color: var(--ffx-color-primary);
 	}
 
+	/*
+	 * Consent and checkbox fields of the contact step: the box beside its text, centred on the first
+	 * line (half a line of the text minus half the box), also when the text runs over several lines.
+	 * Every contact step may have one, so this sits here and not in runtime-more.css: until 5.0.7 the
+	 * box stood right at the text and too high in forms that do not load that sheet (forms from 3.x).
+	 */
+	.ffx-consent {
+		display: flex;
+		align-items: flex-start;
+		gap: 12px;
+		font-size: 0.9375em;
+	}
+
+	.ffx-consent input {
+		margin: calc(var(--ffx-line-body, 1.5) * 0.5em - 10px) 0 0;
+		font-size: inherit;
+	}
+
+	/*
+	 * Links in texts (consent, content steps, descriptions, HTML fields) in the form's colour. The
+	 * shield sets links back to the browser's blue where no rule of the layers names a colour; :where()
+	 * keeps this below every rule of a link with a class of its own (downloads, buttons, language links).
+	 */
+	:where(.ffx-form) a {
+		color: var(--ffx-color-primary);
+	}
+
 	/* Content steps */
 	.ffx-content {
 		overflow-wrap: anywhere;

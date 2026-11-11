@@ -23,6 +23,7 @@ use Funnelforms\Admin\ImportPage;
 use Funnelforms\Admin\EntryPdfDownload;
 use Funnelforms\Admin\Menu;
 use Funnelforms\Admin\AppointmentsPage;
+use Funnelforms\Admin\LeadcallerPage;
 use Funnelforms\Admin\CronofyNotice;
 use Funnelforms\Admin\PredictionPage;
 use Funnelforms\Admin\IntegrationsPage;
@@ -61,6 +62,7 @@ use Funnelforms\Frontend\BookingPage;
 use Funnelforms\Frontend\FunnelPage;
 use Funnelforms\Frontend\LegacyPreview;
 use Funnelforms\Frontend\OptInPage;
+use Funnelforms\Frontend\Origin;
 use Funnelforms\Frontend\PaymentReturn;
 use Funnelforms\Frontend\Shortcode;
 use Funnelforms\Frontend\UiLocale;
@@ -168,6 +170,7 @@ final class Plugin {
 			McpServer::class,
 			ConnectionsController::class,
 			\Funnelforms\Http\IntegrationsController::class,
+			\Funnelforms\Http\LeadcallerController::class,
 			CrmController::class,
 			ImportController::class,
 			CalendarOAuthController::class,
@@ -194,6 +197,7 @@ final class Plugin {
 			Privacy::class,
 			PrivacyPolicyText::class,
 			Shortcode::class,
+			Origin::class,
 			EntriesShortcode::class,
 			\Funnelforms\Compat\Multilingual::class,
 			FormBlock::class,
@@ -223,6 +227,7 @@ final class Plugin {
 			BuilderPage::class,
 			EntriesPage::class,
 			AppointmentsPage::class,
+			LeadcallerPage::class,
 			CronofyNotice::class,
 			IntegrationsPage::class,
 			StatsPage::class,

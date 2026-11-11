@@ -29,7 +29,7 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Schema {
 
-	public const VERSION        = 23;
+	public const VERSION        = 24;
 	public const VERSION_OPTION = 'ffx_db_version';
 
 	/**
@@ -91,6 +91,9 @@ final class Schema {
 		}
 		if ( $from > 0 && $from < 23 ) {
 			\Funnelforms\Application\LeadSources::backfill();
+		}
+		if ( $from > 0 && $from < 24 ) {
+			\Funnelforms\Application\Capabilities::split_delete_right();
 		}
 	}
 

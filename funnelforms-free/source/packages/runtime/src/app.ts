@@ -5,6 +5,7 @@ import { sendAdsConversions, type AdsConversion } from './ads';
 import { languageSwitch, languageTag } from './languages';
 import { setPrivacy, trackingInfo } from './consent';
 import { renderContactField, type ContactContext, type RenderedContactField } from './contact';
+import { rememberOrigin } from './origin';
 import { contactPrefill, stepPrefill } from './prefill';
 import { escapeHtml, h, textOf, trusted } from './dom';
 import { countdown, successPage } from './end';
@@ -98,7 +99,7 @@ export class FormApp {
 	/** Countdown of the time limit, if the form has one. */
 	private readonly countdown: Countdown | null = null;
 
-	constructor( readonly root: HTMLElement, readonly config: RuntimeConfig, private readonly page: PageInfo ) {
+	constructor( readonly root: HTMLElement, readonly config: RuntimeConfig, private page: PageInfo ) {
 		this.doc = config.document;
 		// For chunks (styles.ts): endpoint, language and strings of the form.
 		( root as unknown as { ffx: RuntimeConfig } ).ffx = config;
@@ -112,7 +113,14 @@ export class FormApp {
 		this.start = startNode( this.doc, this.variants );
 		this.progress = progressMap( { ...this.doc, start: this.start } );
 		this.api = new Api( config.endpoint, config.unlock, config.bridge );
-		this.stats = new Stats( this.api, root.closest( '[inert]' ) === null && ! config.preview );
+		const live = root.closest( '[inert]' ) === null && ! config.preview;
+		// A page without a source of its own counts for the one its visit began on: the stats with
+		// its referrer and parameters, the entry with its parameters.
+		const earlier = config.origin && live ? rememberOrigin( window.location.href, document.referrer ) : null;
+		if ( earlier ) {
+			this.page = { ...page, ...( earlier.query ? { origin: earlier.query } : {} ) };
+		}
+		this.stats = new Stats( this.api, live, earlier ? { referrer: earlier.referrer, search: earlier.query ? '?' + earlier.query : '' } : undefined );
 		// Only drawn variants of running tests count; a preview link would skew the figures.
 		for ( const experiment of this.doc.experiments ?? [] ) {
 			const variant = this.variants[ experiment.id ];
@@ -617,6 +625,8 @@ export class FormApp {
 	 */
 	private prefill( node: StepNode | ContactNode ): void {
 		const params = new URLSearchParams( this.page.query );
+		// A hidden field for utm_source also gets it from the page the visit began on.
+		new URLSearchParams( this.page.origin ?? '' ).forEach( ( value, key ) => params.has( key ) || params.append( key, value ) );
 		const label = ( o: { label: Record<string, string> } ): string => this.text( o.label );
 		for ( const field of node.fields ) {
 			if ( this.prefilled.has( field.id ) ) {

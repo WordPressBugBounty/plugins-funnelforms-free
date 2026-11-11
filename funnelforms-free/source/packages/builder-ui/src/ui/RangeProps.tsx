@@ -8,7 +8,7 @@ import type { Edit } from './Answers';
 import { useEnv } from './context';
 import { __, sprintf } from './i18n';
 import { put, TextProp } from './texts';
-import { ChoiceTiles, Group, Notice, NumberInput, Select, Sketch, TextInput, Toggle } from './ui';
+import { Button, ChoiceTiles, Group, Notice, NumberInput, Select, Sketch, TextInput, Toggle } from './ui';
 
 export function DateProps( { field, edit }: { field: DateField; edit: Edit } ) {
 	const p = field.props;
@@ -50,6 +50,42 @@ export function DateProps( { field, edit }: { field: DateField; edit: Edit } ) {
 				<TextInput label={ __( 'Latest date', 'funnelforms-pro' ) } type="date" value={ p.max ?? '' } onChange={ ( v ) => set( 'max', v ) } />
 			</div>
 		</>
+	);
+}
+
+/** The picture above a slider: an image from the media library, or the icon a 3.x form brought along. */
+function SliderMedia( { field, edit }: { field: SliderField; edit: Edit } ) {
+	const { api, readOnly } = useEnv();
+	const media = field.props.media;
+	const pick = api.pickImage?.bind( api );
+	const remove = (): void => edit( ( f ) => void delete ( f as SliderField ).props.media, 'props.media' );
+	return (
+		<div className="ffxb-field">
+			<span className="ffxb-field__label">{ __( 'Picture above the slider', 'funnelforms-pro' ) }</span>
+			{ 'image' === media?.kind ? <img className="ffxb-slider-media" src={ media.value } alt="" /> : null }
+			{ 'icon' === media?.kind ? <p className="ffxb-hint">{ sprintf( __( 'Icon from Funnelforms 3: %s. Choose a picture to replace it.', 'funnelforms-pro' ), media.value ) }</p> : null }
+			<div className="ffxb-inline">
+				{ pick ? (
+					<Button
+						size="sm"
+						disabled={ readOnly }
+						onClick={ async () => {
+							const image = await pick();
+							if ( image ) {
+								edit( ( f ) => void ( ( f as SliderField ).props.media = { kind: 'image', value: image.url } ), 'props.media' );
+							}
+						} }
+					>
+						{ media ? __( 'Change picture', 'funnelforms-pro' ) : __( 'Choose picture', 'funnelforms-pro' ) }
+					</Button>
+				) : null }
+				{ media ? (
+					<Button size="sm" variant="ghost" disabled={ readOnly } onClick={ remove }>
+						{ __( 'Remove picture', 'funnelforms-pro' ) }
+					</Button>
+				) : null }
+			</div>
+		</div>
 	);
 }
 
@@ -114,6 +150,15 @@ export function SliderProps( { field, edit }: { field: SliderField; edit: Edit }
 					}
 				/>
 				<Toggle label={ __( 'Visitors can type the number', 'funnelforms-pro' ) } checked={ p.manualInput.enabled } onChange={ ( v ) => edit( ( f ) => void ( ( f as SliderField ).props.manualInput.enabled = v ) ) } />
+				{ p.manualInput.enabled && ! p.range ? (
+					<TextProp
+						label={ __( 'Label of the input', 'funnelforms-pro' ) }
+						value={ p.manualInput.label }
+						hint={ __( 'Empty: the unit.', 'funnelforms-pro' ) }
+						onChange={ ( v ) => edit( ( f ) => put( ( f as SliderField ).props.manualInput, 'label', lang, v, ctx.locale ), 'manualInput.label' ) }
+					/>
+				) : null }
+				<SliderMedia field={ field } edit={ edit } />
 			</Group>
 		</>
 	);

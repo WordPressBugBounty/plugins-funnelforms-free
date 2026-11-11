@@ -34,6 +34,8 @@ export interface RuntimeConfig {
 	icons?: IconSet;
 	/** The site's privacy mode; without it the EU mode (consent needed) applies. */
 	privacy?: 'eu' | 'global' | 'open';
+	/** The site remembers where a visit began (Frontend\Origin), so a lead keeps the source of its visit (origin.ts). */
+	origin?: boolean;
 	/** Test run in the builder's preview: nothing is counted or pushed, and redirects are only named. */
 	preview?: boolean;
 }

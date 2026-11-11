@@ -13,8 +13,9 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Pages with forms are often cached, so the HTML carries no nonce. The runtime asks for a token
- * when the visitor starts; the token is bound to the form, used once, and only accepted after a
- * few seconds (bots submit at once) and before it expires.
+ * when the visitor starts; the token is bound to the form, used once (also by requests sent at the
+ * same moment, claim()), and only accepted after a few seconds (bots submit at once) and before it
+ * expires.
  */
 final class SubmitToken {
 
@@ -49,8 +50,39 @@ final class SubmitToken {
 		if ( $now - $issued < self::MIN_AGE ) {
 			return 'too_fast';
 		}
-		set_transient( 'ffx_tok_' . explode( '.', $token )[2], 1, self::MAX_AGE );
-		return null;
+		return self::claim( explode( '.', $token )[2], $now ) ? null : 'token_used';
+	}
+
+	/**
+	 * Marks a token as used in one step, so of two requests with the same token at the same time
+	 * only one gets through. Stored as the transient check() reads: in a persistent object cache
+	 * with add (Redis and Memcached add only when the key is missing), otherwise as an option row,
+	 * whose unique name lets only one INSERT IGNORE in.
+	 *
+	 * @param string $nonce Random part of the token.
+	 * @param int    $now   Current time.
+	 * @return bool Whether this request used the token.
+	 */
+	private static function claim( string $nonce, int $now ): bool {
+		$key = 'ffx_tok_' . $nonce;
+		if ( wp_using_ext_object_cache() ) {
+			return (bool) wp_cache_add( $key, 1, 'transient', self::MAX_AGE );
+		}
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- INSERT IGNORE has no WordPress function; the option is the transient check() reads.
+		$won = 1 === (int) $wpdb->query( $wpdb->prepare( 'INSERT IGNORE INTO %i (option_name, option_value, autoload) VALUES (%s, %s, %s)', $wpdb->options, '_transient_' . $key, '1', 'off' ) );
+		if ( $won ) {
+			// The expiry, so WordPress removes the row with the other expired transients.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- see above.
+			$wpdb->query( $wpdb->prepare( 'INSERT IGNORE INTO %i (option_name, option_value, autoload) VALUES (%s, %s, %s)', $wpdb->options, '_transient_timeout_' . $key, (string) ( $now + self::MAX_AGE ), 'off' ) );
+		}
+		// get_option() remembered that the row was missing (check() before); forget that.
+		$missing = wp_cache_get( 'notoptions', 'options' );
+		if ( is_array( $missing ) ) {
+			unset( $missing[ '_transient_' . $key ], $missing[ '_transient_timeout_' . $key ] );
+			wp_cache_set( 'notoptions', $missing, 'options' );
+		}
+		return $won;
 	}
 
 	/**

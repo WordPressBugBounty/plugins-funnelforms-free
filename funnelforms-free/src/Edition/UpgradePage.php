@@ -117,7 +117,7 @@ final class UpgradePage {
 						array( __( 'Thank-you page, downloads or redirect', 'funnelforms-free' ), true, true ),
 						array( __( 'Designed mails in the colour of the form, with your logo', 'funnelforms-free' ), true, true ),
 					),
-					$pro( array( 'multiple_mails', 'conditional_actions', 'pdf', 'payment', 'double_opt_in', 'abandonment', 'action:crm', 'action:webhook', 'action:chat', 'action:sms', 'action:whatsapp', 'action:conversion', 'action:googleAds' ) )
+					$pro( array( 'multiple_mails', 'conditional_actions', 'pdf', 'payment', 'double_opt_in', 'abandonment', 'action:crm', 'action:webhook', 'action:chat', 'action:sms', 'action:whatsapp', 'action:aiCall', 'action:conversion', 'action:googleAds' ) )
 				),
 			),
 			array(

@@ -92,7 +92,7 @@ describe( 'integrations', () => {
 		const api = fakeApi();
 		await act( async () => root.render( <IntegrationsScreen api={ api } config={ config } /> ) );
 		await settle();
-		const rows = [ ...container.querySelectorAll( '.ffx-cal-row' ) ];
+		const rows = [ ...container.querySelectorAll( '.ffx-cal-list:not(.ffx-meetings__services) > .ffx-cal-row' ) ];
 		expect( rows ).toHaveLength( 2 );
 		expect( rows[ 0 ]?.textContent ).toContain( 'Google Calendar' );
 		expect( rows[ 0 ]?.textContent ).toContain( 'Connected' );
@@ -164,7 +164,7 @@ describe( 'integrations', () => {
 		const api = fakeApi( { updateConnection: vi.fn( async () => ( { ref: 'caldav:c1', type: 'caldav', label: 'Privat' } ) ) } );
 		await act( async () => root.render( <IntegrationsScreen api={ api } config={ config } /> ) );
 		await settle();
-		const rows = [ ...container.querySelectorAll( '.ffx-cal-row' ) ];
+		const rows = [ ...container.querySelectorAll( '.ffx-cal-list:not(.ffx-meetings__services) > .ffx-cal-row' ) ];
 		expect( rows[ 0 ]?.querySelector( 'input[type="password"]' ) ).toBeNull();
 		const input = rows[ 1 ]?.querySelector<HTMLInputElement>( 'input[type="password"]' ) as HTMLInputElement;
 		expect( button( 'Save password', rows[ 1 ] as Element ).disabled ).toBe( true );
@@ -175,7 +175,7 @@ describe( 'integrations', () => {
 		await act( async () => button( 'Save password', rows[ 1 ] as Element ).click() );
 		await settle();
 		expect( api.updateConnection ).toHaveBeenCalledWith( 'caldav:c1', { password: 's3cret' } );
-		expect( ( container.querySelectorAll( '.ffx-cal-row' )[ 1 ]?.querySelector( 'input[type="password"]' ) as HTMLInputElement ).value ).toBe( '' );
+		expect( ( container.querySelectorAll( '.ffx-cal-list:not(.ffx-meetings__services) > .ffx-cal-row' )[ 1 ]?.querySelector( 'input[type="password"]' ) as HTMLInputElement ).value ).toBe( '' );
 	} );
 
 	it( 'links to the Account page when the website is not connected with Funnelforms', async () => {
@@ -293,5 +293,78 @@ describe( 'appointment types on the appointments page', () => {
 		await act( async () => button( 'Save', dialog ).click() );
 		await settle();
 		expect( api.saveBookingType ).toHaveBeenLastCalledWith( 1, 'Beratung', expect.objectContaining( { kind: 'call', location: 'meet.example.test/beratung', durations: [ 45 ] } ) );
+	} );
+} );
+
+describe( 'video meetings', () => {
+	const zoom = { ref: 'zoom:z1', type: 'zoom' as const, label: 'ada@zoom.test', account: 'ada@zoom.test', owner: 0, ownerName: '', error: null, usedBy: [ { ref: 'bt:1', title: 'Beratung' } ], createdAt: '2026-11-01T09:00:00Z' };
+
+	it( 'shows Meet and Teams with the calendars they come with and manages the Zoom accounts', async () => {
+		const api = fakeApi( {
+			calendarsOverview: vi.fn( async () => overview( { zoom: [ zoom ] } ) ),
+			arrangeCalendar: vi.fn( async () => overview( { zoom: [ { ...zoom, owner: 1, ownerName: 'Ada' } ] } ) ),
+		} );
+		await act( async () => root.render( <IntegrationsScreen api={ api } config={ config } /> ) );
+		await settle();
+		const section = container.querySelector( '.ffx-meetings' ) as HTMLElement;
+		const services = [ ...section.querySelectorAll( '.ffx-meetings__services > .ffx-cal-row' ) ];
+		expect( services.map( ( r ) => r.querySelector( '.ffx-cal-row__title' )?.textContent ) ).toEqual( [ 'Google Meet', 'Microsoft Teams', 'Zoom' ] );
+		// A Google calendar is connected, a Microsoft one is not.
+		expect( services[ 0 ]?.textContent ).toContain( 'Ready' );
+		expect( services[ 1 ]?.textContent ).toContain( 'Connect a Microsoft calendar' );
+		expect( section.textContent ).toContain( 'Used by: Beratung' );
+
+		await choose( section.querySelector( '.ffx-cal-field select' ) as HTMLSelectElement, '1' );
+		await settle();
+		expect( api.arrangeCalendar ).toHaveBeenCalledWith( 'zoom:z1', { owner: 1 } );
+
+		await act( async () => button( 'Remove ada@zoom.test' ).click() );
+		const dialog = container.querySelector( 'dialog[aria-label="Remove Zoom account"]' ) as HTMLDialogElement;
+		expect( dialog.textContent ).toContain( 'These appointment types then need another Zoom account: Beratung.' );
+		await act( async () => button( 'Remove', dialog ).click() );
+		await settle();
+		expect( api.deleteConnection ).toHaveBeenCalledWith( 'zoom:z1' );
+	} );
+
+	it( 'signs in to Zoom in a window', async () => {
+		const open = vi.spyOn( window, 'open' ).mockReturnValue( null );
+		const api = fakeApi( {
+			calendarsOverview: vi.fn( async () => overview( { zoom: [] } ) ),
+			startCalendarSignIn: vi.fn( async () => ( { url: 'https://api.example.com/oauth/zoom/authorize?ticket=t', state: 'z' } ) ),
+			calendarSignIn: vi.fn( async () => ( { ok: true, state: 'z', connection: { ref: 'zoom:z2', type: 'zoom', label: 'grace@zoom.test', error: null } } ) ),
+		} );
+		await act( async () => root.render( <IntegrationsScreen api={ api } config={ config } /> ) );
+		await settle();
+		await act( async () => button( 'Connect Zoom' ).click() );
+		const dialog = container.querySelector( 'dialog[aria-label="Connect Zoom"]' ) as HTMLDialogElement;
+		expect( dialog.textContent ).toContain( 'Funnelforms reads nothing else in your account.' );
+		await act( async () => button( 'Sign in to Zoom', dialog ).click() );
+		await settle();
+		expect( api.startCalendarSignIn ).toHaveBeenCalledWith( 'zoom', undefined );
+		expect( open ).toHaveBeenCalled();
+		open.mockRestore();
+	} );
+} );
+
+describe( 'video meeting of an appointment type', () => {
+	const config: BookingConfig = { version: 2, kind: 'video', location: 'https://meet.example.test/fix', timezone: '', hours: [ { days: [ 1, 2, 3, 4, 5 ], from: '09:00', to: '17:00' } ], durations: [ 30 ], interval: 30, bufferBefore: 0, bufferAfter: 0, notice: 60, horizon: { mode: 'rolling', amount: 2, unit: 'week' }, closed: [], special: [], dailyLimit: 0, staff: [], assignment: 'roundRobin', invitation: true, reminders: [], calendars: { write: '', conflicts: [] }, meeting: '', meetingAccount: '' };
+	const data: BookingTypes = { types: [ { ref: 'bt:1', id: 1, title: 'Beratung', config, legacy: false, cronofy: false } ], staff: [], calendars: [], zoom: [ { ref: 'zoom:z1', label: 'ada@zoom.test', owner: 0, error: null } ], timezone: 'Europe/Berlin', defaults: config };
+
+	it( 'chooses Zoom instead of the fixed link and takes the only account', async () => {
+		const api = { bookingTypes: vi.fn( async () => data ), saveBookingType: vi.fn( async ( _id: number | null, title: string, c: BookingConfig ) => ( { ref: 'bt:1', id: 1, title, config: c, legacy: false, cronofy: false } ) ), deleteBookingType: vi.fn(), startCalendarSignIn: vi.fn(), calendarSignIn: vi.fn(), createConnection: vi.fn(), updateConnection: vi.fn() };
+		await act( async () => root.render( <TypesTab root="/" nonce="n" canConnect api={ api } say={ vi.fn() } /> ) );
+		await settle();
+		await act( async () => button( 'Edit Beratung' ).click() );
+		const dialog = container.querySelector( 'dialog[aria-label="Edit appointment type"]' ) as HTMLDialogElement;
+		const select = ( label: string ): HTMLSelectElement => document.getElementById( [ ...dialog.querySelectorAll( 'label' ) ].find( ( l ) => l.textContent === label )?.htmlFor ?? '' ) as HTMLSelectElement;
+		expect( select( 'Video meeting' ).value ).toBe( '' );
+		await choose( select( 'Video meeting' ), 'zoom' );
+		expect( select( 'Zoom account' ).value ).toBe( 'zoom:z1' );
+		// Without staff there is no person booked whose account could hold the meetings.
+		expect( [ ...select( 'Zoom account' ).options ].map( ( o ) => o.value ) ).toEqual( [ '', 'zoom:z1' ] );
+		expect( ( dialog.querySelector( '[hidden]' ) as HTMLElement | null )?.textContent ).toContain( 'Video link' );
+		await act( async () => button( 'Save', dialog ).click() );
+		await settle();
+		expect( api.saveBookingType ).toHaveBeenCalledWith( 1, 'Beratung', expect.objectContaining( { meeting: 'zoom', meetingAccount: 'zoom:z1' } ) );
 	} );
 } );

@@ -19,6 +19,7 @@ use Funnelforms\Application\SpamCheck;
 use Funnelforms\Application\SaveProgress;
 use Funnelforms\Application\SubmitEntry;
 use Funnelforms\Application\UploadFile;
+use Funnelforms\Compat\Migration\EntryConverter;
 use Funnelforms\Edition\Edition;
 use Funnelforms\Infrastructure\Repository\FileRepository;
 use Funnelforms\Infrastructure\Repository\FormRepository;
@@ -601,7 +602,7 @@ final class FormsController {
 		$path = (array) ( $result['path'] ?? array() );
 		unset( $result['path'] );
 		$source = FormStats::completed( (int) $form['id'], (string) $request['sid'], time(), (string) ( $path['contact'] ?? '' ), (string) ( $path['end'] ?? '' ) );
-		LeadSources::note( (int) ( $result['entry'] ?? 0 ), $source, (string) ( ( (array) $request['page'] )['query'] ?? '' ) );
+		LeadSources::note( (int) ( $result['entry'] ?? 0 ), $source, EntryConverter::campaign( (array) $request['page'] ) );
 		// In the visitor's request, so that Independent Analytics adds it to their visit.
 		IndependentAnalytics::submitted( $form );
 		self::progress()?->forget( $form, (string) $request['progress'] );

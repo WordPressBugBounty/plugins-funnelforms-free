@@ -104,7 +104,7 @@ function fakeApi( hub: Partial<HubApi> = {}, rest: Partial<HubScreenApi> = {} ):
 	};
 }
 
-const config = { interfacesUrl: 'admin.php?page=funnelforms-settings&tab=interfaces', builderUrl: 'admin.php?page=funnelforms-builder' };
+const config = { interfacesUrl: 'admin.php?page=funnelforms-settings&tab=interfaces', leadcallerUrl: 'admin.php?page=funnelforms-leadcaller', builderUrl: 'admin.php?page=funnelforms-builder' };
 
 describe( 'the rules of the overview', () => {
 	it( 'puts the CRM tools of the server into their categories and filters by search, category and connections', () => {
@@ -153,7 +153,9 @@ describe( 'the overview of all integrations', () => {
 		expect( tile( 'CalDAV' ).querySelector( '.ffx-badge' ) ).toBeNull();
 		expect( tile( 'HubSpot' ) ).toBeTruthy();
 		expect( tile( 'Zapier, Make, n8n' ).getAttribute( 'href' ) ).toBe( config.interfacesUrl );
-		expect( [ ...container.querySelectorAll( '.ffx-hub-group h3' ) ].map( ( h ) => h.textContent ) ).toEqual( [ 'Payments', 'CRM', 'Newsletter', 'Spreadsheets', 'Calendars', 'Messages', 'Conversion tracking', 'Automation' ] );
+		// ElevenLabs is connected in one place only: the page of the AI Phone Agent.
+		expect( tile( 'ElevenLabs' ).getAttribute( 'href' ) ).toBe( config.leadcallerUrl );
+		expect( [ ...container.querySelectorAll( '.ffx-hub-group h3' ) ].map( ( h ) => h.textContent ) ).toEqual( [ 'Payments', 'CRM', 'Newsletter', 'Spreadsheets', 'Calendars', 'Video meetings', 'Messages', 'Conversion tracking', 'Automation' ] );
 	} );
 
 	it( 'sets up the Stripe webhook with one click and loads the overview again', async () => {
@@ -276,7 +278,7 @@ describe( 'the overview of all integrations', () => {
 		expect( container.textContent ).toContain( 'No integration matches your search.' );
 		await act( async () => button( 'Messages' ).click() );
 		await type( container.querySelector( '.ffx-hub-search input' ) as HTMLInputElement, '' );
-		expect( [ ...container.querySelectorAll( '.ffx-hub-tile strong' ) ].map( ( s ) => s.textContent ) ).toEqual( [ 'Slack', 'Microsoft Teams', 'WhatsApp Business', 'Twilio', 'Bird' ] );
+		expect( [ ...container.querySelectorAll( '.ffx-hub-tile strong' ) ].map( ( s ) => s.textContent ) ).toEqual( [ 'Slack', 'Microsoft Teams', 'WhatsApp Business', 'Twilio', 'Bird', 'ElevenLabs' ] );
 	} );
 
 	it( 'has no invitation to import forms of other plugins, found or not', async () => {

@@ -25,6 +25,13 @@ function complete( action: Action ): void {
 			action.config.to = { de_DE: '{{field:phone}}' };
 			action.config.connectionRef = 'conn:1';
 			break;
+		case 'aiCall':
+			action.config.agent = 'agent_01abc';
+			action.config.consentField = 'c_call';
+			action.config.share = 'some';
+			action.config.fields = [ 'f1' ];
+			action.config.context = 'Requests for a heat pump.';
+			break;
 		case 'sms':
 			action.config.to = { de_DE: '+49171000000' };
 			action.config.connectionRef = 'conn:1';
@@ -194,6 +201,31 @@ describe( 'actions', () => {
 		doc.actions.forEach( complete );
 		expect( validateDocument( doc ).errors ).toEqual( [] );
 		expect( checkReferences( doc ) ).toEqual( [] );
+	} );
+
+	it( 'link an AI Phone Agent agent and find the phone and consent fields of the form', () => {
+		const doc = blank();
+		const contact = doc.nodes.find( ( n ) => 'contact' === n.type );
+		if ( ! contact || 'contact' !== contact.type ) {
+			throw new Error( 'missing' );
+		}
+		const empty = added( doc, 'aiCall' );
+		expect( empty ? actionGaps( empty, 'de_DE' ) : null ).toEqual( [ 'agent', 'consent' ] );
+		contact.fields.push(
+			{ id: 'c_phone', type: 'phone', key: 'telefon', label: { de_DE: 'Telefon' }, required: true, props: { placeholder: { de_DE: '' } } } as ( typeof contact.fields )[ number ],
+			{ id: 'c_call', type: 'consent', key: 'anruf', label: { de_DE: 'Ruft mich an' }, required: false, props: {} } as unknown as ( typeof contact.fields )[ number ]
+		);
+		const call = added( doc, 'aiCall' );
+		if ( ! call || 'aiCall' !== call.kind ) {
+			throw new Error( 'missing' );
+		}
+		// Voice, number, questions and call hours belong to the agent of Funnelforms → AI Phone Agent.
+		expect( call.config ).toEqual( { agent: '', phoneField: 'c_phone', consentField: 'c_call' } );
+		expect( actionGaps( call, 'de_DE' ) ).toEqual( [ 'agent' ] );
+		call.config.agent = 'agent_0123456789abcdef';
+		expect( actionGaps( call, 'de_DE' ) ).toEqual( [] );
+		// ElevenLabs is no connection an action is added for: agents are linked instead.
+		expect( addActionFor( doc, { type: 'elevenlabs', ref: 'elevenlabs:1' } ) ).toBeNull();
 	} );
 
 	it( 'treat MessageBird, which is retired, as a missing connection', () => {

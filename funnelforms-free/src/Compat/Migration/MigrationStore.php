@@ -339,6 +339,17 @@ class MigrationStore {
 	}
 
 	/**
+	 * Gives a form a category, unless it has one.
+	 *
+	 * @param int    $form_id  ffx_forms.id.
+	 * @param string $category Category, at most 100 characters as the column.
+	 */
+	public function set_category( int $form_id, string $category ): void {
+		global $wpdb;
+		$wpdb->query( $wpdb->prepare( "UPDATE %i SET category = %s WHERE id = %d AND category = ''", Schema::table( 'forms' ), mb_substr( $category, 0, 100 ), $form_id ) );
+	}
+
+	/**
 	 * Stores a migrated entry.
 	 *
 	 * @param array<string,mixed> $row EntryConverter row.

@@ -216,6 +216,10 @@ final class Renderer {
 		if ( ! PrivacyMode::eu() ) {
 			$config['privacy'] = PrivacyMode::current();
 		}
+		// The lead counts for the page the visit began on when this one has no source (Origin).
+		if ( Origin::enabled() ) {
+			$config['origin'] = true;
+		}
 		$icons = Icons::used( $document );
 		if ( array() !== $icons ) {
 			$config['icons'] = $icons;

@@ -55,4 +55,4 @@ export function proUrl(): string {
 /** Fallbacks while no catalog arrived; they match Edition::PRO_* in the plugin. */
 const PRO_STEP_FIELDS = [ 'slider', 'file', 'address', 'signature', 'repeat', 'booking', 'result' ];
 const PRO_CONTACT_FIELDS = [ 'phone_verification', 'html' ];
-const PRO_ACTIONS = [ 'webhook', 'crm', 'chat', 'sms', 'whatsapp', 'conversion', 'googleAds' ];
+const PRO_ACTIONS = [ 'webhook', 'crm', 'chat', 'sms', 'whatsapp', 'conversion', 'googleAds', 'aiCall' ];

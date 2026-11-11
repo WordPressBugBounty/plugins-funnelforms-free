@@ -26,7 +26,7 @@ import { languageLabel } from './Languages';
 import { ChoiceProps, DropdownProps } from './Answers';
 import { DateProps, NumberProps, RatingProps, SliderProps, TimeProps } from './RangeProps';
 import { RepeatProps } from './RepeatProps';
-import { ContactLayoutProps, ContactOptions } from './ContactLook';
+import { ContactLayoutProps, ContactOptions, ContactTextProps, SalutationProps } from './ContactLook';
 import { ContentProps } from './ContentProps';
 import { ResultProps } from './ResultProps';
 import { FileProps, SignatureProps } from './UploadProps';
@@ -133,6 +133,13 @@ export function FormSettings( { doc }: { doc: FormDocument } ) {
 		<Section title={ __( 'General', 'funnelforms-pro' ) }>
 			<TextInput label={ __( 'Name of the form', 'funnelforms-pro' ) } value={ doc.title } onChange={ ( v ) => change( ( d ) => void ( d.title = v ), 'title' ) } hint={ __( 'Only you see the name; visitors see the questions.', 'funnelforms-pro' ) } />
 			<FormHeading doc={ doc } />
+			<ButtonLabels doc={ doc } />
+			<Toggle
+				label={ __( 'Fade the form while sending', 'funnelforms-pro' ) }
+				hint={ __( 'Shows visitors that the entry is on its way until it is saved.', 'funnelforms-pro' ) }
+				checked={ settings.loadingAnimation }
+				onChange={ ( v ) => change( ( d ) => void ( d.settings.loadingAnimation = v ) ) }
+			/>
 			{ /* Pro features: Funnelforms Free shows them only to switch them off. */ }
 			{ 'free' !== process.env.FUNNELFORMS_EDITION || settings.savePartialEntries ? (
 				<Toggle
@@ -194,6 +201,28 @@ function FormHeading( { doc }: { doc: FormDocument } ) {
 				/>
 			) : null }
 		</>
+	);
+}
+
+/**
+ * Own texts on the next and back buttons (settings.nextLabel and prevLabel, from global_next_text
+ * and global_prev_text of Funnelforms 3). Empty in every language: the standard texts.
+ */
+function ButtonLabels( { doc }: { doc: FormDocument } ) {
+	const change = useChange();
+	const { ctx, lang } = useEnv();
+	const write = ( key: 'nextLabel' | 'prevLabel' ) => ( value: string ): void =>
+		change( ( d ) => {
+			put( d.settings, key, lang, value, ctx.locale );
+			if ( Object.values( d.settings[ key ] ?? {} ).every( ( v ) => '' === v.trim() ) ) {
+				d.settings[ key ] = undefined;
+			}
+		}, 'settings.' + key );
+	return (
+		<div className="ffxb-pair">
+			<TextProp label={ __( 'Text of the next button', 'funnelforms-pro' ) } value={ doc.settings.nextLabel } onChange={ write( 'nextLabel' ) } hint={ __( 'Empty: the standard text.', 'funnelforms-pro' ) } />
+			<TextProp label={ __( 'Text of the back button', 'funnelforms-pro' ) } value={ doc.settings.prevLabel } onChange={ write( 'prevLabel' ) } />
+		</div>
 	);
 }
 
@@ -476,6 +505,19 @@ function ContactProps( { node }: { node: Extract<FormNode, { type: 'contact' }> 
 			<TextProp label={ __( 'Heading', 'funnelforms-pro' ) } value={ node.title } onChange={ edit( 'title' ) } />
 			<TextProp label={ __( 'Text below the heading', 'funnelforms-pro' ) } value={ node.description } onChange={ edit( 'description' ) } multiline />
 			<TextProp label={ __( 'Button', 'funnelforms-pro' ) } value={ node.submitLabel } onChange={ edit( 'submitLabel' ) } />
+			<Toggle
+				label={ __( 'Back button and progress bar', 'funnelforms-pro' ) }
+				hint={ __( 'Shown below the fields, as on the other steps.', 'funnelforms-pro' ) }
+				checked={ node.showBottomBar }
+				onChange={ ( v ) =>
+					change( ( d ) => {
+						const n = findNode( d, node.id );
+						if ( n && 'contact' === n.type ) {
+							n.showBottomBar = v;
+						}
+					}, `${ node.id }:showBottomBar` )
+				}
+			/>
 			<ContactLayoutProps
 				node={ node }
 				change={ ( recipe, key ) =>
@@ -622,6 +664,8 @@ function FieldProps( { node, field }: { node: Extract<FormNode, { type: 'step' |
 					hint={ __( 'Links are allowed, e.g. to the privacy policy.', 'funnelforms-pro' ) }
 				/>
 			) : null }
+			{ contact && 'text' === field.type && ! hidden ? <ContactTextProps field={ field as ContactField } edit={ edit as ( recipe: ( f: ContactField ) => void, key?: string ) => void } readOnly={ readOnly } /> : null }
+			{ contact && 'salutation' === field.type ? <SalutationProps field={ field as ContactField } edit={ edit as ( recipe: ( f: ContactField ) => void, key?: string ) => void } readOnly={ readOnly } /> : null }
 			{ contact && 'select' === field.type ? <ContactOptions field={ field as ContactField } edit={ edit as ( recipe: ( f: ContactField ) => void, key?: string ) => void } /> : null }
 			{ contact && 'captcha' === field.type ? <CaptchaHint /> : null }
 			{ contact && api.icons && ! hidden && [ 'name', 'email', 'phone', 'phone_verification', 'text' ].includes( field.type ) ? (

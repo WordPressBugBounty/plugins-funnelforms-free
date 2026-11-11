@@ -65,7 +65,7 @@ beforeEach( () => {
 		edition: 'free',
 		proStepFields: [ 'slider', 'file', 'address', 'signature', 'repeat', 'booking' ],
 		proContactFields: [ 'phone_verification', 'html' ],
-		proActions: [ 'webhook', 'crm', 'chat', 'sms', 'whatsapp', 'conversion', 'googleAds' ],
+		proActions: [ 'webhook', 'crm', 'chat', 'sms', 'whatsapp', 'conversion', 'googleAds', 'aiCall' ],
 		freeConditionOps: [ 'selected' ],
 		proFeatures: [ 'calculations' ],
 		labels: { calculations: 'Calculations and price calculators' },

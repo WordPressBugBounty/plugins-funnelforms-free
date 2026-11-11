@@ -90,6 +90,20 @@ export function LanguagesSection( { doc }: { doc: FormDocument } ) {
 					} }
 				/>
 			) }
+			{ /* Forms in one language: buttons and messages follow the page or a language of their own (3.x fe_locale). */ }
+			{ 0 === others.length || '' !== doc.settings.uiLocale ? (
+				<Select<string>
+					label={ __( 'Language of buttons and messages', 'funnelforms-pro' ) }
+					value={ doc.settings.uiLocale }
+					disabled={ readOnly }
+					hint={ __( 'Such as Next, Back and the error messages.', 'funnelforms-pro' ) }
+					options={ [
+						{ value: '', label: __( 'Language of the page', 'funnelforms-pro' ) },
+						...[ ...new Set<string>( [ ...LANGUAGES, ...( '' !== doc.settings.uiLocale ? [ doc.settings.uiLocale ] : [] ) ] ) ].map( ( l ) => ( { value: l, label: name( l ) } ) ).sort( ( a, b ) => a.label.localeCompare( b.label ) ),
+					] }
+					onChange={ ( locale ) => change( ( d ) => void ( d.settings.uiLocale = locale ), 'settings.uiLocale' ) }
+				/>
+			) : null }
 			{ /* Pro: Funnelforms Free shows the choice only to switch it off. */ }
 			{ ( 'free' === process.env.FUNNELFORMS_EDITION ? true === doc.settings.languageSwitch : others.length > 0 ) ? (
 				<Toggle

@@ -24,6 +24,8 @@ export interface EntriesConfig {
 	stages?: LeadStage[] | null;
 	/** Whether the user may rename, add, order and delete the stages. */
 	editStages?: boolean;
+	/** Whether the user may delete entries (a right of its own); missing counts as allowed. */
+	canDelete?: boolean;
 }
 
 const PER_PAGE = 25;
@@ -122,6 +124,13 @@ export function deliveryName( action: string ): string {
 	}
 	if ( action.startsWith( ':calendar:' ) ) {
 		return __( 'Calendar entry', 'funnelforms-pro' );
+	}
+	if ( action.startsWith( ':aicall:result:' ) ) {
+		// The job that fetches the outcome of a call from ElevenLabs (Application\AiCalls::RESULT).
+		return __( 'AI Phone Agent: result of the call', 'funnelforms-pro' );
+	}
+	if ( action.startsWith( ':aicall:retry:' ) ) {
+		return __( 'AI Phone Agent: next call', 'funnelforms-pro' );
 	}
 	if ( ':abandon:1' === action ) {
 		return __( 'Reminder to the visitor', 'funnelforms-pro' );
@@ -726,7 +735,7 @@ export function EntriesScreen( { api, config = {} }: { api: EntriesApi; config?:
 				) : null }
 			</section>
 
-			{ selected.length ? <BulkBar count={ selected.length } archive={ archive } spam={ spam } assignees={ assignees } busy={ busy } onApply={ ( c, done ) => void bulk( c, done ) } onClear={ () => setSelected( [] ) } /> : null }
+			{ selected.length ? <BulkBar count={ selected.length } archive={ archive } spam={ spam } assignees={ assignees } busy={ busy } canDelete={ false !== config.canDelete } onApply={ ( c, done ) => void bulk( c, done ) } onClear={ () => setSelected( [] ) } /> : null }
 
 			{ null !== stageEdit ? (
 				<StageDialog
@@ -751,6 +760,7 @@ export function EntriesScreen( { api, config = {} }: { api: EntriesApi; config?:
 					id={ state.entry }
 					assignees={ assignees }
 					user={ config.user }
+					canDelete={ false !== config.canDelete }
 					date={ date }
 					onClose={ () => open( null ) }
 					onChanged={ () => {
@@ -787,6 +797,14 @@ export function duration( seconds: number ): string {
 	return sprintf( __( '%1$d h %2$s min', 'funnelforms-pro' ), Math.floor( s / 3600 ), String( Math.floor( ( s % 3600 ) / 60 ) ).padStart( 2, '0' ) );
 }
 
+/**
+ * Whether an address a visitor's browser sent may be a link: only web addresses. The plugin
+ * keeps no others now, but entries imported from 3.x or saved earlier may hold anything.
+ */
+function webAddress( url: string ): boolean {
+	return /^https?:\/\/[^/\s]/i.test( url.trim() );
+}
+
 /** EntryDevice, browser, where the visitor came from and the time per step, longest step marked. */
 function VisitSection( { visit }: { visit: EntryVisit } ) {
 	const longest = Math.max( 0, ...visit.steps.map( ( s ) => s.seconds ) );
@@ -798,9 +816,13 @@ function VisitSection( { visit }: { visit: EntryVisit } ) {
 				{ null !== visit.seconds ? <Fact label={ __( 'Time to fill in', 'funnelforms-pro' ) }>{ duration( visit.seconds ) }</Fact> : null }
 				{ visit.referrer ? (
 					<Fact label={ __( 'Came from', 'funnelforms-pro' ) }>
-						<a href={ visit.referrer } target="_blank" rel="noreferrer noopener">
-							{ visit.referrer.replace( /^https?:\/\//, '' ) }
-						</a>
+						{ webAddress( visit.referrer ) ? (
+							<a href={ visit.referrer } target="_blank" rel="noreferrer noopener">
+								{ visit.referrer.replace( /^https?:\/\//, '' ) }
+							</a>
+						) : (
+							visit.referrer
+						) }
 					</Fact>
 				) : null }
 			</dl>
@@ -1328,7 +1350,7 @@ function StageDialog( props: { stages: LeadStage[]; stage: LeadStage | null; bus
 	);
 }
 
-function BulkBar( props: { count: number; archive: boolean; spam?: boolean; assignees: UserRef[]; busy: boolean; onApply: ( changes: BulkChanges, done: string ) => void; onClear: () => void } ) {
+function BulkBar( props: { count: number; archive: boolean; spam?: boolean; assignees: UserRef[]; busy: boolean; canDelete: boolean; onApply: ( changes: BulkChanges, done: string ) => void; onClear: () => void } ) {
 	const [ tagText, setTagText ] = useState( '' );
 	const [ confirm, setConfirm ] = useState( false );
 	const { count } = props;
@@ -1414,10 +1436,12 @@ function BulkBar( props: { count: number; archive: boolean; spam?: boolean; assi
 					</button>
 				</>
 			) }
-			<button type="button" className="ffxb-bulk__button ffxb-bulk__button--danger" disabled={ props.busy } onClick={ () => setConfirm( true ) }>
-				<Icon name="trash" />
-				{ __( 'Delete', 'funnelforms-pro' ) }
-			</button>
+			{ props.canDelete ? (
+				<button type="button" className="ffxb-bulk__button ffxb-bulk__button--danger" disabled={ props.busy } onClick={ () => setConfirm( true ) }>
+					<Icon name="trash" />
+					{ __( 'Delete', 'funnelforms-pro' ) }
+				</button>
+			) : null }
 			{ confirm ? (
 				<Dialog
 					open
@@ -1445,7 +1469,7 @@ function BulkBar( props: { count: number; archive: boolean; spam?: boolean; assi
 	);
 }
 
-function EntryPanel( props: { api: EntriesApi; id: number; assignees: UserRef[]; user?: { id: number; admin: boolean }; date: Dates; onClose: () => void; onChanged: () => void; onDeleted: () => void } ) {
+function EntryPanel( props: { api: EntriesApi; id: number; assignees: UserRef[]; user?: { id: number; admin: boolean }; canDelete?: boolean; date: Dates; onClose: () => void; onChanged: () => void; onDeleted: () => void } ) {
 	const { api, id, date } = props;
 	const [ entry, setEntry ] = useState<EntryDetail | null>( null );
 	const [ error, setError ] = useState<string | null>( null );
@@ -1704,6 +1728,8 @@ function EntryPanel( props: { api: EntriesApi; id: number; assignees: UserRef[];
 							</dl>
 						</Section>
 
+						{ entry.aiCalls?.length ? <AiCallsSection calls={ entry.aiCalls } date={ date } /> : null }
+
 						<Section title={ __( 'Appointments', 'funnelforms-pro' ) } show={ entry.appointments.length > 0 }>
 							<ul className="ffxb-appointments">
 								{ entry.appointments.map( ( a ) => (
@@ -1868,9 +1894,13 @@ function EntryPanel( props: { api: EntriesApi; id: number; assignees: UserRef[];
 							<dl className="ffxb-facts">
 								{ entry.page?.url || entry.sourceUrl ? (
 									<Fact label={ __( 'Page', 'funnelforms-pro' ) }>
-										<a href={ entry.page?.url ?? entry.sourceUrl ?? '' } target="_blank" rel="noreferrer noopener">
-											{ entry.page?.title || entry.page?.url || entry.sourceUrl }
-										</a>
+										{ webAddress( entry.page?.url || entry.sourceUrl || '' ) ? (
+											<a href={ entry.page?.url || entry.sourceUrl || '' } target="_blank" rel="noreferrer noopener">
+												{ entry.page?.title || entry.page?.url || entry.sourceUrl }
+											</a>
+										) : (
+											entry.page?.title || entry.page?.url || entry.sourceUrl
+										) }
 									</Fact>
 								) : null }
 								{ Object.entries( entry.utm ).map( ( [ k, v ] ) => (
@@ -1915,9 +1945,11 @@ function EntryPanel( props: { api: EntriesApi; id: number; assignees: UserRef[];
 							<Button size="sm" disabled={ busy } onClick={ () => void run( () => api.updateEntry( id, { archived: ! entry.archived } ), entry.archived ? __( 'Restored.', 'funnelforms-pro' ) : __( 'Archived.', 'funnelforms-pro' ) ) }>
 								{ entry.archived ? __( 'Restore', 'funnelforms-pro' ) : __( 'Archive', 'funnelforms-pro' ) }
 							</Button>
-							<Button size="sm" variant="danger" disabled={ busy } onClick={ () => setConfirm( true ) }>
-								{ __( 'Delete', 'funnelforms-pro' ) }
-							</Button>
+							{ false === props.canDelete ? null : (
+								<Button size="sm" variant="danger" disabled={ busy } onClick={ () => setConfirm( true ) }>
+									{ __( 'Delete', 'funnelforms-pro' ) }
+								</Button>
+							) }
 						</footer>
 					</div>
 				) : null }
@@ -1971,6 +2003,64 @@ function money( amount: number, currency: string ): string {
 	} catch {
 		return `${ amount } ${ currency }`;
 	}
+}
+
+/** The calls of the AI Phone Agent: each attempt with its time, outcome, summary, details and transcript. */
+function AiCallsSection( { calls, date }: { calls: NonNullable<EntryDetail[ 'aiCalls' ]>; date: Dates } ) {
+	const length = ( s: number ): string => `${ Math.floor( s / 60 ) }:${ String( s % 60 ).padStart( 2, '0' ) }`;
+	return (
+		<Section title={ __( 'AI Phone Agent', 'funnelforms-pro' ) } show>
+			{ calls.map( ( call ) => (
+				<div key={ call.action } className="ffxb-aicalls">
+					{ call.agent ? <p className="ffxb-aicalls__agent">{ call.agent }</p> : null }
+					<ol className="ffxb-aicalls__list">
+						{ call.attempts.map( ( a, i ) => (
+							<li key={ i } className="ffxb-aicall">
+								<p className="ffxb-aicall__head">
+									<strong>{ sprintf( /* translators: %d: number of the call */ __( 'Call %d', 'funnelforms-pro' ), a.attempt ) }</strong>
+									{ a.at ? <span className="ffxb-aicall__time">{ date( a.at ) }</span> : null }
+									{ a.timeout ? (
+										<Badge>{ __( 'No result', 'funnelforms-pro' ) }</Badge>
+									) : ! a.reached ? (
+										<Badge tone="warning">{ __( 'Not reached', 'funnelforms-pro' ) }</Badge>
+									) : (
+										<Badge tone={ true === a.goal ? 'success' : 'neutral' }>{ true === a.goal ? __( 'Goal reached', 'funnelforms-pro' ) : false === a.goal ? __( 'Goal not reached', 'funnelforms-pro' ) : __( 'Call finished', 'funnelforms-pro' ) }</Badge>
+									) }
+									{ a.reached && a.duration ? <span className="ffxb-aicall__time">{ length( a.duration ) }</span> : null }
+								</p>
+								{ a.summary ? <p className="ffxb-aicall__summary">{ a.summary }</p> : null }
+								{ a.details.length ? (
+									<dl className="ffxb-lc-details">
+										{ a.details.map( ( d ) => (
+											<React.Fragment key={ d.label }>
+												<dt>{ d.label }</dt>
+												<dd>{ d.value }</dd>
+											</React.Fragment>
+										) ) }
+									</dl>
+								) : null }
+								{ a.transcript.length ? (
+									<details className="ffxb-lc-transcript">
+										<summary>{ __( 'Conversation', 'funnelforms-pro' ) }</summary>
+										{ a.transcript.map( ( line, j ) => (
+											<p key={ j } className={ 'agent' === line.role ? 'is-agent' : 'is-lead' }>
+												<strong>{ 'agent' === line.role ? __( 'Agent', 'funnelforms-pro' ) : __( 'Lead', 'funnelforms-pro' ) }:</strong> { line.text }
+											</p>
+										) ) }
+									</details>
+								) : null }
+							</li>
+						) ) }
+					</ol>
+					{ 'scheduled' === call.status && call.next ? (
+						<p className="ffxb-aicalls__next">{ sprintf( /* translators: %s: day and time */ __( 'Next call: %s', 'funnelforms-pro' ), date( call.next ) ) }</p>
+					) : 'calling' === call.status || 'called' === call.status ? (
+						<p className="ffxb-aicalls__next">{ __( 'Call running; the result follows a few minutes after it ends.', 'funnelforms-pro' ) }</p>
+					) : null }
+				</div>
+			) ) }
+		</Section>
+	);
 }
 
 function Section( { title: heading, show, children }: { title: string; show: boolean; children: React.ReactNode } ) {

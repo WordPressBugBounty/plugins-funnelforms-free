@@ -16,7 +16,9 @@ defined( 'ABSPATH' ) || exit;
  * detect() keeps of them only utm_source, utm_medium and utm_campaign, else whether an ad click id
  * is there, else the host of the referrer with the medium organic (search engines), social or
  * referral; "internal" for a page of the same site. Page views without a source came directly, or
- * their browser did not say.
+ * their browser did not say. A Meta click id (fbclid) without a referrer, as the in-app browsers of
+ * Facebook and Instagram send it, counts as facebook / social: Meta adds it to ads and to links in
+ * posts alike, so only utm_medium can tell an ad.
  */
 final class TrafficSources {
 
@@ -57,6 +59,8 @@ final class TrafficSources {
 			'gbraid'  => 'google',
 			'wbraid'  => 'google',
 			'msclkid' => 'bing',
+			// TikTok adds it to clicks on ads only.
+			'ttclid'  => 'tiktok',
 		) as $key => $network ) {
 			if ( isset( $query[ $key ] ) ) {
 				return array(
@@ -67,7 +71,10 @@ final class TrafficSources {
 			}
 		}
 		$host = in_array( strtolower( (string) wp_parse_url( $referrer, PHP_URL_SCHEME ) ), array( 'http', 'https' ), true ) ? self::host( (string) wp_parse_url( $referrer, PHP_URL_HOST ) ) : '';
-		if ( '' === $host ) {
+		if ( '' === $host && isset( $query['fbclid'] ) ) {
+			$source = 'facebook';
+			$medium = 'social';
+		} elseif ( '' === $host ) {
 			$medium = '';
 		} elseif ( in_array( $host, array_map( array( self::class, 'host' ), $own ), true ) ) {
 			$medium = 'internal';

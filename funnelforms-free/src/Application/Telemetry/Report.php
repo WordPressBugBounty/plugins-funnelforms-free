@@ -144,7 +144,7 @@ final class Report {
 	);
 
 	/** Action kinds counted per form (a CRM action counts as crm:<provider>). */
-	private const ACTIONS = array( 'email', 'autoresponder', 'webhook', 'chat', 'sms', 'whatsapp', 'conversion', 'googleAds' );
+	private const ACTIONS = array( 'email', 'autoresponder', 'webhook', 'chat', 'sms', 'whatsapp', 'conversion', 'googleAds', 'aiCall' );
 
 	/**
 	 * The report of this site now.

@@ -12,6 +12,7 @@ namespace Funnelforms\Admin;
 use Funnelforms\Application\PrivacyMode;
 use Funnelforms\Application\Retention;
 use Funnelforms\Edition\Edition;
+use Funnelforms\Frontend\Origin;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -91,6 +92,7 @@ final class PrivacyPolicyText {
 				$h( __( 'Form statistics', 'funnelforms-free' ) ),
 				$p( __( 'The plugin counts how often a form is shown and submitted, which steps visitors go through in which order, and which fields stopped them because an entry was missing or not valid. It uses a random identifier per page view and stores only its hash, without IP address or browser details, for 400 days. These basic statistics store nothing in your browser and do not read anything from it.', 'funnelforms-free' ) ),
 				Edition::is_pro() ? $p( self::extended( $eu ) ) : '',
+				Origin::enabled() ? $p( self::origin( $eu ) ) : '',
 				$free ? '' : $h( __( 'Browser storage', 'funnelforms-free' ) ),
 				$free ? '' : $p( __( 'For forms shown as a popup, your browser stores in local storage that the popup has already been shown (the entry starts with "ffx-popup-"). The entry remains until you clear it in your browser.', 'funnelforms-free' ) ),
 				$h( __( 'Abuse protection', 'funnelforms-free' ) ),
@@ -121,6 +123,20 @@ final class PrivacyPolicyText {
 				$free ? '' : $p( __( 'If we use the support of the maker, they may view form entries through time-limited access. We have concluded a data processing agreement with Funnelforms LLC for this.', 'funnelforms-free' ) ),
 			)
 		);
+	}
+
+	/**
+	 * The paragraph on the source of a visit remembered for a later page (Frontend\Origin), by privacy mode.
+	 *
+	 * @param bool $eu EU mode: only with consent; otherwise unless the visitor objects.
+	 */
+	private static function origin( bool $eu ): string {
+		$what = __( 'the campaign parameters (UTM) and ad click IDs of the address on which you arrived and the domain of the website you came from, in session storage (key "ffx_origin") until you close the tab. If you then send a form on another page of our website, we store these values with your entry, so that we know which advertisement or website brought the enquiry.', 'funnelforms-free' );
+		return $eu
+			/* translators: %s: what the browser keeps, a sentence fragment that starts in lower case. */
+			? sprintf( __( 'Source of your visit: only if you consent to statistics in our cookie settings, your browser keeps %s The legal basis is your consent (Art. 6(1)(a) GDPR; for the storage in your browser § 25(1) TDDDG), which you can withdraw at any time.', 'funnelforms-free' ), $what )
+			/* translators: %s: what the browser keeps, a sentence fragment that starts in lower case. */
+			: sprintf( __( 'Source of your visit: unless you object, your browser keeps %s The legal basis is our legitimate interest in knowing which advertising works (Art. 6(1)(f) GDPR). You can object in our cookie settings; we also respect the Global Privacy Control signal of your browser.', 'funnelforms-free' ), $what );
 	}
 
 	/**

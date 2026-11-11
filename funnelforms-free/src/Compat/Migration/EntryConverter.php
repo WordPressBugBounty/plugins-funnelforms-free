@@ -297,6 +297,22 @@ final class EntryConverter {
 	}
 
 	/**
+	 * The query whose marketing parameters count for an entry: that of the page the form was sent
+	 * on when it has any, else that of the page the visitor came to the website on (page.origin,
+	 * which the runtime keeps while the site remembers the origin, see Frontend\Origin).
+	 *
+	 * @param array<string,mixed> $page Page of the submission (url, query, title, origin).
+	 */
+	public static function campaign( array $page ): string {
+		$query = is_string( $page['query'] ?? null ) ? $page['query'] : '';
+		if ( array() !== self::utm( $query ) ) {
+			return $query;
+		}
+		$origin = is_string( $page['origin'] ?? null ) ? $page['origin'] : '';
+		return array() === self::utm( $origin ) ? $query : $origin;
+	}
+
+	/**
 	 * Marketing parameters from the page query string. The raw query stays in data.page.query.
 	 *
 	 * @param string $query Query string without '?'.

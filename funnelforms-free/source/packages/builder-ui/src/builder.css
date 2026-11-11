@@ -2749,6 +2749,15 @@
 	min-width: 0;
 }
 
+/* The hidden value of an answer takes a line of its own below it. */
+.ffxb .ffxb-options__row > .ffxb-options__hidden {
+	flex: 1 1 100%;
+	width: auto;
+	min-width: 0;
+	margin-left: 26px;
+	font-size: 13px;
+}
+
 .ffxb-options__actions {
 	display: flex;
 	flex: 0 0 auto;
@@ -6402,6 +6411,16 @@
 	display: flex;
 	flex-wrap: wrap;
 	gap: 4px;
+}
+
+/* The picture above a slider (SliderMedia). */
+.ffxb-slider-media {
+	display: block;
+	max-width: 100%;
+	max-height: 96px;
+	margin-bottom: 8px;
+	object-fit: contain;
+	border-radius: 6px;
 }
 
 .ffxb-option-image {
@@ -13385,4 +13404,349 @@ a.ffxb-button:focus {
 		width: auto;
 		max-height: 60%;
 	}
+}
+
+/* AI Phone Agent: agent editor, numbers and test calls (ui/Leadcaller.tsx) */
+
+.ffxb-bt-kinds.ffxb-lc-goals {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ffxb-lc-voices {
+	display: grid;
+	gap: 8px;
+}
+
+.ffxb-lc-voices.is-loading {
+	min-height: 80px;
+}
+
+.ffxb-lc-voices__bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.ffxb-lc-voices__sep {
+	width: 1px;
+	height: 20px;
+	margin: 0 2px;
+	background: var(--ffxb-line);
+}
+
+.ffxb-lc-voices__search {
+	flex: 0 1 200px;
+	min-width: 140px;
+}
+
+.ffxb-lc-voices__list {
+	display: grid;
+	max-height: 300px;
+	margin: 0;
+	padding: 0;
+	overflow-y: auto;
+	border: 1px solid var(--ffxb-line);
+	border-radius: 10px;
+	list-style: none;
+}
+
+.ffxb-lc-voice {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 10px;
+	border-bottom: 1px solid var(--ffxb-line);
+}
+
+.ffxb-lc-voice:last-child {
+	border-bottom: 0;
+}
+
+.ffxb-lc-voice.is-active {
+	background: var(--ffxb-brand-soft);
+}
+
+.ffxb-lc-voice label {
+	display: flex;
+	flex: 1 1 auto;
+	align-items: center;
+	gap: 10px;
+	min-width: 0;
+	cursor: pointer;
+}
+
+.ffxb-lc-voice input {
+	flex: none;
+	margin: 0;
+	accent-color: var(--ffxb-brand);
+}
+
+.ffxb-lc-voice__text {
+	display: grid;
+	min-width: 0;
+	font-size: 13px;
+	line-height: 1.35;
+}
+
+.ffxb-lc-voice__text span {
+	overflow: hidden;
+	color: var(--ffxb-muted);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.ffxb-lc-voices__none {
+	padding: 14px;
+	color: var(--ffxb-muted);
+	font-size: 13px;
+	text-align: center;
+}
+
+.ffxb-lc-row {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+	gap: 0 12px;
+}
+
+.ffxb-lc-questions {
+	display: grid;
+	gap: 12px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ffxb-lc-questions li {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto;
+	align-items: start;
+	gap: 0 12px;
+	margin: 0;
+	padding: 12px;
+	border: 1px solid var(--ffxb-line);
+	border-radius: var(--ffxb-radius);
+}
+
+.ffxb-lc-questions li .ffxb-field {
+	margin-bottom: 0;
+}
+
+.ffxb-lc-questions li > .ffxb-button {
+	margin-top: 24px;
+}
+
+.ffxb-lc-more {
+	justify-self: start;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--ffxb-brand);
+	font: inherit;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.ffxb-lc-more::after {
+	content: ' ▾';
+}
+
+.ffxb-lc-more[aria-expanded="true"]::after {
+	content: ' ▴';
+}
+
+.ffxb-lc-chat {
+	display: grid;
+	gap: 8px;
+}
+
+.ffxb-lc-bubble {
+	margin: 0;
+	padding: 10px 12px;
+	border-radius: 12px 12px 12px 4px;
+	background: var(--ffxb-brand-soft);
+	color: var(--ffxb-text);
+	font-size: 13px;
+	line-height: 1.45;
+}
+
+.ffxb-lc-bubble.is-question {
+	border: 1px solid var(--ffxb-line);
+	background: var(--ffxb-surface);
+}
+
+.ffxb-lc-entry {
+	display: grid;
+	gap: 6px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	font-size: 13px;
+	color: var(--ffxb-muted);
+}
+
+.ffxb-lc-entry strong {
+	color: var(--ffxb-text);
+}
+
+.ffxb-lc-pick {
+	display: grid;
+	gap: 8px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.ffxb-lc-pick__item {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	align-items: center;
+	gap: 2px 10px;
+	padding: 10px 12px;
+	border: 1px solid var(--ffxb-line);
+	border-radius: var(--ffxb-radius);
+	cursor: pointer;
+}
+
+.ffxb-lc-pick__item.is-active {
+	border-color: var(--ffxb-brand);
+	background: var(--ffxb-brand-soft);
+}
+
+.ffxb-lc-pick__item .ffxb-hint {
+	grid-column: 2;
+	margin: 0;
+}
+
+.ffxb-lc-howto {
+	margin: 0 0 12px 20px;
+	padding: 0;
+	font-size: 13px;
+}
+
+.ffxb-lc-howto li {
+	margin: 0 0 6px;
+}
+
+.ffxb-lc-confirm {
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin-right: auto;
+	color: var(--ffxb-danger);
+	font-size: 13px;
+}
+
+.ffxb-lc-result {
+	display: grid;
+	gap: 12px;
+}
+
+.ffxb-lc-result p {
+	margin: 0;
+}
+
+.ffxb-lc-details {
+	display: grid;
+	grid-template-columns: max-content minmax(0, 1fr);
+	gap: 6px 16px;
+	margin: 0;
+}
+
+.ffxb-lc-details dt {
+	font-weight: 600;
+}
+
+.ffxb-lc-details dd {
+	margin: 0;
+}
+
+.ffxb-lc-transcript p {
+	margin: 6px 0;
+	font-size: 13px;
+}
+
+@media (max-width: 720px) {
+	.ffxb-lc-questions li {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.ffxb-lc-questions li > .ffxb-button {
+		justify-self: start;
+		margin-top: 8px;
+	}
+}
+
+/* AI Phone Agent action: which answers the agent gets. */
+.ffxb-lc-share {
+	border: 0;
+	margin: 0;
+	padding: 0;
+	min-width: 0;
+}
+
+.ffxb-lc-share__list {
+	display: grid;
+	gap: 6px;
+	max-height: 220px;
+	overflow: auto;
+	padding: 8px 10px;
+	margin: 0 0 8px;
+	border: 1px solid var(--ffxb-line);
+	border-radius: var(--ffxb-radius-sm);
+	background: var(--ffxb-surface);
+}
+
+/* Entry: the calls of the AI Phone Agent. */
+.ffxb-aicalls + .ffxb-aicalls {
+	margin-top: 16px;
+}
+
+.ffxb-aicalls__agent {
+	margin: 0 0 8px;
+	color: var(--ffxb-muted);
+	font-size: 13px;
+}
+
+.ffxb-aicalls__list {
+	display: grid;
+	gap: 12px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ffxb-aicall {
+	display: grid;
+	gap: 8px;
+	padding: 12px;
+	border: 1px solid var(--ffxb-border);
+	border-radius: 8px;
+}
+
+.ffxb-aicall p {
+	margin: 0;
+}
+
+.ffxb-aicall__head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+
+.ffxb-aicall__time,
+.ffxb-aicalls__next {
+	color: var(--ffxb-muted);
+	font-size: 13px;
+}
+
+.ffxb-aicalls__next {
+	margin: 8px 0 0;
+}
+
+.ffxb-aicall__summary {
+	white-space: pre-line;
 }

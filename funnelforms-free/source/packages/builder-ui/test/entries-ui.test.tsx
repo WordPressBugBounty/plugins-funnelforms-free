@@ -296,6 +296,39 @@ describe( 'entries screen', () => {
 		expect( panel.textContent ).toContain( 'Taken back. Mails and actions are being sent now.' );
 	} );
 
+	it( 'shows each call of the AI Phone Agent with time, outcome, summary, details and transcript', async () => {
+		const aiCalls = [
+			{
+				action: 'a_cmgarc',
+				agent: 'Lea',
+				status: 'scheduled',
+				next: '2026-11-10T08:00:00Z',
+				attempts: [
+					{ attempt: 1, at: '2026-11-09T09:00:00Z', timeout: false, reached: false, goal: false, duration: 0, summary: '', details: [], transcript: [] },
+					{ attempt: 2, at: '2026-11-09T10:00:00Z', timeout: false, reached: true, goal: null, duration: 151, summary: 'Möchte die Wohnung verkaufen.', details: [ { label: 'Interesse', value: 'hoch' } ], transcript: [ { role: 'agent' as const, text: 'Guten Tag!' }, { role: 'lead' as const, text: 'Hallo.' } ] },
+				],
+			},
+		];
+		const api = fakeApi( { entry: vi.fn( async ( id: number ) => detail( id, { aiCalls, deliveries: [ { id: 2, action: ':aicall:result:a_cmgarc', status: 'done', attempts: 1, error: null, updatedAt: null } ], actions: [ { id: 'a_cmgarc', kind: 'aiCall' } ] } ) ) } );
+		await act( async () => root.render( <EntriesScreen api={ api } config={ { user: { id: 1, admin: false } } } /> ) );
+		await settle();
+		await click( button( 'Erika Muster' ) );
+		const panel = container.querySelector( '.ffxb-panel' ) as HTMLElement;
+		const calls = [ ...panel.querySelectorAll( '.ffxb-aicall' ) ];
+		expect( calls ).toHaveLength( 2 );
+		expect( calls[ 0 ]?.textContent ).toContain( 'Call 1' );
+		expect( calls[ 0 ]?.textContent ).toContain( 'Not reached' );
+		expect( calls[ 1 ]?.textContent ).toContain( 'Call finished' );
+		expect( calls[ 1 ]?.textContent ).toContain( '2:31' );
+		expect( calls[ 1 ]?.textContent ).toContain( 'Möchte die Wohnung verkaufen.' );
+		expect( calls[ 1 ]?.querySelector( '.ffxb-lc-details' )?.textContent ).toBe( 'Interessehoch' );
+		expect( calls[ 1 ]?.querySelector( '.ffxb-lc-transcript' )?.textContent ).toContain( 'Lead: Hallo.' );
+		expect( panel.querySelector( '.ffxb-aicalls__next' )?.textContent ).toContain( 'Next call:' );
+		// The job that fetches the result has a name, not its channel.
+		expect( panel.querySelector( '.ffxb-deliveries' )?.textContent ).toContain( 'AI Phone Agent: result of the call' );
+		expect( panel.textContent ).not.toContain( ':aicall:' );
+	} );
+
 	it( 'says when the spam folder is empty', async () => {
 		window.history.replaceState( null, '', '/wp-admin/admin.php?page=funnelforms-entries&status=spam' );
 		const api = fakeApi( { entries: vi.fn( async () => ( { entries: [], total: 0, pages: 0 } ) ) } );
@@ -398,6 +431,28 @@ describe( 'entries screen', () => {
 		expect( api.deleteEntry ).toHaveBeenCalledWith( 2 );
 		expect( container.querySelector( '.ffxb-panel' ) ).toBeNull();
 		expect( container.textContent ).toContain( 'Entry deleted.' );
+	} );
+
+	it( 'shows no delete buttons without the right to delete', async () => {
+		const api = fakeApi();
+		window.history.replaceState( null, '', '/wp-admin/admin.php?page=funnelforms-entries&entry=2' );
+		await act( async () => root.render( <EntriesScreen api={ api } config={ { canDelete: false } } /> ) );
+		await settle();
+		const panel = container.querySelector( '.ffxb-panel' ) as HTMLElement;
+		expect( () => button( 'Delete', panel ) ).toThrow();
+		expect( button( 'Archive', panel ) ).toBeTruthy();
+	} );
+
+	it( 'links the page and the referrer only when they are web addresses', async () => {
+		const api = fakeApi( {
+			entry: vi.fn( async ( id: number ) => detail( id, { page: { title: '', url: 'javascript:alert(1)' }, visit: { device: 'mobile', browser: '', os: '', referrer: 'javascript:alert(2)', seconds: null, steps: [] } } ) ),
+		} );
+		window.history.replaceState( null, '', '/wp-admin/admin.php?page=funnelforms-entries&entry=2' );
+		await act( async () => root.render( <EntriesScreen api={ api } config={ {} } /> ) );
+		await settle();
+		const panel = container.querySelector( '.ffxb-panel' ) as HTMLElement;
+		expect( panel.textContent ).toContain( 'javascript:alert(1)' );
+		expect( [ ...panel.querySelectorAll( 'a' ) ].map( ( a ) => a.getAttribute( 'href' ) ?? '' ).filter( ( h ) => h.startsWith( 'javascript' ) ) ).toEqual( [] );
 	} );
 
 	it( 'shows a board by lead status and moves entries', async () => {
@@ -560,6 +615,7 @@ describe( 'deliveryName', () => {
 	} );
 
 	it( 'names the reminders to visitors who leave and their badges', () => {
+		expect( [ ':aicall:result:a_cmgarc', ':aicall:retry:a_cmgarc' ].map( deliveryName ) ).toEqual( [ 'AI Phone Agent: result of the call', 'AI Phone Agent: next call' ] );
 		expect( [ ':abandon:1', ':abandon:2', ':abandon:owner' ].map( deliveryName ) ).toEqual( [ 'Reminder to the visitor', 'Second reminder to the visitor', 'Note about the abandoned lead' ] );
 		const label = ( entry: Pick<EntrySummary, 'status' | 'abandon'> ): unknown => ( abandonBadge( entry ) as React.ReactElement<{ children: unknown }> | null )?.props.children ?? null;
 		const abandon = { lastStep: null, leftAt: null, remindedAt: null, reminders: 0 };

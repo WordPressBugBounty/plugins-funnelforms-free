@@ -2,7 +2,7 @@
  * Funnelforms → Integrations: the overview of all services on top (IntegrationsHub), then the
  * calendars of the website and its team. Connect Google, Microsoft, Apple iCloud or another
  * CalDAV calendar, say whose calendar it is, which of its calendars gets the appointments and
- * which are checked for busy times. CRM, newsletter and spreadsheet tools are connected in the
+ * which are checked for busy times; below them the video meetings (Zoom, Google Meet, Teams). CRM, newsletter and spreadsheet tools are connected in the
  * overview; webhooks and access for Zapier, Make and n8n keep the settings tab Interfaces, and the
  * page leads there.
  */
@@ -12,6 +12,7 @@ import type { ConnectApi } from '../connect';
 import type { HubApi } from '../hub';
 import { CalendarDialog, type CalendarApi, type CalendarService } from './BookingTypes';
 import { IntegrationsHub } from './IntegrationsHub';
+import { MeetingsSection } from './Meetings';
 import { __, sprintf } from './i18n';
 import { Button, Dialog, Notice, Spinner } from './ui';
 
@@ -230,6 +231,22 @@ export function IntegrationsScreen( { api, config }: { api: IntegrationsApi; con
 					{ said }
 				</p>
 			</section>
+
+			{ data ? (
+				<MeetingsSection
+					data={ data }
+					api={ api }
+					onCalendar={ ( service ) => setAdding( { service } ) }
+					onChanged={ ( next, text ) => {
+						say( text );
+						if ( next ) {
+							setData( next );
+						} else {
+							void reload();
+						}
+					} }
+				/>
+			) : null }
 
 			<section className="ffx-card ffx-cal-privacy" aria-labelledby="ffx-cal-privacy-title">
 				<h2 id="ffx-cal-privacy-title">{ __( 'What Funnelforms does with your calendars', 'funnelforms-pro' ) }</h2>

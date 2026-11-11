@@ -143,6 +143,7 @@ export function renderField( field: Field, ctx: FieldContext ): RenderedField {
 			break;
 		case 'slider':
 			control = slider( field, ctx, inputId, describedBy );
+			control.prepend( ...[ sliderMedia( field, ctx ) ].filter( ( m ): m is HTMLElement => m !== null ) );
 			break;
 		case 'text':
 			control = textInput( field, ctx, inputId, describedBy, false );
@@ -783,6 +784,15 @@ function sliderText( p: SliderField[ 'props' ], n: number, unit: string ): strin
 	const decimal = ( p.separator ?? '.' ) === ',' ? '.' : ',';
 	const number = ( n < 0 ? '-' : '' ) + grouped + ( decimals ? ( p.thousandsSeparator ? decimal : '.' ) + decimals : '' );
 	return unit ? ( p.unit.position === 'before' ? `${ unit } ${ number }` : `${ number } ${ unit }` ) : number;
+}
+
+/** The image or 3.x icon above a slider (slider_image of Funnelforms 3). */
+function sliderMedia( field: SliderField, ctx: FieldContext ): HTMLElement | null {
+	const m = field.props.media;
+	if ( m?.kind === 'image' && /^https?:\/\//i.test( m.value ) ) {
+		return h( 'img', { class: 'ffx-slider-media', src: m.value, alt: '', loading: 'lazy' } );
+	}
+	return m?.kind === 'icon' && ctx.iconFont ? h( 'i', { class: `ffx-slider-media ffx-option-icon ${ m.value }`, 'aria-hidden': 'true' } ) : null;
 }
 
 function slider( field: SliderField, ctx: FieldContext, id: string, describedBy: string ): HTMLElement {

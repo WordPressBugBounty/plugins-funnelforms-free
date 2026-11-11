@@ -11,6 +11,8 @@ namespace Funnelforms\Http;
 
 use Funnelforms\Admin\EntryPdfDownload;
 use Funnelforms\Application\Abandonment;
+use Funnelforms\Application\AiCalls;
+use Funnelforms\Application\Capabilities;
 use Funnelforms\Application\Actions\ActionQueue;
 use Funnelforms\Application\Actions\MailServer;
 use Funnelforms\Application\DoubleOptIn;
@@ -56,7 +58,8 @@ defined( 'ABSPATH' ) || exit;
  *   GET    entries/assignees       users who can be assigned entries
  *
  * Reading and changing need the entries capability (FileDownload::capability(), default
- * funnelforms_view_entries, see Application\Capabilities); CSV export is Admin\EntriesExport. Entries go only to users who have that
+ * funnelforms_view_entries, see Application\Capabilities); deleting, alone or in bulk, needs
+ * funnelforms_delete_entries too (delete_capability()); CSV export is Admin\EntriesExport. Entries go only to users who have that
  * capability; they get a mail when someone else assigns them one (filter
  * funnelforms_notify_assignee).
  */
@@ -104,7 +107,7 @@ final class EntriesController {
 				array(
 					'methods'             => 'DELETE',
 					'callback'            => array( self::class, 'destroy' ),
-					'permission_callback' => $allowed,
+					'permission_callback' => array( self::class, 'may_delete' ),
 				),
 			)
 		);
@@ -114,7 +117,7 @@ final class EntriesController {
 			array(
 				'methods'             => 'POST',
 				'callback'            => array( self::class, 'bulk' ),
-				'permission_callback' => $allowed,
+				'permission_callback' => array( self::class, 'allowed_bulk' ),
 				'args'                => self::bulk_args(),
 			)
 		);
@@ -388,6 +391,34 @@ final class EntriesController {
 	}
 
 	/**
+	 * Capability needed to delete entries, besides seeing them.
+	 */
+	public static function delete_capability(): string {
+		/**
+		 * Capability needed to delete entries (they also need the entries capability).
+		 *
+		 * @param string $capability Capability.
+		 */
+		return (string) apply_filters( 'funnelforms_delete_entries_capability', Capabilities::DELETE_ENTRIES );
+	}
+
+	/**
+	 * Whether the current user may delete entries.
+	 */
+	public static function may_delete(): bool {
+		return self::allowed() && current_user_can( self::delete_capability() );
+	}
+
+	/**
+	 * Whether the current user may run a bulk request: deleting needs its own right.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 */
+	public static function allowed_bulk( \WP_REST_Request $request ): bool {
+		return true === $request['delete'] ? self::may_delete() : self::allowed();
+	}
+
+	/**
 	 * GET entries.
 	 *
 	 * @param \WP_REST_Request $request Request.
@@ -469,6 +500,8 @@ final class EntriesController {
 		$data         = (array) $entry['data'];
 		$pdf          = Edition::pro( EntryPdfDownload::class );
 		$appointments = Edition::pro( AppointmentsController::class );
+		$calls        = Edition::pro( AiCalls::class );
+		$document     = self::revision_document( $entry );
 		return new \WP_REST_Response(
 			self::summary( $entry ) + array(
 				'answers'      => $data['answers'] ?? array(),
@@ -483,7 +516,8 @@ final class EntriesController {
 				'deliveries'   => $jobs,
 				'actions'      => self::actions( $entry ),
 				'appointments' => null === $appointments ? array() : $appointments::of_entry( $entry ),
-				'visit'        => self::visit( $entry, self::revision_document( $entry ) ),
+				'aiCalls'      => null === $calls ? array() : $calls::history( $entry, $document ),
+				'visit'        => self::visit( $entry, $document ),
 			),
 			200
 		);
