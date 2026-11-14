@@ -20,7 +20,7 @@ final class Document {
 	/**
 	 * Kinds of actions that run in the visitor's browser instead of the job queue.
 	 */
-	public const BROWSER_ACTIONS = array( 'googleAds' );
+	public const BROWSER_ACTIONS = array( 'googleAds', 'customCode' );
 
 	/** Field types whose answers are uploaded files (references in the submit, rows in ffx_entry_files). */
 	public const FILE_TYPES = array( 'file', 'signature' );
@@ -177,8 +177,8 @@ final class Document {
 	}
 
 	/**
-	 * Actions the browser runs after a submit through a contact node (Google Ads conversions);
-	 * they are never queued.
+	 * Actions the browser runs after a submit through a contact node (Google Ads conversions,
+	 * custom code); they are never queued.
 	 *
 	 * @param string $contact_node Contact node id.
 	 * @return array<int,array<string,mixed>>

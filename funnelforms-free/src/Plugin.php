@@ -165,6 +165,7 @@ final class Plugin {
 			\Funnelforms\Application\AppPush::class,
 			AppointmentsController::class,
 			StatsController::class,
+			\Funnelforms\Http\StatsAnalysisController::class,
 			\Funnelforms\Http\FiguresController::class,
 			AutomationController::class,
 			McpServer::class,
@@ -221,6 +222,7 @@ final class Plugin {
 		return array(
 			Ui::class,
 			Menu::class,
+			\Funnelforms\Admin\QuietNotices::class,
 			RestBridge::class,
 			MigrationPage::class,
 			SettingsPage::class,

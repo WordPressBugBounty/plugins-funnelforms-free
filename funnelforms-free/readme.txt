@@ -4,7 +4,7 @@ Tags: contact form, multi step form, form builder, lead generation, conversation
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 5.0.8
+Stable tag: 5.0.9
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -221,6 +221,18 @@ If you set up a mail server under Funnelforms > Settings > E-mail, the mails of 
 The scripts in assets/builder and assets/runtime are built and minified from TypeScript. The sources, with the build scripts, are in the folder source/ of this plugin. To build them: `pnpm install` and `pnpm -r build` in that folder (Node.js 20 or newer).
 
 == Changelog ==
+
+= 5.0.9 =
+* Statistics: hover or click a chart to read the values of a day (also with the arrow keys), the legend switches series on and off. The funnel shows the drop-off before the first answer, and each step shows the time spent on it, back clicks and where visitors left.
+* Editor: every step lists its outputs on the canvas, one per answer and one per rule, each with its own dot to draw a path from. Forms of every version show their outputs without any change to the form.
+* Editor: an icon or your own image for an answer in one dialog, an image format for answers with images (4:3, square, 16:9, original), and hidden values for dropdowns.
+* Editor: the logic editor follows the order in which the form checks its paths. The outputs of a card show rules, answers and "Otherwise" in that order, numbers of rules can be changed right on the card, pointing at an output lights up its path, and "Otherwise" names the answers without a path of their own. The sidebar lists the rules in their order with arrows to move them, "is between" and conditions per answer. The editor finds answers that lead nowhere and paths no answer reaches.
+* Moving from Funnelforms 4: the logic of imported forms is taken over more exactly: postal code ranges, the order of the paths, address parts in separate inputs when paths check them, and cards that no longer overlap.
+* Design: the gallery of new forms starts with all templates, those of your industry first. The description under a question follows its alignment, the font of the form applies to the whole form, and the live editor has the fonts next to the colours and stays in place while you drag a slider.
+* Entries: the lead panel has clearer headings and a section "After sending" with each step of the form, its status and a button to run it again. Cards on the board show contact, form, badges and tags; drag a card to change its status.
+* Accessibility: screen readers no longer read the check marks of answers, answers with only an image get a name, sliders read their value with the unit, popups have a name and confetti is left out with reduced motion. The editor warns about answers with an image but no text.
+* Admin: the Funnelforms pages show only notices of Funnelforms and the important ones of WordPress; notices of other plugins and themes (cookie scans, cache, reviews, sales) stay on the other admin pages.
+* Fix: screens such as Integrations no longer stay empty with the language "Deutsch (Sie)" or other WordPress language variants.
 
 = 5.0.8 =
 * Security: erasing personal data (Tools > Erase Personal Data) now removes only the files a person uploaded to their own Funnelforms 3 leads, and finds those leads by their contact data only.

@@ -166,7 +166,7 @@ export interface TemplateCatalog {
 	locale: string;
 	templates: FormTemplate[];
 	icons: Record<string, IconElements>;
-	/** The site's industry (setup assistant or diagnostic settings): the gallery starts with it. */
+	/** The site's industry (setup assistant or diagnostic settings): its templates come first in the gallery. */
 	industry?: TemplateCategory | '';
 }
 
@@ -222,6 +222,12 @@ export interface BookingConfig {
 	hours: Array<{ days: number[]; from: string; to: string }>;
 	/** Minutes visitors can book, the first one preselected. */
 	durations: number[];
+	/**
+	 * How durations are entered: minutes and hours are one stretch within the hours of a day,
+	 * days are whole working days (from the opening of the first to the close of the last).
+	 * Missing on types saved before 5.0.9: minutes.
+	 */
+	durationUnit?: 'minute' | 'hour' | 'day';
 	/** Minutes between start times. */
 	interval: number;
 	/** Minutes kept free before each appointment. */
@@ -590,7 +596,7 @@ export interface PredictionRun {
 	remainingMonth: number;
 }
 
-/** The behaviour analyses of the license this month, as the Funnelforms server counts them (UTC). */
+/** The AI analyses of the license this month (Predictive AI and statistics together), as the Funnelforms server counts them (UTC). */
 export interface PredictionQuota {
 	/** A license is connected. */
 	connected: boolean;

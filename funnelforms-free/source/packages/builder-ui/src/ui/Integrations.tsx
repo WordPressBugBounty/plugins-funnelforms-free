@@ -7,6 +7,7 @@
  * page leads there.
  */
 import React, { useCallback, useEffect, useState } from 'react';
+import { localeTag } from '@funnelforms/form-core';
 import { ApiError, fixUrl, type CalendarAccount, type CalendarChoice, type CalendarsOverview, type ConnectionTestResult, type FormsApi } from '../api';
 import type { ConnectApi } from '../connect';
 import type { HubApi } from '../hub';
@@ -129,7 +130,7 @@ export function IntegrationsScreen( { api, config }: { api: IntegrationsApi; con
 	const blocked = ( s: { oauth: boolean } ): boolean => s.oauth && ! data?.website.connected;
 	const date = ( iso: string ): string => {
 		const d = new Date( iso );
-		return Number.isNaN( d.getTime() ) ? '' : d.toLocaleDateString( ( config.userLocale ?? '' ).replace( '_', '-' ) || undefined, { day: 'numeric', month: 'short', year: 'numeric' } );
+		return Number.isNaN( d.getTime() ) ? '' : d.toLocaleDateString( localeTag( config.userLocale ), { day: 'numeric', month: 'short', year: 'numeric' } );
 	};
 
 	// Class instances (WpRestAdapter) keep their methods only when passed as they are.

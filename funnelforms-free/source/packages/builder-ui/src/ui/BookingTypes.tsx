@@ -17,11 +17,33 @@ const REMINDERS = [ 15, 60, 1440, 2880 ];
 /** Reminders of a new appointment type: one a day before. */
 const NEW_TYPE_REMINDERS = [ 1440 ];
 
-/** Durations offered at one click, in minutes. */
-const DURATIONS = [ 15, 30, 45, 60, 90 ];
+/** Units durations are entered in (BookingType::UNITS); minutes in one of them. */
+export type DurationUnit = NonNullable<BookingConfig[ 'durationUnit' ]>;
+export const UNIT_MINUTES: Record<DurationUnit, number> = { minute: 1, hour: 60, day: 1440 };
 
-/** Most durations a type offers, as BookingType::clean() keeps them; each 5 to 720 minutes. */
+/**
+ * Per unit: durations offered at one click (minutes) and the longest one, as BookingType::clean()
+ * keeps them: 5 minutes to 24 hours, or 1 to 14 whole working days.
+ */
+const DURATIONS: Record<DurationUnit, { choices: number[]; max: number }> = {
+	minute: { choices: [ 15, 30, 45, 60, 90 ], max: 1440 },
+	hour: { choices: [ 60, 120, 180, 240, 480 ], max: 1440 },
+	day: { choices: [ 1440, 2880, 4320, 7200 ], max: 14 * 1440 },
+};
+
+/** Most durations a type offers, as BookingType::clean() keeps them. */
 export const MAX_DURATIONS = 5;
+
+/** Whether a duration fits a unit (whole days for "day"). */
+export function durationFits( minutes: number, unit: DurationUnit ): boolean {
+	return 'day' === unit ? 0 === minutes % 1440 && minutes >= 1440 && minutes <= DURATIONS.day.max : minutes >= 5 && minutes <= DURATIONS[ unit ].max;
+}
+
+/** Durations after the unit changed: those that still fit, else the first choice of the unit. */
+export function durationsIn( unit: DurationUnit, durations: number[] ): number[] {
+	const kept = durations.filter( ( m ) => durationFits( m, unit ) );
+	return kept.length ? kept : [ 'minute' === unit ? 30 : ( DURATIONS[ unit ].choices[ 0 ] as number ) ];
+}
 
 /** Start times offered: every … minutes. */
 const INTERVALS = [ 5, 10, 15, 20, 30, 45, 60, 90, 120 ];
@@ -54,8 +76,11 @@ export function reminderName( minutes: number ): string {
 	return sprintf( __( '%d minutes before', 'funnelforms-pro' ), minutes );
 }
 
-/** A duration as visitors read it: "45 min", "1 h", "1 h 30 min". */
+/** A duration as visitors read it: "45 min", "1 h", "1 h 30 min", "5 days". */
 export function durationName( minutes: number ): string {
+	if ( minutes >= 1440 && 0 === minutes % 1440 ) {
+		return 1440 === minutes ? __( '1 day', 'funnelforms-pro' ) : sprintf( /* translators: %d: number of days */ __( '%d days', 'funnelforms-pro' ), minutes / 1440 );
+	}
 	const h = Math.floor( minutes / 60 );
 	const m = minutes % 60;
 	return [ h ? sprintf( __( '%d h', 'funnelforms-pro' ), h ) : '', m || ! h ? sprintf( __( '%d min', 'funnelforms-pro' ), m ) : '' ].filter( Boolean ).join( ' ' );
@@ -305,10 +330,19 @@ export function BookingTypeEditor( { data, type, api: given, canConnect, onSaved
 		{ value: 'video', label: __( 'Video call', 'funnelforms-pro' ), hint: __( 'Online, with a link', 'funnelforms-pro' ), location: __( 'Video link', 'funnelforms-pro' ) },
 	];
 	const kind = kinds.find( ( k ) => k.value === config.kind ) ?? ( kinds[ 0 ] as ( typeof kinds )[ number ] );
-	const durationChoices = [ ...new Set( [ ...DURATIONS, ...config.durations ] ) ].sort( ( a, b ) => a - b );
+	const unit: DurationUnit = config.durationUnit ?? 'minute';
+	const wholeDays = 'day' === unit;
+	const durationChoices = [ ...new Set( [ ...DURATIONS[ unit ].choices, ...config.durations ] ) ].sort( ( a, b ) => a - b );
 	const full = config.durations.length >= MAX_DURATIONS;
-	const otherMinutes = parseInt( other, 10 );
-	const otherValid = Number.isFinite( otherMinutes ) && otherMinutes >= 5 && otherMinutes <= 720;
+	// The other duration is entered in the unit; hours may have a half (1.5 h).
+	const otherMinutes = Math.round( parseFloat( other.replace( ',', '.' ) ) * UNIT_MINUTES[ unit ] );
+	const otherValid = Number.isFinite( otherMinutes ) && durationFits( otherMinutes, unit );
+	const unitOptions: Array<{ value: DurationUnit; label: string }> = [
+		{ value: 'minute', label: __( 'minutes', 'funnelforms-pro' ) },
+		{ value: 'hour', label: __( 'hours', 'funnelforms-pro' ) },
+		{ value: 'day', label: __( 'days', 'funnelforms-pro' ) },
+	];
+	const otherLimits = { minute: { min: 5, max: 1440, step: 5 }, hour: { min: 0.5, max: 24, step: 0.5 }, day: { min: 1, max: 14, step: 1 } }[ unit ];
 	const addOther = (): void => {
 		if ( otherValid && ! full ) {
 			change( ( c ) => void ( c.durations = toggle( c.durations, otherMinutes, true ) ) );
@@ -504,15 +538,15 @@ export function BookingTypeEditor( { data, type, api: given, canConnect, onSaved
 							</p>
 						</div>
 						<div className="ffxb-bt-other">
-							<Field label={ __( 'Other duration (minutes)', 'funnelforms-pro' ) }>
+							<Field label={ { minute: __( 'Other duration (minutes)', 'funnelforms-pro' ), hour: __( 'Other duration (hours)', 'funnelforms-pro' ), day: __( 'Other duration (days)', 'funnelforms-pro' ) }[ unit ] }>
 								{ ( id ) => (
 									<input
 										id={ id }
 										className="ffxb-input"
 										type="number"
-										min={ 5 }
-										max={ 720 }
-										step={ 5 }
+										min={ otherLimits.min }
+										max={ otherLimits.max }
+										step={ otherLimits.step }
 										value={ other }
 										disabled={ full }
 										onChange={ ( e ) => setOther( e.target.value ) }
@@ -525,17 +559,34 @@ export function BookingTypeEditor( { data, type, api: given, canConnect, onSaved
 									/>
 								) }
 							</Field>
+							<Select<DurationUnit>
+								label={ __( 'Duration in', 'funnelforms-pro' ) }
+								value={ unit }
+								options={ unitOptions }
+								onChange={ ( v ) =>
+									change( ( c ) => {
+										c.durationUnit = v;
+										c.durations = durationsIn( v, c.durations );
+									} )
+								}
+							/>
 							<Button size="sm" icon={ icons.plus } disabled={ ! otherValid || full } onClick={ addOther }>
 								{ __( 'Add', 'funnelforms-pro' ) }
 							</Button>
 						</div>
-						<Select<string>
-							label={ __( 'A start time every', 'funnelforms-pro' ) }
-							value={ String( config.interval ) }
-							options={ intervals.map( ( m ) => ( { value: String( m ), label: sprintf( __( '%d minutes', 'funnelforms-pro' ), m ) } ) ) }
-							onChange={ ( v ) => change( ( c ) => void ( c.interval = Number( v ) ) ) }
-							hint={ startExamples.length ? sprintf( /* translators: %s: example start times, e.g. 09:00, 09:30, 10:00 */ __( 'Start times such as %s …', 'funnelforms-pro' ), startExamples.join( ', ' ) ) : undefined }
-						/>
+						{ wholeDays ? (
+							<p className="ffxb-hint">
+								{ __( 'Days are working days: days with hours that are not closed. An appointment starts when the first day opens and ends when the last one closes; days without hours in between (such as the weekend) are skipped but stay blocked.', 'funnelforms-pro' ) }
+							</p>
+						) : (
+							<Select<string>
+								label={ __( 'A start time every', 'funnelforms-pro' ) }
+								value={ String( config.interval ) }
+								options={ intervals.map( ( m ) => ( { value: String( m ), label: sprintf( __( '%d minutes', 'funnelforms-pro' ), m ) } ) ) }
+								onChange={ ( v ) => change( ( c ) => void ( c.interval = Number( v ) ) ) }
+								hint={ startExamples.length ? sprintf( /* translators: %s: example start times, e.g. 09:00, 09:30, 10:00 */ __( 'Start times such as %s …', 'funnelforms-pro' ), startExamples.join( ', ' ) ) : undefined }
+							/>
+						) }
 						<div className="ffxb-pair">
 							<NumberInput label={ __( 'Break before (minutes)', 'funnelforms-pro' ) } value={ config.bufferBefore } min={ 0 } max={ 240 } onChange={ ( v ) => change( ( c ) => void ( c.bufferBefore = v ?? 0 ) ) } hint={ __( 'Time to prepare, or to travel there.', 'funnelforms-pro' ) } />
 							<NumberInput label={ __( 'Break after (minutes)', 'funnelforms-pro' ) } value={ config.bufferAfter } min={ 0 } max={ 240 } onChange={ ( v ) => change( ( c ) => void ( c.bufferAfter = v ?? 0 ) ) } hint={ __( 'Time for notes, or to get back.', 'funnelforms-pro' ) } />

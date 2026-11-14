@@ -5,6 +5,7 @@
  */
 import type { Condition, Edge, Field, FormDocument, FormNode } from '@funnelforms/form-schema';
 import { answerRoutes, fieldsBefore, leaves, type Leaf } from './conditions';
+import { coverage } from './coverage';
 import { findNode, reachable, text } from './document';
 import { isQuizEdge } from './quiz';
 
@@ -25,6 +26,10 @@ export type HintCode =
 	| 'sameRule'
 	/** A path's rules contradict each other. */
 	| 'impossible'
+	/** Paths checked before a path take every answer it asks for. */
+	| 'shadowed'
+	/** No answer the field can give fulfils the path. */
+	| 'noAnswer'
 	/** Paths without conditions lead round in a circle. */
 	| 'endlessLoop'
 	/** A field is shown on an answer given only below or after it. */
@@ -59,6 +64,8 @@ const LEVEL: Record<HintCode, LogicHint[ 'level' ]> = {
 	neverChecked: 'warning',
 	sameRule: 'warning',
 	impossible: 'warning',
+	shadowed: 'warning',
+	noAnswer: 'warning',
 	showLater: 'warning',
 	allHidden: 'warning',
 	emptyEnd: 'warning',
@@ -103,19 +110,52 @@ export function nodeHints( hints: LogicHint[], nodeId: string ): LogicHint[] {
 	return hints.filter( ( h ) => h.node === nodeId );
 }
 
+/** Rules whose opposite says the rest: every visitor fulfils exactly one of the two. */
+const OPPOSITES: Record<string, string> = { equalsText: 'notEqualsText', contains: 'notContains', filled: 'empty', eq: 'neq' };
+
+/**
+ * Whether two rules are each other's opposite, so that every visitor fulfils one of them: "is
+ * exactly yes" and "is not exactly yes", "contains" and "does not contain", "has an answer" and
+ * "has no answer", "is" and "is not" a number. ("Below 20" and "at least 20" are none: a visitor
+ * without a number fulfils neither; coverage.ts lists such answers.)
+ */
+export function opposite( a: Condition, b: Condition ): boolean {
+	if ( ! ( 'field' in a ) || ! ( 'field' in b ) || a.field !== b.field ) {
+		return false;
+	}
+	if ( OPPOSITES[ a.op ] !== b.op ) {
+		return OPPOSITES[ b.op ] === a.op && opposite( b, a );
+	}
+	const part = ( c: Condition ): string => ( 'part' in c && c.part ) || '';
+	const kind = ( c: Condition ): string => ( 'number' in c && c.number ) || 'float';
+	if ( part( a ) !== part( b ) || kind( a ) !== kind( b ) ) {
+		return false;
+	}
+	const value = ( c: Condition ): unknown => ( 'value' in c ? c.value : undefined );
+	// "Contains" ignores case and spaces around the text, as the form does.
+	return 'contains' === a.op ? String( value( a ) ).trim().toLowerCase() === String( value( b ) ).trim().toLowerCase() : value( a ) === value( b );
+}
+
 /**
  * Whether the paths with conditions of a node cover every visitor: a required single choice
- * whose answers all have a path of their own.
+ * whose answers all have a path of their own, rules on one field of the step that leave no
+ * answer out (coverage.ts), such as "below 20", "exactly 20" and "above 20" on a slider, or two
+ * rules that are each other's opposite.
  */
 export function covered( doc: FormDocument, node: FormNode, paths: Edge[] ): boolean {
 	if ( 'step' !== node.type ) {
 		// The quiz leads every contact step to its results, the lowest one without condition.
 		return 'contact' === node.type && paths.some( ( e ) => isQuizEdge( doc, e ) );
 	}
-	return node.fields.some( ( field ) => {
+	const routed = node.fields.some( ( field ) => {
 		const single = ( 'choice' === field.type && ! field.props.multiple ) || ( 'dropdown' === field.type && ! field.props.multiple );
 		return single && field.required && ! field.showWhen && answerRoutes( doc, node.id, field.id ).every( ( r ) => r.edge );
 	} );
+	if ( routed || true === coverage( doc, node )?.complete ) {
+		return true;
+	}
+	const rules = paths.flatMap( ( e ) => ( e.when ? [ e.when ] : [] ) );
+	return rules.some( ( a, i ) => rules.slice( i + 1 ).some( ( b ) => opposite( a, b ) ) );
 }
 
 function pathHints( doc: FormDocument, node: FormNode, paths: Edge[], loops: Set<string> ): LogicHint[] {
@@ -123,6 +163,7 @@ function pathHints( doc: FormDocument, node: FormNode, paths: Edge[], loops: Set
 	const known = new Set( fieldsBefore( doc, node.id ).map( ( f ) => f.field.id ) );
 	const fields = allFields( doc );
 	const seen: string[] = [];
+	const unused = new Map( ( coverage( doc, node )?.unused ?? [] ).map( ( u ) => [ u.edge, u.never ] ) );
 	let open = true;
 	for ( const edge of paths ) {
 		if ( loops.has( edge.id ) ) {
@@ -145,6 +186,9 @@ function pathHints( doc: FormDocument, node: FormNode, paths: Edge[], loops: Set
 			out.push( hint( 'sameRule', node.id, { edge: edge.id } ) );
 		} else if ( never( edge.when, fields ) ) {
 			out.push( hint( 'impossible', node.id, { edge: edge.id } ) );
+		} else if ( unused.has( edge.id ) ) {
+			// No answer of the field takes this path: none fulfils it, or the paths before it take them all.
+			out.push( hint( unused.get( edge.id ) ? 'noAnswer' : 'shadowed', node.id, { edge: edge.id } ) );
 		}
 		seen.push( same );
 		const later = leaves( edge.when ).find( ( l ): l is Extract<Leaf, { field: string }> => 'field' in l && fields.has( l.field ) && ! known.has( l.field ) );

@@ -1,4 +1,5 @@
 import type { BookingField } from '@funnelforms/form-schema';
+import { localeTag } from '@funnelforms/form-core';
 import { h } from './dom';
 import type { FieldContext, RenderedField } from './fields';
 
@@ -34,12 +35,20 @@ export function durationText( minutes: number ): string {
 	return [ hours ? `${ hours } h` : '', rest ? `${ rest } min` : '' ].filter( Boolean ).join( ' ' );
 }
 
+/**
+ * A duration in the language of the form, with whole days as days ("5 Tage"), for the booking
+ * chunk only: durationText() is in the core script and stays as small as it is.
+ */
+export function durationLabel( minutes: number, locale?: string ): string {
+	return minutes % 1440 ? durationText( minutes ) : new Intl.NumberFormat( locale, { style: 'unit', unit: 'day', unitDisplay: 'long' } ).format( minutes / 1440 );
+}
+
 /** Regions whose calendars start on Sunday, for browsers without week data. */
 const SUNDAY_FIRST = /[-_](US|CA|MX|BR|JP|IL|PH|KR|TW|HK|IN|ZA|SA|CO|PE)\b/i;
 
 /** The first day of the week in a language (0 Sunday … 6 Saturday): Monday unless the region says otherwise. */
 export function weekStart( locale?: string ): number {
-	const tag = ( locale ?? '' ).replace( /_/g, '-' );
+	const tag = localeTag( locale ) ?? '';
 	try {
 		const l = new Intl.Locale( tag || 'und' ) as Intl.Locale & { getWeekInfo?: () => { firstDay: number }; weekInfo?: { firstDay: number } };
 		const info = l.getWeekInfo?.() ?? l.weekInfo;
@@ -115,14 +124,14 @@ export function bookingField( field: BookingField, ctx: FieldContext, r: Rendere
 
 	const showChosen = (): void => {
 		chosen.hidden = ! value;
-		chosen.textContent = value ? ctx.t( 'booking_selected' ).replace( '%s', bookingText( value, locale ) ) : '';
+		chosen.textContent = value ? ctx.t( 'booking_selected' ).replace( '%s', `${ new Date( value.start ).toLocaleString( locale, { dateStyle: 'full', timeStyle: 'short' } ) } (${ durationLabel( value.duration, locale ) })` ) : '';
 	};
 
 	const drawDurations = ( offered: number[] ): void => {
 		durations.hidden = offered.length < 2;
 		durations.replaceChildren( h( 'span', { class: 'ffx-booking-label', 'aria-hidden': 'true' }, ctx.t( 'booking_duration' ) ), durationList );
 		durationList.replaceChildren( ...offered.map( ( minutes ) => {
-			const button = h( 'button', { type: 'button', class: 'ffx-booking-duration', 'aria-pressed': minutes === duration ? 'true' : 'false' }, durationText( minutes ) );
+			const button = h( 'button', { type: 'button', class: 'ffx-booking-duration', 'aria-pressed': minutes === duration ? 'true' : 'false' }, durationLabel( minutes, locale ) );
 			button.addEventListener( 'click', () => {
 				if ( minutes === duration ) {
 					return;

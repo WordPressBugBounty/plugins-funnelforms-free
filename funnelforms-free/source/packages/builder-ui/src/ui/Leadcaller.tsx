@@ -5,6 +5,7 @@
  * The page talks to Http\LeadcallerController.
  */
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { localeTag } from '@funnelforms/form-core';
 import { AI_GOALS, AI_LANGUAGES, disclosure, goalTexts, newAgent, type AiAgent, type AiCallResult, type AiGoal, type AiQuestion, type AiVoice, type LeadcallerApi, type LeadcallerState, type TwilioAccess } from '../aicall';
 import { WpRestAdapter } from '../wp-rest';
 import { goalName } from './AiCall';
@@ -35,7 +36,7 @@ function message( e: unknown ): string {
 
 /** The language of the page for names of languages and days. */
 function pageLocale( userLocale: string | undefined ): string | undefined {
-	return userLocale ? userLocale.replace( '_', '-' ) : undefined;
+	return localeTag( userLocale );
 }
 
 function languageName( code: string, locale: string | undefined ): string {

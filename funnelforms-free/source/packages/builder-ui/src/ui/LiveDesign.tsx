@@ -1,8 +1,10 @@
 /**
  * The design mode of the live preview: the preview becomes clickable, a hover outlines a part of
  * the form (button, question, answer, input, progress bar, background …) and a click picks it.
- * A panel beside it shows exactly the tokens that part uses; a change shows at once through the
- * style message of the preview (Workspaces.tsx), without loading the frame again.
+ * A panel beside it shows exactly the tokens that part uses (colours, sizes and fonts); a change
+ * shows at once through the style message of the preview (Workspaces.tsx), without loading the
+ * frame again (a font of the site loads the frame again). The panel stays where it was put when
+ * the part was picked, so it does not run away from the pointer while a size changes the part.
  *
  * The frame (plugin/assets/admin/preview-frame.js) runs the draft in a sandbox without
  * allow-same-origin, so its origin is "null". Messages from it are read only when they come from
@@ -11,8 +13,9 @@
  */
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { FormDocument } from '@funnelforms/form-schema';
-import { effectiveTokens, setStyleToken, toHex } from '../themes';
+import { effectiveTokens, setMainFont, setStyleToken, toHex } from '../themes';
 import { ColorField, ContrastChip } from './ColorPick';
+import { FontPicker, useSiteFonts } from './Design';
 import { useEnv } from './context';
 import { __, sprintf } from './i18n';
 import { IconButton, icons, Range } from './ui';
@@ -99,14 +102,18 @@ export function readFrameMessage( event: MessageEvent, frame: Window | null | un
 
 type Tokens = Record<string, string>;
 
-/** A token a part uses: a colour, or a size in pixels. `fallback` is what applies while it is empty. */
+/**
+ * A token a part uses: a colour, a size in pixels or a font. `fallback` is what applies while it
+ * is empty; a font with `sameAs` may be empty (the font of the form).
+ */
 interface TokenRow {
 	key: string;
 	label: string;
-	kind: 'color' | 'px';
+	kind: 'color' | 'px' | 'font';
 	fallback: ( t: Tokens ) => string;
 	min?: number;
 	max?: number;
+	sameAs?: string;
 }
 
 /** A text colour on a background colour of the part, checked for contrast. */
@@ -132,6 +139,8 @@ const get =
 export function partTokens( part: DesignPart ): { rows: TokenRow[]; pairs: Pair[] } {
 	const color = ( key: string, label: string, ...fallbacks: string[] ): TokenRow => ( { key, label, kind: 'color', fallback: get( key, ...fallbacks ) } );
 	const px = ( key: string, label: string, min: number, max: number, fallback: string ): TokenRow => ( { key, label, kind: 'px', min, max, fallback: get( key, fallback ) } );
+	const font = ( key: string, label: string ): TokenRow => ( { key, label, kind: 'font', fallback: () => '', sameAs: __( 'Same as the text', 'funnelforms-pro' ) } );
+	const fieldFont = (): TokenRow => font( 'font.field', __( 'Font of answers and inputs', 'funnelforms-pro' ) );
 	const readable = __( 'Text', 'funnelforms-pro' );
 	switch ( part ) {
 		case 'button':
@@ -146,7 +155,11 @@ export function partTokens( part: DesignPart ): { rows: TokenRow[]; pairs: Pair[
 			};
 		case 'question':
 			return {
-				rows: [ color( 'color.heading', __( 'Colour of questions', 'funnelforms-pro' ), 'color.text' ), px( 'font.size.heading', __( 'Size of questions', 'funnelforms-pro' ), 14, 48, 'font.size.heading' ) ],
+				rows: [
+					color( 'color.heading', __( 'Colour of questions', 'funnelforms-pro' ), 'color.text' ),
+					font( 'font.heading', __( 'Font of questions and headings', 'funnelforms-pro' ) ),
+					px( 'font.size.heading', __( 'Size of questions', 'funnelforms-pro' ), 14, 48, 'font.size.heading' ),
+				],
 				pairs: [ { label: readable, text: get( 'color.heading', 'color.text' ), background: get( 'color.background' ) } ],
 			};
 		case 'description':
@@ -161,6 +174,7 @@ export function partTokens( part: DesignPart ): { rows: TokenRow[]; pairs: Pair[
 					color( 'color.optionSelected', __( 'Chosen answer', 'funnelforms-pro' ), 'color.option', 'color.background' ),
 					color( 'color.primary', __( 'Accent colour (frame of the chosen answer)', 'funnelforms-pro' ) ),
 					color( 'color.border', __( 'Borders', 'funnelforms-pro' ) ),
+					fieldFont(),
 					px( 'radius.card', __( 'Corners', 'funnelforms-pro' ), 0, 24, 'radius.card' ),
 				],
 				pairs: [ { label: readable, text: get( 'color.text' ), background: get( 'color.option', 'color.background' ) } ],
@@ -172,7 +186,14 @@ export function partTokens( part: DesignPart ): { rows: TokenRow[]; pairs: Pair[
 			};
 		case 'input':
 			return {
-				rows: [ color( 'color.background', __( 'Background', 'funnelforms-pro' ) ), color( 'color.text', __( 'Text', 'funnelforms-pro' ) ), color( 'color.border', __( 'Borders', 'funnelforms-pro' ) ), px( 'radius.input', __( 'Corners', 'funnelforms-pro' ), 0, 24, 'radius.input' ), px( 'border.width', __( 'Border width', 'funnelforms-pro' ), 0, 6, 'border.width' ) ],
+				rows: [
+					color( 'color.background', __( 'Background', 'funnelforms-pro' ) ),
+					color( 'color.text', __( 'Text', 'funnelforms-pro' ) ),
+					color( 'color.border', __( 'Borders', 'funnelforms-pro' ) ),
+					fieldFont(),
+					px( 'radius.input', __( 'Corners', 'funnelforms-pro' ), 0, 24, 'radius.input' ),
+					px( 'border.width', __( 'Border width', 'funnelforms-pro' ), 0, 6, 'border.width' ),
+				],
 				pairs: [ { label: readable, text: get( 'color.text' ), background: get( 'color.background' ) } ],
 			};
 		case 'progress':
@@ -187,6 +208,8 @@ export function partTokens( part: DesignPart ): { rows: TokenRow[]; pairs: Pair[
 					color( 'color.backgroundEnd', __( 'Second background colour', 'funnelforms-pro' ), 'color.background' ),
 					color( 'color.text', __( 'Text', 'funnelforms-pro' ) ),
 					color( 'color.primary', __( 'Accent colour', 'funnelforms-pro' ) ),
+					// The font of the whole form, as under Design.
+					{ key: 'font.family', label: __( 'Font', 'funnelforms-pro' ), kind: 'font', fallback: () => 'inherit' },
 					px( 'radius.card', __( 'Corners', 'funnelforms-pro' ), 0, 24, 'radius.card' ),
 					px( 'space.padding', __( 'Inner spacing', 'funnelforms-pro' ), 0, 64, 'space.padding' ),
 				],
@@ -313,9 +336,13 @@ export function DesignPartPanel( { doc, part, rect, frame, onClose }: { doc: For
 	const ref = useRef<HTMLDivElement>( null );
 	const tokens = { ...SIZE_DEFAULTS, ...effectiveTokens( doc.style.tokens ) } as Tokens;
 	const { rows, pairs } = partTokens( part );
+	const fonts = useSiteFonts();
+	// Where the panel was put for the part; null until it is placed.
+	const placed = useRef<{ part: DesignPart; beside: boolean; left: number; top: number } | null>( null );
 	const token = ( key: string, value: string | null ): void => {
 		if ( ! readOnly ) {
-			store.getState().change( ( d ) => setStyleToken( d, key, value ), 'style:' + key );
+			// The font of the form is the font of all of it (setMainFont), as under Design.
+			store.getState().change( ( d ) => ( 'font.family' === key ? setMainFont( d, value ?? '' ) : setStyleToken( d, key, value ) ), 'style:' + key );
 		}
 	};
 
@@ -325,6 +352,8 @@ export function DesignPartPanel( { doc, part, rect, frame, onClose }: { doc: For
 	}, [ part ] );
 
 	// Beside the part when there is room, else below it; at the top right when it is not on this step.
+	// Placed once for a part: a part that grows or moves with a change (a size, a font) keeps the
+	// panel where it is, so a slider stays under the pointer. Only kept inside the preview.
 	useLayoutEffect( () => {
 		const panel = ref.current;
 		const box = panel?.offsetParent as HTMLElement | null;
@@ -333,9 +362,14 @@ export function DesignPartPanel( { doc, part, rect, frame, onClose }: { doc: For
 		}
 		const area = box.getBoundingClientRect();
 		const height = panel.offsetHeight;
+		const before = placed.current;
+		const beside = null !== rect && null !== frame;
 		let left = area.width - PANEL - 16;
 		let top = 64;
-		if ( rect && frame ) {
+		if ( before && before.part === part && ( before.beside || ! beside ) ) {
+			left = before.left;
+			top = before.top;
+		} else if ( rect && frame ) {
 			const f = frame.getBoundingClientRect();
 			const scale = frame.offsetWidth > 0 ? f.width / frame.offsetWidth : 1;
 			const x = f.left - area.left + rect.x * scale;
@@ -352,6 +386,7 @@ export function DesignPartPanel( { doc, part, rect, frame, onClose }: { doc: For
 				top = y + rect.height * scale + 12;
 			}
 		}
+		placed.current = { part, beside, left, top };
 		panel.style.left = `${ Math.max( 8, Math.min( left, area.width - PANEL - 8 ) ) }px`;
 		panel.style.top = `${ Math.max( 56, Math.min( top, area.height - height - 8 ) ) }px`;
 	} );
@@ -364,7 +399,8 @@ export function DesignPartPanel( { doc, part, rect, frame, onClose }: { doc: For
 			aria-label={ sprintf( /* translators: %s: part of the form, e.g. Answers */ __( 'Design of %s', 'funnelforms-pro' ), partName( part ) ) }
 			tabIndex={ -1 }
 			onKeyDown={ ( e ) => {
-				if ( 'Escape' === e.key ) {
+				// Escape in a dialog of the panel (Google Fonts) closes only that dialog.
+				if ( 'Escape' === e.key && ! ( e.target as HTMLElement ).closest?.( 'dialog' ) ) {
 					e.stopPropagation();
 					onClose();
 				}
@@ -381,6 +417,10 @@ export function DesignPartPanel( { doc, part, rect, frame, onClose }: { doc: For
 			{ rows.map( ( row ) => {
 				const value = doc.style.tokens[ row.key ] ?? '';
 				const shown = '' !== value ? value : row.fallback( tokens );
+				if ( 'font' === row.kind ) {
+					const font = value || ( undefined === row.sameAs ? row.fallback( tokens ) : '' );
+					return <FontPicker key={ row.key } label={ row.label } font={ font } sameAs={ row.sameAs } onChange={ ( v ) => token( row.key, v ) } fonts={ fonts } />;
+				}
 				if ( 'px' === row.kind ) {
 					const n = Number.parseFloat( shown );
 					return <Range key={ row.key } label={ row.label } min={ row.min ?? 0 } max={ row.max ?? 64 } unit=" px" value={ Number.isFinite( n ) ? n : row.min ?? 0 } onChange={ ( v ) => token( row.key, String( v ) ) } />;

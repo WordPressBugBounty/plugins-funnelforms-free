@@ -706,5 +706,20 @@
 		},
 		"css": "--ffx-color-field-border:#8e8b97;",
 		"classes": " ffx-sticky"
+	},
+	{
+		"tokens": {
+			"align.text": "left",
+			"color.text": "#222222"
+		},
+		"css": "--ffx-color-text:#222222;--ffx-text-align:left;--ffx-description-inline:0 auto;--ffx-color-field-border:#908e96;",
+		"classes": " ffx-sticky"
+	},
+	{
+		"tokens": {
+			"align.text": "right"
+		},
+		"css": "--ffx-text-align:right;--ffx-description-inline:auto 0;--ffx-color-field-border:#8e8b97;",
+		"classes": " ffx-sticky"
 	}
 ]

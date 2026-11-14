@@ -378,10 +378,12 @@ final class StatsUi {
 			<summary><span class="ffx-kpi__icon"><?php echo Ui::icon( 'shield' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?></span><span><?php esc_html_e( 'What the statistics record', 'funnelforms-free' ); ?></span></summary>
 			<ul>
 				<li><?php esc_html_e( 'Per page view: that the form was seen and started, which steps were shown and the step before each, which fields stopped the visitor because their check failed, which options of choice questions were picked (their ids, never typed text) and the variant of an A/B test.', 'funnelforms-free' ); ?></li>
+				<li><?php esc_html_e( 'Once the visitor started: the seconds on each question (up to 30 minutes), the questions the visitor went back from, and the step on screen when the page was closed before the form was sent.', 'funnelforms-free' ); ?></li>
 				<li><?php esc_html_e( 'Where the visitor came from: the domain of a search engine, social network or website (never the page or its query) or utm_source, utm_medium and utm_campaign of the page address. Values that look like an e-mail address are dropped.', 'funnelforms-free' ); ?></li>
 				<li><?php esc_html_e( 'A page view is known only by a random number the browser forgets when the page closes; the plugin stores a keyed hash of it. No cookies, no IP address, no user agent, no external service.', 'funnelforms-free' ); ?></li>
 				<?php if ( Edition::is_pro() ) : ?>
 					<li><?php esc_html_e( 'Only where the visitor allowed statistics (EU mode: a yes in the consent tool; global mode: no objection and no Global Privacy Control): the fields filled in, the device class from the window width, and a random visitor id the browser keeps in local storage (ffx_vid) for 180 days, stored here only as a keyed hash. The figures say how many page views they rest on.', 'funnelforms-free' ); ?></li>
+					<li><?php esc_html_e( 'Analyse with AI sends only these counts, shares and averages of one form to the Funnelforms AI, and only when you start it; never an entry, a typed answer or a visitor id.', 'funnelforms-free' ); ?></li>
 				<?php endif; ?>
 				<li><?php esc_html_e( 'Times, devices, numbers and calculation results come from the entries themselves and are shown only as counts and averages of at least three entries. Events are deleted after 400 days.', 'funnelforms-free' ); ?></li>
 			</ul>

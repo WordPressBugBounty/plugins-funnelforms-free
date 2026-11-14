@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import type { FormDocument } from '@funnelforms/form-schema';
+import { localeTag } from '@funnelforms/form-core';
 import { addLanguage, languageName, LANGUAGES, missingTranslations, removeLanguage } from '../languages';
 import type { Recipe } from '../store';
 import { useBuilder, useEnv } from './context';
@@ -13,7 +14,7 @@ import { Button, icons, Select, Toggle } from './ui';
 
 /** The language of the admin, for the names of the languages. */
 function adminLocale(): string {
-	return document.documentElement.lang || 'en';
+	return localeTag( document.documentElement.lang ) ?? 'en';
 }
 
 /** The name of a language in the admin's language. */

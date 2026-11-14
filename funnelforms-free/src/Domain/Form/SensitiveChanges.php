@@ -18,9 +18,9 @@ defined( 'ABSPATH' ) || exit;
  *    whose links or images put answers into an address). Whoever changes these could send
  *    entries to themselves, so they need the right to see entries. Any change counts, removals
  *    included.
- *  - code: tracking code and scripts in content steps or HTML blocks run in visitors' browsers,
- *    and the form's own CSS can read and send what visitors type, so adding or changing them
- *    needs WordPress's unfiltered_html, as in posts. Removing them does not.
+ *  - code: tracking code, "Custom code" actions and scripts in content steps or HTML blocks run in
+ *    visitors' browsers, and the form's own CSS can read and send what visitors type, so adding or
+ *    changing them needs WordPress's unfiltered_html, as in posts. Removing them does not.
  * A form that was never published compares against nothing, so all of its actions and code
  * count as changes.
  */
@@ -96,7 +96,7 @@ final class SensitiveChanges {
 	}
 
 	/**
-	 * Tracking code, scripted HTML and custom CSS, keyed by where they are.
+	 * Tracking code, custom code actions, scripted HTML and custom CSS, keyed by where they are.
 	 *
 	 * @param array<string,mixed> $doc Document.
 	 * @return array<string,string>
@@ -104,6 +104,12 @@ final class SensitiveChanges {
 	private static function code( array $doc ): array {
 		// CSS can show answers to another site (selectors on values, background images).
 		$out = array( 'style|css' => (string) ( $doc['style']['css'] ?? '' ) );
+		foreach ( (array) ( $doc['actions'] ?? array() ) as $action ) {
+			if ( 'customCode' === ( $action['kind'] ?? '' ) ) {
+				// Keyed by the action, so a copy of existing code counts as new code too.
+				$out[ 'action|' . (string) ( $action['id'] ?? '' ) . '|code' ] = (string) ( $action['config']['code'] ?? '' );
+			}
+		}
 		foreach ( (array) ( $doc['nodes'] ?? array() ) as $node ) {
 			$node_id = (string) ( $node['id'] ?? '' );
 			foreach ( (array) ( $node['tracking'] ?? array() ) as $when => $code ) {

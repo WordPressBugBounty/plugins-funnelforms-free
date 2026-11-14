@@ -1,4 +1,5 @@
 import type { Field, StepNode } from '@funnelforms/form-schema';
+import { localeTag } from '@funnelforms/form-core';
 import { formatAddress } from './address';
 import { bookingText } from './booking';
 import { escapeHtml, textOf } from './dom';
@@ -47,7 +48,7 @@ export function item( field: Field, value: unknown, text: TextOf, units = false 
 			return heading + ( heading.endsWith( '.' ) ? ' ' : ': ' ) + pairs.join( ', ' );
 		} ).join( '; ' );
 	} else if ( field.type === 'booking' ) {
-		answer = bookingText( value, document.documentElement.lang || undefined );
+		answer = bookingText( value, localeTag( document.documentElement.lang ) );
 	} else if ( field.type === 'signature' ) {
 		answer = Array.isArray( value ) && value.length ? '✓' : '';
 	} else if ( field.type === 'file' ) {

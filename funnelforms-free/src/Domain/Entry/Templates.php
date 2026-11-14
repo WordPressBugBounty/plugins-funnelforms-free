@@ -21,7 +21,8 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Tokens are listed in packages/form-schema/src/types.ts (TEMPLATE_TOKENS) plus {{field:<key>}},
  * {{calc:<id>}} and {{url:<name>}}. Visitor input is escaped for the target: HTML in mail bodies, plain text without
- * line breaks in headers, URL encoding in redirects. 3.x inserted visitor input into mails unescaped.
+ * line breaks in headers, URL encoding in redirects, text that cannot leave a string or a tag in custom code (SCRIPT).
+ * 3.x inserted visitor input into mails unescaped.
  */
 final class Templates {
 
@@ -30,6 +31,13 @@ final class Templates {
 	public const URL  = 'url';
 	/** HTML of a designed mail (MailLayout): like HTML, the answers as a table. */
 	public const CARD = 'card';
+	/**
+	 * Custom code after sending (JavaScript or HTML run in the visitor's browser): one line in
+	 * which letters, digits, spaces and @ . _ , : + - / % stay as they are and every other
+	 * character becomes a \uXXXX escape. Inside a JavaScript string that is the same text; nowhere
+	 * can a value end a string, a comment, a tag or a script, or call anything.
+	 */
+	public const SCRIPT = 'script';
 
 	private const LINE = '_________________________';
 
@@ -38,7 +46,7 @@ final class Templates {
 	 *
 	 * @param string     $template Template text.
 	 * @param Submission $s        Submission.
-	 * @param string     $mode     self::HTML, self::CARD, self::TEXT or self::URL.
+	 * @param string     $mode     self::HTML, self::CARD, self::TEXT, self::URL or self::SCRIPT.
 	 */
 	public static function render( string $template, Submission $s, string $mode ): string {
 		return (string) preg_replace_callback(
@@ -94,6 +102,10 @@ final class Templates {
 		}
 		if ( str_starts_with( $token, 'calc:' ) ) {
 			$result = $s->calculations[ substr( $token, 5 ) ] ?? null;
+			if ( self::SCRIPT === $mode ) {
+				// Code wants the number, e.g. as the value of a conversion: 1234.5, not "1.234,50 €".
+				return null !== $result && $result['ok'] ? self::plain_number( (float) $result['value'] ) : '0';
+			}
 			if ( null === $result ) {
 				return self::escape( '', $mode );
 			}
@@ -560,7 +572,45 @@ final class Templates {
 				return esc_html( $value );
 			case self::URL:
 				return rawurlencode( $value );
+			case self::SCRIPT:
+				return self::script_text( trim( str_replace( array( "\r", "\n" ), ' ', $value ) ) );
 		}
 		return trim( str_replace( array( "\r", "\n" ), ' ', $value ) );
+	}
+
+	/**
+	 * A number as JavaScript writes it, to two decimals: 1234.5, -3, 0.25.
+	 *
+	 * @param float $value Number.
+	 */
+	private static function plain_number( float $value ): string {
+		if ( ! is_finite( $value ) ) {
+			return '0';
+		}
+		$text = rtrim( rtrim( number_format( $value, 2, '.', '' ), '0' ), '.' );
+		return '-0' === $text || '' === $text ? '0' : $text;
+	}
+
+	/**
+	 * Text for custom code (self::SCRIPT): characters other than letters, digits, currency signs,
+	 * spaces and @ . _ , : + - / % as \uXXXX escapes (UTF-16, as JavaScript reads them).
+	 *
+	 * @param string $value Value (UTF-8).
+	 */
+	public static function script_text( string $value ): string {
+		$out = preg_replace_callback(
+			'/\$|[^\p{L}\p{N}\p{Sc} @._,:+\/%-]/u',
+			static function ( array $m ): string {
+				$char = $m[0];
+				if ( 1 === strlen( $char ) ) {
+					return sprintf( '\\u%04x', ord( $char ) );
+				}
+				// Other characters (symbols, emoji) as JSON writes them: \uXXXX, surrogate pairs included.
+				return substr( (string) json_encode( $char ), 1, -1 ); // phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode -- plain escaping, also without WordPress (unit tests).
+			},
+			$value
+		);
+		// Not valid UTF-8: nothing rather than raw bytes.
+		return null === $out ? '' : $out;
 	}
 }

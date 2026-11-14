@@ -121,3 +121,69 @@ describe( 'extended level', () => {
 		expect( calls[ 0 ]?.[ 1 ].map( ( e ) => e.event ) ).toEqual( [ 'device', 'view' ] );
 	} );
 } );
+
+describe( 'time on steps, going back and leaving', () => {
+	afterEach( () => {
+		vi.useRealTimers();
+	} );
+
+	it( 'reports the seconds on each question once, from the start, and where the visitor went back', () => {
+		vi.useFakeTimers();
+		const events = vi.fn( async () => undefined );
+		const stats = new Stats( { events } as unknown as Api );
+		stats.enter( 'n1', true );
+		// Before the visitor starts, leaving a step reports no time.
+		stats.enter( 'n2', true );
+		stats.record( 'start' );
+		vi.advanceTimersByTime( 12_400 );
+		stats.enter( 'n3', true );
+		vi.advanceTimersByTime( 3_000 );
+		stats.back();
+		stats.enter( 'n2', true );
+		// The second visit of a step is not counted again.
+		vi.advanceTimersByTime( 5_000 );
+		stats.enter( 'n3', true );
+		vi.advanceTimersByTime( 4_000_000 );
+		stats.enter( 'end', false );
+		stats.flush();
+		const sent = ( events.mock.calls as unknown as Array<[ string, unknown[] ]> ).flatMap( ( c ) => c[ 1 ] );
+		expect( sent ).toEqual( [
+			{ event: 'start', step: '', variant: undefined },
+			{ event: 'time', step: 'n2', variant: '12' },
+			{ event: 'back', step: 'n3', variant: undefined },
+			{ event: 'time', step: 'n3', variant: '3' },
+		] );
+	} );
+
+	it( 'reports the step and its seconds when the page is hidden before sending, and nothing after sending', () => {
+		vi.useFakeTimers();
+		const events = vi.fn( async () => undefined );
+		const stats = new Stats( { events } as unknown as Api );
+		stats.record( 'start' );
+		stats.enter( 'n1', true );
+		vi.advanceTimersByTime( 7_000 );
+		window.dispatchEvent( new Event( 'pagehide' ) );
+		window.dispatchEvent( new Event( 'pagehide' ) );
+		const first = ( events.mock.calls as unknown as Array<[ string, unknown[] ]> ).flatMap( ( c ) => c[ 1 ] );
+		expect( first ).toContainEqual( { event: 'exit', step: 'n1', variant: '7' } );
+		expect( first.filter( ( e ) => ( e as { event: string } ).event === 'exit' ) ).toHaveLength( 1 );
+
+		events.mockClear();
+		stats.enter( 'n2', true );
+		stats.sent();
+		window.dispatchEvent( new Event( 'pagehide' ) );
+		const after = ( events.mock.calls as unknown as Array<[ string, unknown[] ]> ).flatMap( ( c ) => c[ 1 ] );
+		expect( after.filter( ( e ) => ( e as { event: string } ).event === 'exit' ) ).toEqual( [] );
+	} );
+
+	it( 'counts nothing in previews', () => {
+		const events = vi.fn( async () => undefined );
+		const stats = new Stats( { events } as unknown as Api, false );
+		stats.record( 'start' );
+		stats.enter( 'n1', true );
+		stats.back();
+		stats.enter( 'n2', true );
+		stats.flush();
+		expect( events ).not.toHaveBeenCalled();
+	} );
+} );

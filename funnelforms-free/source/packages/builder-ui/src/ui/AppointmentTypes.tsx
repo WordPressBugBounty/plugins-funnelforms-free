@@ -7,13 +7,16 @@ import React, { useEffect, useMemo, useState } from 'react';
 import type { BookingType, BookingTypes } from '../api';
 import { weekSummary } from '../booking-hours';
 import { WpRestAdapter } from '../wp-rest';
-import { BookingTypeEditor, INTEGRATIONS_URL, type BookingEditorApi } from './BookingTypes';
+import { BookingTypeEditor, durationName, INTEGRATIONS_URL, type BookingEditorApi } from './BookingTypes';
 import { __, sprintf } from './i18n';
 
 const weekday = ( day: number ): string => new Date( 2024, 0, day ).toLocaleDateString( undefined, { weekday: 'short' } );
 
 /** Durations as "30 or 60 minutes". */
 function durationText( minutes: number[] ): string {
+	if ( minutes.some( ( m ) => m >= 1440 && 0 === m % 1440 ) ) {
+		return minutes.map( durationName ).join( ' / ' );
+	}
 	return 1 === minutes.length ? sprintf( __( '%d minutes', 'funnelforms-pro' ), minutes[ 0 ] ?? 0 ) : sprintf( __( '%s minutes', 'funnelforms-pro' ), minutes.join( ' / ' ) );
 }
 

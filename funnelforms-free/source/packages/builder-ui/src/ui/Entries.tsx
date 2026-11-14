@@ -5,6 +5,7 @@
  * Filters, the view and the open entry live in the address, so links and the back button work.
  */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { localeTag } from '@funnelforms/form-core';
 import type { Appointment, BulkChanges, EntryDevice, EntriesApi, EntryDetail, EntryFigures, EntryFilter, EntryList, EntrySummary, EntryVisit, LeadStage, LeadStageTone, LeadStatus, PaymentStatus, SpamReason, UserRef } from '../api';
 import { addressOf, avatarTone, byLeadStatus, change, DEVICES, entryEmail, entryName, entryPhone, exportLink, figureMoments, filtered, initials, MAX_STAGE_NAME, MAX_STAGES, moveStage, parseTags, periodStart, relativeTime, STAGE_TONES, stageInputs, stageNameProblem, standardStages, stateFromAddress, valueText, type EntriesState, type Period } from '../entries';
 import { pageLocale, zoneName } from '../appointments';
@@ -164,9 +165,59 @@ function deliveryBadge( status: string ) {
 			return <Badge>{ __( 'Skipped', 'funnelforms-pro' ) }</Badge>;
 		case 'queued':
 			return <Badge tone="warning">{ __( 'Waiting', 'funnelforms-pro' ) }</Badge>;
+		case 'retrying':
+			return <Badge tone="warning">{ __( 'Trying again', 'funnelforms-pro' ) }</Badge>;
 		default:
 			return <Badge>{ status }</Badge>;
 	}
+}
+
+/** The action a job belongs to: its channel, without the prefix of a run by hand (ActionQueue::AGAIN). */
+export function deliveryAction( channel: string ): string {
+	return channel.startsWith( ':again:' ) ? channel.slice( 7 ) : channel;
+}
+
+/** Why a step did nothing, in words, for the codes that are no failure; other codes as they are. */
+function skipReason( code: string ): string {
+	return (
+		{
+			condition_not_met: __( 'Its condition does not apply to this entry', 'funnelforms-pro' ),
+			no_recipient: __( 'Nobody to send to', 'funnelforms-pro' ),
+			no_consent: __( 'No consent to be called', 'funnelforms-pro' ),
+		}[ code ] ?? code
+	);
+}
+
+/**
+ * What running an action again is called and what a click does, by kind: mails and messages are
+ * sent, webhooks and CRM transfers run, the AI Phone Agent calls.
+ */
+export function againTexts( kind: string ): { button: string; what: string; done: string } {
+	const sent = __( 'Started. The status updates in a few seconds.', 'funnelforms-pro' );
+	if ( 'aiCall' === kind ) {
+		return {
+			button: __( 'Call again', 'funnelforms-pro' ),
+			what: __( 'The AI Phone Agent calls the lead again: right away inside its call hours, otherwise when they start. Consent and number are checked as for every call.', 'funnelforms-pro' ),
+			done: __( 'Call planned. The result appears under AI Phone Agent.', 'funnelforms-pro' ),
+		};
+	}
+	if ( [ 'email', 'autoresponder', 'chat', 'sms', 'whatsapp', 'conversion', 'optin' ].includes( kind ) ) {
+		return { button: 'optin' === kind ? __( 'Send link again', 'funnelforms-pro' ) : __( 'Send again', 'funnelforms-pro' ), what: __( 'This sends it once more, with the settings the form has now.', 'funnelforms-pro' ), done: sent };
+	}
+	return {
+		button: 'crm' === kind ? __( 'Transfer again', 'funnelforms-pro' ) : __( 'Trigger again', 'funnelforms-pro' ),
+		what: __( 'This runs it once more for this entry, with the settings the form has now (for example a corrected address).', 'funnelforms-pro' ),
+		done: sent,
+	};
+}
+
+/**
+ * The notes of the team. The plugin notes each call of the AI Phone Agent as well (for the app and
+ * the data export); the panel shows the calls in their own section, so not twice.
+ */
+export function teamNotes( entry: Pick<EntryDetail, 'notes' | 'aiCalls'> ): EntryDetail[ 'notes' ] {
+	const calls = ( entry.aiCalls ?? [] ).some( ( c ) => c.attempts.length > 0 );
+	return calls ? entry.notes.filter( ( n ) => null !== n.author ) : entry.notes;
 }
 
 /** Dates in the editor's language: in full, and as people say it ("5 min. ago"). */
@@ -177,7 +228,7 @@ interface Dates {
 
 function useDates( locale?: string ): Dates {
 	return useMemo( () => {
-		const tag = ( locale ?? '' ).replace( '_', '-' ) || undefined;
+		const tag = localeTag( locale );
 		let format: Intl.DateTimeFormat;
 		try {
 			format = new Intl.DateTimeFormat( tag, { dateStyle: 'medium', timeStyle: 'short' } );
@@ -1129,31 +1180,57 @@ function Board( props: {
 						{ list.length ? null : <p className="ffxb-board__empty">{ __( 'Drag entries here', 'funnelforms-pro' ) }</p> }
 						{ list.map( ( entry ) => {
 							const name = title( entry );
+							const email = entryEmail( entry );
+							const phone = entryPhone( entry );
+							const reach = email && email !== name ? email : phone;
 							return (
-								<article key={ entry.id } className={ 'ffxb-card' + ( entry.read ? '' : ' is-unread' ) } draggable onDragStart={ ( e ) => e.dataTransfer.setData( 'text/plain', String( entry.id ) ) }>
+								<article
+									key={ entry.id }
+									className={ 'ffxb-card' + ( entry.read ? '' : ' is-unread' ) }
+									draggable
+									onDragStart={ ( e ) => e.dataTransfer.setData( 'text/plain', String( entry.id ) ) }
+									onClick={ ( e ) => {
+										// The whole card opens the entry, where the lead status can also be set without dragging.
+										if ( ! ( e.target as HTMLElement ).closest( 'button, a' ) ) {
+											onOpen( entry.id );
+										}
+									} }
+								>
 									<div className="ffxb-card__head">
 										<Avatar name={ entryName( entry ) } size="sm" />
 										<button type="button" className="ffxb-link ffxb-card__title" onClick={ () => onOpen( entry.id ) }>
 											{ entry.read ? null : <span className="ffxb-dot" aria-label={ __( 'Unread', 'funnelforms-pro' ) } /> }
 											{ name }
 										</button>
+										<span className="ffxb-card__when">
+											<When iso={ entry.completedAt ?? entry.createdAt } date={ date } />
+										</span>
 									</div>
-									<div className="ffxb-card__meta">
-										{ entry.form?.title ? <span>{ entry.form.title }</span> : null }
-										<When iso={ entry.completedAt ?? entry.createdAt } date={ date } />
-										<ValueBadge entry={ entry } />
-									</div>
+									{ reach ? <p className="ffxb-card__reach">{ reach }</p> : null }
+									{ entry.form?.title ? <p className="ffxb-card__meta">{ entry.form.title }</p> : null }
+									<CardBadges entry={ entry } />
 									{ entry.tags.length ? <Tags tags={ entry.tags } max={ 4 } /> : null }
-									<div className="ffxb-card__foot">
-										<select className="ffxb-card__move" aria-label={ sprintf( __( 'Lead status of %s', 'funnelforms-pro' ), name ) } value={ entry.leadStatus } onChange={ ( e ) => onMove( entry.id, e.target.value ) }>
-											<StageOptions current={ entry.leadStatus } />
-										</select>
-										{ entry.assignedTo ? (
-											<span title={ entry.assignedTo.name }>
-												<Avatar name={ entry.assignedTo.name } size="sm" />
+									{ email || phone || entry.assignedTo ? (
+										<div className="ffxb-card__foot">
+											<span className="ffxb-card__contact">
+												{ email ? (
+													<a className="ffxb-card__icon" href={ 'mailto:' + email } aria-label={ __( 'Write an e-mail', 'funnelforms-pro' ) } title={ __( 'Write an e-mail', 'funnelforms-pro' ) }>
+														<Icon name="mail" />
+													</a>
+												) : null }
+												{ phone ? (
+													<a className="ffxb-card__icon" href={ 'tel:' + phone.replace( /[^\d+]/g, '' ) } aria-label={ __( 'Call', 'funnelforms-pro' ) } title={ __( 'Call', 'funnelforms-pro' ) }>
+														<Icon name="phone" />
+													</a>
+												) : null }
 											</span>
-										) : null }
-									</div>
+											{ entry.assignedTo ? (
+												<span className="ffxb-card__assignee" title={ entry.assignedTo.name }>
+													<Avatar name={ entry.assignedTo.name } size="sm" />
+												</span>
+											) : null }
+										</div>
+									) : null }
 								</article>
 							);
 						} ) }
@@ -1166,6 +1243,23 @@ function Board( props: {
 					<span>{ __( 'Add stage', 'funnelforms-pro' ) }</span>
 				</button>
 			) : null }
+		</div>
+	);
+}
+
+/**
+ * What a board card says about a lead besides its name: incomplete or abandoned, the payment, the
+ * score and the lead value. The column is the lead status, so the card does not repeat it.
+ */
+function CardBadges( { entry }: { entry: EntrySummary } ) {
+	// Empty without any of them (hidden in CSS).
+	return (
+		<div className="ffxb-card__badges">
+			{ 'partial' === entry.status ? <Badge tone="warning">{ __( 'Incomplete', 'funnelforms-pro' ) }</Badge> : null }
+			{ abandonBadge( entry ) }
+			{ entry.payment ? <Badge tone={ PAYMENT_TONE[ entry.payment.status ] }>{ paymentName( entry.payment.status ) }</Badge> : null }
+			{ null !== entry.score ? <Badge tone="brand">{ sprintf( __( 'Score %s', 'funnelforms-pro' ), String( entry.score ) ) }</Badge> : null }
+			<ValueBadge entry={ entry } />
 		</div>
 	);
 }
@@ -1477,9 +1571,11 @@ function EntryPanel( props: { api: EntriesApi; id: number; assignees: UserRef[];
 	const [ busy, setBusy ] = useState( false );
 	const [ note, setNote ] = useState( '' );
 	const [ tagText, setTagText ] = useState( '' );
-	const [ resendAction, setResendAction ] = useState( '' );
 	const [ confirm, setConfirm ] = useState( false );
 	const panel = useRef<HTMLElement>( null );
+	// The look at the status of an action run again, a few seconds later.
+	const later = useRef<number | undefined>( undefined );
+	useEffect( () => () => window.clearTimeout( later.current ), [] );
 	const { onChanged } = props;
 
 	const load = useCallback( async (): Promise<void> => {
@@ -1818,7 +1914,7 @@ function EntryPanel( props: { api: EntriesApi; id: number; assignees: UserRef[];
 						{ 'free' === process.env.FUNNELFORMS_EDITION ? null : (
 							<Section title={ __( 'Notes', 'funnelforms-pro' ) } show>
 								<ul className="ffxb-notes">
-									{ entry.notes.map( ( n ) => (
+									{ teamNotes( entry ).map( ( n ) => (
 										<li key={ n.id } className="ffxb-note">
 											<p className="ffxb-note__text">{ n.text }</p>
 											<p className="ffxb-note__meta">
@@ -1849,44 +1945,19 @@ function EntryPanel( props: { api: EntriesApi; id: number; assignees: UserRef[];
 							</Section>
 						) }
 
-						<Section title={ __( 'Sent to', 'funnelforms-pro' ) } show={ entry.deliveries.length > 0 || ( 'free' !== process.env.FUNNELFORMS_EDITION && entry.actions.length > 0 ) }>
-							{ entry.deliveries.length ? (
-								<ul className="ffxb-deliveries">
-									{ entry.deliveries.map( ( d ) => {
-										const kind = entry.actions.find( ( a ) => a.id === d.action )?.kind;
-										return (
-											<li key={ d.id }>
-												<span>{ kind ? actionName( kind ) : deliveryName( d.action ) }</span>
-												{ deliveryBadge( d.status ) }
-												<span className="ffxb-deliveries__time">{ date( d.updatedAt ) }</span>
-												{ d.error ? <span className="ffxb-deliveries__error">{ d.error }</span> : null }
-											</li>
-										);
-									} ) }
-								</ul>
-							) : null }
-							{ 'free' !== process.env.FUNNELFORMS_EDITION && entry.actions.length ? (
-								<div className="ffxb-inline">
-									<select className="ffxb-input ffxb-input--inline" aria-label={ __( 'Action to send again', 'funnelforms-pro' ) } value={ resendAction } onChange={ ( e ) => setResendAction( e.target.value ) }>
-										<option value="">{ __( 'Send again…', 'funnelforms-pro' ) }</option>
-										{ entry.actions.map( ( a, i ) => (
-											<option key={ a.id } value={ a.id }>
-												{ `${ i + 1 }. ${ actionName( a.kind ) }` }
-											</option>
-										) ) }
-									</select>
-									<Button
-										size="sm"
-										disabled={ busy || ! resendAction }
-										onClick={ () =>
-											void run( () => api.resend( id, resendAction ), __( 'Queued. It is sent again shortly.', 'funnelforms-pro' ) ).then( ( ok ) => ok && setResendAction( '' ) )
-										}
-									>
-										{ __( 'Send', 'funnelforms-pro' ) }
-									</Button>
-								</div>
-							) : null }
-						</Section>
+						<AfterSending
+							entry={ entry }
+							busy={ busy }
+							date={ date }
+							onRun={ ( action, done ) =>
+								void run( () => api.resend( id, action ), done ).then( ( ok ) => {
+									if ( ok ) {
+										// The first attempt runs right after the answer; its status follows shortly.
+										later.current = window.setTimeout( () => void api.entry( id ).then( setEntry, () => undefined ), 4000 );
+									}
+								} )
+							}
+						/>
 
 						{ entry.visit ? <VisitSection visit={ entry.visit } /> : null }
 
@@ -2003,6 +2074,96 @@ function money( amount: number, currency: string ): string {
 	} catch {
 		return `${ amount } ${ currency }`;
 	}
+}
+
+/**
+ * After sending: what the form did once the visitor sent it, step by step (mails, webhooks, CRM,
+ * calls), each with its last status, and in Funnelforms Pro a button that runs the step again with
+ * the settings the form has now, saying first what the click does. Steps that are no action of
+ * the form (appointment mails, reminders, fetching the result of a call) follow below.
+ */
+function AfterSending( { entry, busy, date, onRun }: { entry: EntryDetail; busy: boolean; date: Dates; onRun: ( action: string, done: string ) => void } ) {
+	const [ asking, setAsking ] = useState<string | null>( null );
+	const actions = 'free' === process.env.FUNNELFORMS_EDITION ? [] : entry.actions;
+	const ids = new Set( actions.map( ( a ) => a.id ) );
+	const others = entry.deliveries.filter( ( d ) => ! ids.has( deliveryAction( d.action ) ) );
+	if ( ! actions.length && ! entry.deliveries.length ) {
+		return null;
+	}
+	return (
+		<Section title={ __( 'After sending', 'funnelforms-pro' ) } show>
+			{ actions.length ? (
+				<>
+					<p className="ffxb-hint ffxb-after__lead">{ __( 'What the form did after the visitor sent it. You can run each step again, for example after you corrected a webhook or a recipient in the form.', 'funnelforms-pro' ) }</p>
+					<ol className="ffxb-after">
+						{ actions.map( ( a ) => {
+							// The newest job of the action: the first one or a later run by hand.
+							const last = entry.deliveries.filter( ( d ) => deliveryAction( d.action ) === a.id ).sort( ( x, y ) => y.id - x.id )[ 0 ];
+							const call = 'aiCall' === a.kind ? entry.aiCalls?.find( ( c ) => c.action === a.id ) : undefined;
+							const running = 'calling' === call?.status || 'called' === call?.status;
+							const texts = againTexts( a.kind );
+							return (
+								<li key={ a.id } className="ffxb-after__step">
+									<div className="ffxb-after__row">
+										<span className="ffxb-after__name">{ actionName( a.kind ) }</span>
+										{ call ? (
+											<Badge tone={ 'done' === call.status ? 'success' : 'warning' }>{ running ? __( 'Call running', 'funnelforms-pro' ) : 'scheduled' === call.status ? __( 'Planned', 'funnelforms-pro' ) : __( 'Done', 'funnelforms-pro' ) }</Badge>
+										) : last ? (
+											deliveryBadge( last.status )
+										) : (
+											<Badge>{ __( 'Not run yet', 'funnelforms-pro' ) }</Badge>
+										) }
+										{ last?.updatedAt ? <span className="ffxb-deliveries__time">{ date( last.updatedAt ) }</span> : null }
+										<Button size="sm" className="ffxb-after__again" icon={ icons.reload } disabled={ busy || running || asking === a.id } aria-expanded={ asking === a.id } onClick={ () => setAsking( a.id ) }>
+											{ texts.button }
+										</Button>
+									</div>
+									{ last?.error && ! call ? <p className={ 'failed' === last.status ? 'ffxb-deliveries__error' : 'ffxb-after__note' }>{ skipReason( last.error ) }</p> : null }
+									{ asking === a.id ? (
+										<div className="ffxb-after__confirm" role="group" aria-label={ texts.button }>
+											<p>{ texts.what }</p>
+											<Button
+												size="sm"
+												variant="primary"
+												disabled={ busy }
+												onClick={ () => {
+													setAsking( null );
+													onRun( a.id, texts.done );
+												} }
+											>
+												{ texts.button }
+											</Button>
+											<Button size="sm" variant="ghost" onClick={ () => setAsking( null ) }>
+												{ __( 'Cancel', 'funnelforms-pro' ) }
+											</Button>
+										</div>
+									) : null }
+								</li>
+							);
+						} ) }
+					</ol>
+				</>
+			) : null }
+			{ others.length ? (
+				<>
+					{ actions.length ? <h4 className="ffxb-after__more">{ __( 'More steps', 'funnelforms-pro' ) }</h4> : null }
+					<ul className="ffxb-deliveries">
+						{ others.map( ( d ) => {
+							const kind = entry.actions.find( ( a ) => a.id === deliveryAction( d.action ) )?.kind;
+							return (
+								<li key={ d.id }>
+									<span>{ kind ? actionName( kind ) : deliveryName( deliveryAction( d.action ) ) }</span>
+									{ deliveryBadge( d.status ) }
+									<span className="ffxb-deliveries__time">{ date( d.updatedAt ) }</span>
+									{ d.error ? <span className="ffxb-deliveries__error">{ skipReason( d.error ) }</span> : null }
+								</li>
+							);
+						} ) }
+					</ul>
+				</>
+			) : null }
+		</Section>
+	);
 }
 
 /** The calls of the AI Phone Agent: each attempt with its time, outcome, summary, details and transcript. */

@@ -107,6 +107,19 @@ final class UiLocale {
 	}
 
 	/**
+	 * The language the plugin speaks to the current user, as a locale the Funnelforms Brain takes
+	 * (en_US, de_DE, de_DE_formal, …): the user's language when the plugin has texts in it, else
+	 * English, which the plugin then shows. The AI writes its predictions and analyses in it.
+	 */
+	public static function admin(): string {
+		$locale = get_user_locale();
+		if ( 1 !== preg_match( '/^[a-z]{2,3}(_[A-Z]{2})?(_formal|_informal)?/', $locale, $m ) ) {
+			return 'en_US';
+		}
+		return 'en' === self::language( $m[0] ) || null !== self::file( $m[0] ) ? $m[0] : 'en_US';
+	}
+
+	/**
 	 * Texts for $locale, or null when the site's texts apply.
 	 *
 	 * @param string $locale Locale.

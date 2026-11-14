@@ -438,6 +438,17 @@ export function setStyleToken( doc: FormDocument, key: string, value: string | n
 	}
 }
 
+/**
+ * Sets the font of the whole form: questions, headings, answers and inputs take it too, so a
+ * font of their own from a theme or template does not stay behind. Under "Fonts and sizes" they
+ * can get one of their own again.
+ */
+export function setMainFont( doc: FormDocument, value: string ): void {
+	setStyleToken( doc, 'font.family', value );
+	setStyleToken( doc, 'font.heading', null );
+	setStyleToken( doc, 'font.field', null );
+}
+
 /** A colour with opacity (0–100 %) as rgba(); null when the colour is not a plain one. */
 export function withAlpha( color: string, percent: number ): string | null {
 	const rgb = parseColor( color );
@@ -528,16 +539,19 @@ export interface ContrastProblem {
 /** Text that is hard to read with these tokens (below WCAG AA, 4.5:1). */
 export function contrastProblems( tokens: StyleTokens ): ContrastProblem[] {
 	const t = effectiveTokens( tokens );
-	const pairs: Array<[ ContrastProblem[ 'pair' ], string, string ]> = [
-		[ 'text', t[ 'color.text' ], t[ 'color.background' ] ],
-		[ 'muted', t[ 'color.muted' ], t[ 'color.background' ] ],
-		[ 'heading', t[ 'color.heading' ] ?? '', t[ 'color.background' ] ],
-		[ 'button', t[ 'color.onButton' ] ?? t[ 'color.onPrimary' ], t[ 'color.button' ] ?? t[ 'color.primary' ] ],
-		[ 'back', t[ 'color.onBack' ] ?? '', t[ 'color.back' ] ?? '' ],
+	// Text sits on both colours of a gradient; the weaker one counts.
+	const backgrounds = [ t[ 'color.background' ], t[ 'color.backgroundEnd' ] ?? '' ].filter( Boolean );
+	const pairs: Array<[ ContrastProblem[ 'pair' ], string, string[] ]> = [
+		[ 'text', t[ 'color.text' ], backgrounds ],
+		[ 'muted', t[ 'color.muted' ], backgrounds ],
+		[ 'heading', t[ 'color.heading' ] ?? '', backgrounds ],
+		[ 'button', t[ 'color.onButton' ] ?? t[ 'color.onPrimary' ], [ t[ 'color.button' ] ?? t[ 'color.primary' ] ] ],
+		[ 'back', t[ 'color.onBack' ] ?? '', [ t[ 'color.back' ] ?? '' ] ],
 	];
 	const out: ContrastProblem[] = [];
-	for ( const [ pair, a, b ] of pairs ) {
-		const ratio = contrast( a, b );
+	for ( const [ pair, a, bs ] of pairs ) {
+		const ratios = bs.map( ( b ) => contrast( a, b ) ).filter( ( r ): r is number => null !== r );
+		const ratio = ratios.length ? Math.min( ...ratios ) : null;
 		if ( null !== ratio && ratio < 4.5 ) {
 			out.push( { pair, ratio } );
 		}

@@ -253,9 +253,11 @@
 		--ffx-hm: 24px;
 	}
 
+	/* At most 40em wide, centred or at the side of the questions (align.text: --ffx-description-inline). */
 	.ffx-description {
 		max-width: 40em;
 		margin: 0 auto 8px;
+		margin-inline: var(--ffx-description-inline, auto);
 		color: var(--ffx-color-muted);
 		text-align: var(--ffx-text-align, center);
 		text-wrap: pretty;
@@ -359,7 +361,9 @@
 		border-radius: 50%;
 		transform: scale(0);
 		transition: transform 0.25s var(--ffx-ease);
+		/* Marks drawn by CSS are not read out (alternative text ""); browsers without that syntax keep the first line. */
 		content: "✓";
+		content: "✓" / "";
 	}
 
 	label.ffx-option::after {
@@ -378,6 +382,7 @@
 		border-color: var(--ffx-color-primary);
 		transform: none;
 		content: "✓";
+		content: "✓" / "";
 	}
 
 	/* Icons in a soft circle that fills with the accent once chosen. */
@@ -510,6 +515,21 @@
 		max-height: none;
 		aspect-ratio: 4 / 3;
 		object-fit: cover;
+	}
+
+	.ffx-image-square .ffx-option-media {
+		aspect-ratio: 1;
+	}
+
+	.ffx-image-wide .ffx-option-media {
+		aspect-ratio: 16 / 9;
+	}
+
+	/* As uploaded: the whole image, never cut. */
+	.ffx-image-auto .ffx-option-media {
+		aspect-ratio: auto;
+		height: auto;
+		object-fit: contain;
 	}
 
 	.ffx-option.is-disabled {
@@ -978,6 +998,7 @@
 		font: 700 12px/1 system-ui, sans-serif;
 		border-radius: 50%;
 		content: "!";
+		content: "!" / "";
 	}
 
 	.ffx-form-error {

@@ -153,7 +153,7 @@ export function Stage( { html, width, device, message, frameRef }: { html: strin
 	}, [] );
 
 	// Border of the device around the frame (builder.css).
-	const bezel = 'desktop' === device ? 2 : 16;
+	const bezel = 'desktop' === device ? 2 : 6;
 	const scale = space.width > bezel ? Math.min( 1, ( space.width - bezel ) / width ) : 1;
 	const height = Math.max( 320, ( space.height - bezel ) / scale );
 	return (

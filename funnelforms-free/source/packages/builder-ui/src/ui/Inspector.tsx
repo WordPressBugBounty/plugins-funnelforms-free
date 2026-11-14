@@ -220,8 +220,9 @@ function ButtonLabels( { doc }: { doc: FormDocument } ) {
 		}, 'settings.' + key );
 	return (
 		<div className="ffxb-pair">
-			<TextProp label={ __( 'Text of the next button', 'funnelforms-pro' ) } value={ doc.settings.nextLabel } onChange={ write( 'nextLabel' ) } hint={ __( 'Empty: the standard text.', 'funnelforms-pro' ) } />
+			<TextProp label={ __( 'Text of the next button', 'funnelforms-pro' ) } value={ doc.settings.nextLabel } onChange={ write( 'nextLabel' ) } />
 			<TextProp label={ __( 'Text of the back button', 'funnelforms-pro' ) } value={ doc.settings.prevLabel } onChange={ write( 'prevLabel' ) } />
+			<p className="ffxb-hint ffxb-pair__hint">{ __( 'Empty: the standard text.', 'funnelforms-pro' ) }</p>
 		</div>
 	);
 }

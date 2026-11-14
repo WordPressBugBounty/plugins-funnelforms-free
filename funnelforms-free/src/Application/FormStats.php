@@ -24,7 +24,9 @@ defined( 'ABSPATH' ) || exit;
  * variants of A/B tests (variant), and where the visitor came from (source: a search engine, site
  * or utm_source with the medium; campaign: utm_campaign; never a full address). The plugin adds
  * "complete" when the entry is stored, with the source of the page view so sent forms count per
- * source, and "finish" with the contact step and the end it led to. A page view is known only by
+ * source, and "finish" with the contact step and the end it led to. After the visitor started, the
+ * runtime also reports the seconds on each question (time), the questions the visitor went back
+ * from (back) and the question on screen when the page was hidden before sending (exit). A page view is known only by
  * a random id the runtime makes; the plugin stores a keyed hash of it, no IP address, no user
  * agent, and nothing is stored in the browser.
  *
@@ -40,6 +42,16 @@ final class FormStats {
 
 	public const EVENTS    = array( 'view', 'start', 'step', 'answer', 'invalid' );
 	public const KEEP_DAYS = 400;
+
+	/**
+	 * How visitors move through the questions, without anything that tells them apart: seconds on a
+	 * question (time), going back from it (back), the question on screen when the page was hidden
+	 * before sending (exit). Step: the node; variant: whole seconds up to MAX_SECONDS ('' for back).
+	 */
+	public const BEHAVIOUR = array( 'time', 'back', 'exit' );
+
+	/** Longest time on a question the runtime reports (stats.ts MAX_SECONDS). */
+	public const MAX_SECONDS = 1800;
 
 	/** Events of the extended level: only with consent: 'statistics', and only in Pro. */
 	public const EXTENDED = array( 'field', 'device', 'visitor' );
@@ -142,6 +154,21 @@ final class FormStats {
 						'step'  => $from['campaign'],
 					);
 				}
+				continue;
+			}
+			if ( in_array( $name, self::BEHAVIOUR, true ) ) {
+				// Seconds on a question (time), the question the visitor went back from (back), and
+				// the question on screen when the page was hidden before sending (exit, with seconds).
+				$node    = $doc->node( $step );
+				$seconds = $event['variant'] ?? '';
+				if ( null === $node || ! in_array( $node['type'] ?? '', array( 'step', 'contact' ), true ) || ( 'back' !== $name && ( 1 !== preg_match( '/^\d{1,4}$/', $seconds ) || (int) $seconds > self::MAX_SECONDS ) ) ) {
+					return -1;
+				}
+				$rows[ $name . '|' . $step ] = array(
+					'event'   => $name,
+					'step'    => $step,
+					'variant' => 'back' === $name ? '' : (string) (int) $seconds,
+				);
 				continue;
 			}
 			if ( 'variant' === $name ) {

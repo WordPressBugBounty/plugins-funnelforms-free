@@ -21,7 +21,8 @@ defined( 'ABSPATH' ) || exit;
  * variant: medium), campaign (step: name), complete (step and variant: the source of the page
  * view, for the counts per source) and finish (step: end node, variant: contact step). The
  * extended level adds field (step: field), device (step: mobile, tablet or desktop) and visitor
- * (step: keyed hash of the visitor id, variant: new or return). The session is a hash of a random
+ * (step: keyed hash of the visitor id, variant: new or return). After the visitor started: time and
+ * exit (step: question node, variant: seconds) and back (step: question node). The session is a hash of a random
  * id of the page view; no IP, no user agent, no cookie.
  */
 final class EventRepository {
@@ -381,6 +382,66 @@ final class EventRepository {
 		);
 		foreach ( $rows as $row ) {
 			$add( (string) $row['step'], 'lastTouched', (int) $row['n'] );
+		}
+		return $out;
+	}
+
+	/**
+	 * Seconds on each question: per node, how many page views spent how many whole seconds on it
+	 * (time, the first visit of the question; or exit, the question on screen when a page view that
+	 * did not send the form was hidden or closed for the last time).
+	 *
+	 * @param int    $form_id Form ID.
+	 * @param string $event   time or exit.
+	 * @param string $from    Start (UTC, inclusive).
+	 * @param string $to      End (UTC, exclusive).
+	 * @return array<string,array<int,int>> Node => seconds => page views.
+	 */
+	public function durations( int $form_id, string $event, string $from, string $to ): array {
+		global $wpdb;
+		$table = Schema::table( 'events' );
+		if ( 'exit' === $event ) {
+			// The last exit of each page view, of page views without a sent form.
+			$sql = $wpdb->prepare(
+				"SELECT e.step, e.variant, COUNT(*) AS n FROM %i e JOIN (SELECT session_hash, MAX(id) AS id FROM %i WHERE form_id = %d AND event = 'exit' AND created_at >= %s AND created_at < %s GROUP BY session_hash) last ON last.id = e.id LEFT JOIN (SELECT DISTINCT session_hash FROM %i WHERE form_id = %d AND event = 'complete' AND created_at >= %s) done ON done.session_hash = e.session_hash WHERE done.session_hash IS NULL GROUP BY e.step, e.variant",
+				$table,
+				$table,
+				$form_id,
+				$from,
+				$to,
+				$table,
+				$form_id,
+				$from
+			);
+		} else {
+			$sql = $wpdb->prepare(
+				"SELECT step, variant, COUNT(*) AS n FROM %i WHERE form_id = %d AND event = 'time' AND created_at >= %s AND created_at < %s GROUP BY step, variant",
+				$table,
+				$form_id,
+				$from,
+				$to
+			);
+		}
+		$out = array();
+		foreach ( (array) $wpdb->get_results( $sql, ARRAY_A ) as $row ) { // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- prepared above.
+			$seconds                                  = (int) $row['variant'];
+			$out[ (string) $row['step'] ][ $seconds ] = ( $out[ (string) $row['step'] ][ $seconds ] ?? 0 ) + (int) $row['n'];
+		}
+		return $out;
+	}
+
+	/**
+	 * Per question: page views that went back from it.
+	 *
+	 * @param int    $form_id Form ID.
+	 * @param string $from    Start (UTC, inclusive).
+	 * @param string $to      End (UTC, exclusive).
+	 * @return array<string,int> Node => page views.
+	 */
+	public function backs( int $form_id, string $from, string $to ): array {
+		$out = array();
+		foreach ( $this->grouped( $form_id, 'back', $from, $to ) as $row ) {
+			$out[ (string) $row['step'] ] = ( $out[ (string) $row['step'] ] ?? 0 ) + (int) $row['n'];
 		}
 		return $out;
 	}

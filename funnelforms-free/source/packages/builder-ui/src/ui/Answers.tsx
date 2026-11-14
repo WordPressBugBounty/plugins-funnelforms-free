@@ -106,6 +106,22 @@ function HeightSketch( { height }: { height: number } ) {
 	);
 }
 
+/** An answer tile with an image of this width to height. */
+function RatioSketch( { ratio }: { ratio: number | null } ) {
+	const width = 20;
+	const height = null === ratio ? 0 : Math.round( width / ratio );
+	return (
+		<Sketch>
+			<rect x="14" y="3" width={ width } height="26" rx="2" />
+			{ null === ratio ? (
+				<path d="M17 24l5-7 4 4 3-3 3 6M28 9h.01" />
+			) : (
+				<rect x="14" y="3" width={ width } height={ Math.min( 18, height ) } rx="2" fill="currentColor" opacity="0.35" />
+			) }
+		</Sketch>
+	);
+}
+
 function IconSketch( { at }: { at: 'top' | 'left' | 'right' | 'bottom' } ) {
 	const icon = { top: [ 19, 5 ], bottom: [ 19, 18 ], left: [ 8, 11.5 ], right: [ 31, 11.5 ] }[ at ];
 	const text = { top: 'M16 23h16', bottom: 'M16 10h16', left: 'M20 16h18', right: 'M10 16h18' }[ at ];
@@ -181,7 +197,37 @@ export function ChoiceProps( { node, field, edit }: { node: FormNode; field: Cho
 						onChange={ ( v ) => set( 'iconPosition', 'top' === v ? undefined : v ) }
 					/>
 				) }
-				{ p.hideIcons ? null : <Toggle label={ __( 'Images fill the answer', 'funnelforms-pro' ) } checked={ true === p.imageFull } onChange={ ( v ) => set( 'imageFull', v ) } /> }
+				{ p.hideIcons ? null : (
+					<Toggle
+						label={ __( 'Images fill the answer', 'funnelforms-pro' ) }
+						checked={ true === p.imageFull }
+						onChange={ ( v ) =>
+							edit( ( f ) => {
+								const props = ( f as ChoiceField ).props;
+								if ( v ) {
+									props.imageFull = true;
+								} else {
+									delete props.imageFull;
+									delete props.imageRatio;
+								}
+							}, 'props.imageFull' )
+						}
+					/>
+				) }
+				{ ! p.hideIcons && p.imageFull ? (
+					<ChoiceTiles
+						label={ __( 'Format of the images', 'funnelforms-pro' ) }
+						value={ p.imageRatio ?? '4:3' }
+						columns={ 4 }
+						options={ [
+							{ value: '4:3', label: '4:3', icon: <RatioSketch ratio={ 4 / 3 } /> },
+							{ value: '1:1', label: __( 'Square', 'funnelforms-pro' ), icon: <RatioSketch ratio={ 1 } /> },
+							{ value: '16:9', label: '16:9', icon: <RatioSketch ratio={ 16 / 9 } /> },
+							{ value: 'auto', label: __( 'Original', 'funnelforms-pro' ), icon: <RatioSketch ratio={ null } /> },
+						] }
+						onChange={ ( v ) => set( 'imageRatio', '4:3' === v ? undefined : v ) }
+					/>
+				) : null }
 				<Toggle label={ __( 'Hide icons and images', 'funnelforms-pro' ) } checked={ p.hideIcons } onChange={ ( v ) => edit( ( f ) => void ( ( f as ChoiceField ).props.hideIcons = v ), 'props.hideIcons' ) } />
 			</Group>
 			<Group title={ __( 'On phones', 'funnelforms-pro' ) }>
@@ -224,23 +270,6 @@ export function DropdownProps( { node, field, edit }: { node: FormNode; field: D
 			{ field.props.multiple ? <Limits field={ field } edit={ edit } /> : null }
 			<Options node={ node } field={ field } edit={ edit } />
 		</>
-	);
-}
-
-/** The image of an answer: a thumbnail with change and remove, or a button to choose one. */
-function OptionImage( { option, n, disabled, onPick, onRemove }: { option: Option; n: number; disabled: boolean; onPick: () => Promise<void>; onRemove: () => void } ) {
-	if ( 'image' !== option.media?.kind ) {
-		return <IconButton label={ sprintf( __( 'Choose an image for answer %d', 'funnelforms-pro' ), n ) } icon={ icons.image } disabled={ disabled } onClick={ () => void onPick() } />;
-	}
-	return (
-		<span className="ffxb-option-image">
-			<button type="button" className="ffxb-option-image__thumb" aria-label={ sprintf( __( 'Change the image of answer %d', 'funnelforms-pro' ), n ) } disabled={ disabled } onClick={ () => void onPick() }>
-				<img src={ option.media.value } alt="" />
-			</button>
-			<button type="button" className="ffxb-option-image__remove" aria-label={ sprintf( __( 'Remove the image of answer %d', 'funnelforms-pro' ), n ) } title={ __( 'Remove image', 'funnelforms-pro' ) } disabled={ disabled } onClick={ onRemove }>
-				×
-			</button>
-		</span>
 	);
 }
 
@@ -289,11 +318,13 @@ export function Options( { node, field, edit }: { node: FormNode; field: Extract
 	const knowledge = useBuilder( ( st ) => 'knowledge' === st.doc?.settings.quiz?.kind );
 	const calculations = useBuilder( ( st ) => ( st.doc?.calculations.length ?? 0 ) > 0 );
 	const calc = ! knowledge && ( calculations || field.options.some( ( o ) => undefined !== o.calcValue ) );
-	// Hidden values (3.x "hidden field"): only choice fields send them; shown while one is set or switched on.
-	const hiddenable = 'choice' === field.type;
+	// Hidden values (3.x "hidden field"): choice and dropdown fields send them; shown while one is set or switched on.
+	const hiddenable = 'choice' === field.type || 'dropdown' === field.type;
 	const hasHidden = field.options.some( ( o ) => undefined !== o.hiddenValue );
 	const [ hiddenOn, setHiddenOn ] = useState( false );
 	const showHidden = hiddenable && ( hasHidden || hiddenOn );
+	// An answer with only an image has no name a screen reader could read out (the image is decorative).
+	const unnamed = field.options.some( ( o ) => 'image' === o.media?.kind && '' === ( text( o.label, lang ) || text( o.label, ctx.locale ) ).replace( /<[^>]*>/g, '' ).trim() );
 	const move = ( id: string, to: number ): void => change( ( d ) => void moveOption( d, node.id, field.id, id, to ) );
 	const option = ( id: string, recipe: ( o: Option ) => void, key: string ): void =>
 		edit( ( f ) => {
@@ -405,11 +436,19 @@ export function Options( { node, field, edit }: { node: FormNode; field: Extract
 								</span>
 							) : null }
 							<span className="ffxb-options__actions">
-								{ 'choice' === field.type && api.icons ? (
+								{ 'choice' === field.type && ( api.icons || pickImage ) ? (
 									<IconChoice
 										value={ 'lucide' === o.media?.kind ? o.media.value : null }
-										label={ 'lucide' === o.media?.kind ? sprintf( __( 'Change the icon of answer %d', 'funnelforms-pro' ), i + 1 ) : sprintf( __( 'Choose an icon for answer %d', 'funnelforms-pro' ), i + 1 ) }
-										title={ sprintf( __( 'Icon of answer %d', 'funnelforms-pro' ), i + 1 ) }
+										label={
+											'lucide' === o.media?.kind
+												? sprintf( __( 'Change the icon of answer %d', 'funnelforms-pro' ), i + 1 )
+												: 'image' === o.media?.kind
+												? sprintf( __( 'Change the image of answer %d', 'funnelforms-pro' ), i + 1 )
+												: pickImage
+												? sprintf( __( 'Choose an icon or image for answer %d', 'funnelforms-pro' ), i + 1 )
+												: sprintf( __( 'Choose an icon for answer %d', 'funnelforms-pro' ), i + 1 )
+										}
+										title={ pickImage ? sprintf( __( 'Icon or image of answer %d', 'funnelforms-pro' ), i + 1 ) : sprintf( __( 'Icon of answer %d', 'funnelforms-pro' ), i + 1 ) }
 										hint={ text( o.label, lang ) || text( o.label, ctx.locale ) }
 										disabled={ readOnly }
 										onChange={ ( name ) =>
@@ -425,20 +464,21 @@ export function Options( { node, field, edit }: { node: FormNode; field: Extract
 												'media'
 											)
 										}
-									/>
-								) : null }
-								{ pickImage ? (
-									<OptionImage
-										option={ o }
-										n={ i + 1 }
-										disabled={ readOnly }
-										onPick={ async () => {
-											const image = await pickImage();
-											if ( image ) {
-												option( o.id, ( x ) => void ( x.media = { kind: 'image', value: image.url } ), 'media' );
-											}
-										} }
-										onRemove={ () => option( o.id, ( x ) => void delete x.media, 'media' ) }
+										image={
+											pickImage
+												? {
+														url: 'image' === o.media?.kind ? o.media.value : null,
+														pick: async () => {
+															const picked = await pickImage();
+															if ( picked ) {
+																option( o.id, ( x ) => void ( x.media = { kind: 'image', value: picked.url } ), 'media' );
+															}
+														},
+														remove: () => option( o.id, ( x ) => void delete x.media, 'media' ),
+														removeLabel: sprintf( __( 'Remove the image of answer %d', 'funnelforms-pro' ), i + 1 ),
+												  }
+												: undefined
+										}
 									/>
 								) : null }
 								<IconButton label={ __( 'Remove answer', 'funnelforms-pro' ) } icon={ icons.close } disabled={ readOnly || field.options.length <= 1 } onClick={ () => removeWithNotice( store, ( d ) => removeOption( d, node.id, field.id, o.id ), asksFor( field.id, o.id ) ) } />
@@ -467,6 +507,7 @@ export function Options( { node, field, edit }: { node: FormNode; field: Extract
 							) : null }
 						</div>
 					) ) }
+					{ unnamed ? <Notice tone="warning">{ __( 'Give answers with an image a text too. Without one, screen readers only read out their number.', 'funnelforms-pro' ) }</Notice> : null }
 					<div className="ffxb-options__add">
 						<Button size="sm" icon={ icons.plus } disabled={ readOnly } onClick={ () => change( ( d ) => void addOption( d, node.id, field.id, ctx ) ) }>
 							{ __( 'Add answer', 'funnelforms-pro' ) }

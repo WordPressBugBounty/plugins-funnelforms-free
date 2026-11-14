@@ -26,6 +26,12 @@ final class AnswerValidator {
 	public const MAX_TEXTAREA = 65535;
 
 	/**
+	 * Longest appointment of a booking field in minutes: 14 whole days (Domain\Booking\BookingType
+	 * DAYS_MAX, which Funnelforms Free does not ship). The type checks the duration when booking.
+	 */
+	public const BOOKING_MINUTES_MAX = 14 * 1440;
+
+	/**
 	 * Stored values of the salutation choices; 3.x stored these German words in every language.
 	 */
 	public const SALUTATIONS = array(
@@ -204,7 +210,7 @@ final class AnswerValidator {
 				if ( null === $answer || '' === $answer || array() === $answer ) {
 					return $required ? self::error( 'required' ) : self::ok( null );
 				}
-				if ( ! is_array( $answer ) || ! is_string( $answer['start'] ?? null ) || 1 !== preg_match( '/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:00Z$/', $answer['start'] ) || ! is_int( $answer['duration'] ?? null ) || $answer['duration'] < 5 || $answer['duration'] > 720 ) {
+				if ( ! is_array( $answer ) || ! is_string( $answer['start'] ?? null ) || 1 !== preg_match( '/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:00Z$/', $answer['start'] ) || ! is_int( $answer['duration'] ?? null ) || $answer['duration'] < 5 || $answer['duration'] > self::BOOKING_MINUTES_MAX ) {
 					return self::error( 'invalid_booking' );
 				}
 				return self::ok(

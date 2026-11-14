@@ -204,18 +204,56 @@ function IconGrid( { library, value, hint, onPick }: { library: IconLibrary; val
 	);
 }
 
+/** An own image of an answer instead of an icon: its address, and choosing or removing one. */
+export interface ImageChoice {
+	url: string | null;
+	/** Opens the media library; the caller stores what was chosen. */
+	pick: () => Promise<void>;
+	remove: () => void;
+	/** Names the remove button, e.g. "Remove the image of answer 2". */
+	removeLabel: string;
+}
+
 /**
  * A button showing the chosen icon that opens the choice. `label` names the button for screen
  * readers, `title` the dialog; `hint` is the text the icon goes with (the answer), for suggestions.
+ * With `image` the dialog also offers an own image from the media library, in a tab of its own;
+ * an icon and an image replace each other.
  */
-export function IconChoice( { value, label, title, hint = '', onChange, disabled }: { value: string | null; label: string; title: string; hint?: string; onChange: ( name: string | null ) => void; disabled?: boolean } ) {
+export function IconChoice( { value, label, title, hint = '', onChange, disabled, image }: { value: string | null; label: string; title: string; hint?: string; onChange: ( name: string | null ) => void; disabled?: boolean; image?: ImageChoice } ) {
+	const { api } = useEnv();
 	const [ open, setOpen ] = useState( false );
-	const { library, failed } = useLibrary( open || null !== value );
+	const [ tab, setTab ] = useState<'icon' | 'image'>( 'icon' );
+	// Without the icon set (another host) only the image is offered.
+	const iconsToo = Boolean( api.icons ) || ! image;
+	const { library, failed } = useLibrary( ( open && 'icon' === tab ) || null !== value );
 	const current = value && library ? library.icons[ value ] : undefined;
+	const url = image?.url ?? null;
+	const show = (): void => {
+		setTab( url || ! iconsToo ? 'image' : 'icon' );
+		setOpen( true );
+	};
+	const pickImage = (): void => {
+		// The media library is a dialog of its own; this one closes first.
+		setOpen( false );
+		void image?.pick();
+	};
+	const tabButton = ( id: 'icon' | 'image', text: string ) => (
+		<button type="button" role="tab" aria-selected={ id === tab } className={ 'ffxb-media-choice__tab' + ( id === tab ? ' is-active' : '' ) } onClick={ () => setTab( id ) }>
+			{ text }
+		</button>
+	);
 	return (
 		<>
-			<button type="button" className={ `ffxb-icon-choice${ value ? ' has-icon' : '' }` } aria-label={ label } title={ value ?? label } disabled={ disabled } onClick={ () => setOpen( true ) }>
-				{ current ? <LucideIcon elements={ current } size={ 18 } /> : <ChooseIcon /> }
+			<button
+				type="button"
+				className={ `ffxb-icon-choice${ value ? ' has-icon' : '' }${ url ? ' has-image' : '' }` }
+				aria-label={ label }
+				title={ value ?? label }
+				disabled={ disabled }
+				onClick={ show }
+			>
+				{ url ? <img src={ url } alt="" /> : current ? <LucideIcon elements={ current } size={ 18 } /> : <ChooseIcon /> }
 			</button>
 			<Dialog
 				title={ title }
@@ -224,7 +262,7 @@ export function IconChoice( { value, label, title, hint = '', onChange, disabled
 				wide
 				actions={
 					<>
-						{ value ? (
+						{ value && 'icon' === tab ? (
 							<Button
 								onClick={ () => {
 									onChange( null );
@@ -238,7 +276,36 @@ export function IconChoice( { value, label, title, hint = '', onChange, disabled
 					</>
 				}
 			>
-				{ ! open ? null : library ? (
+				{ open && image && iconsToo ? (
+					<div className="ffxb-media-choice__tabs" role="tablist">
+						{ tabButton( 'icon', __( 'Icon', 'funnelforms-pro' ) ) }
+						{ tabButton( 'image', __( 'Own image', 'funnelforms-pro' ) ) }
+					</div>
+				) : null }
+				{ ! open ? null : image && 'image' === tab ? (
+					<div className="ffxb-media-choice__image" role="tabpanel">
+						{ url ? <img className="ffxb-media-choice__preview" src={ url } alt="" /> : null }
+						<p className="ffxb-hint">
+							{ __( 'A photo or graphic from the media library instead of an icon. It is scaled to fit the answer; the look of the answers sets whether it fills the answer and in which format.', 'funnelforms-pro' ) }
+						</p>
+						<div className="ffxb-media-choice__actions">
+							<Button variant="primary" onClick={ pickImage }>
+								{ url ? __( 'Change image', 'funnelforms-pro' ) : __( 'Choose from the media library', 'funnelforms-pro' ) }
+							</Button>
+							{ url ? (
+								<Button
+									aria-label={ image.removeLabel }
+									onClick={ () => {
+										image.remove();
+										setOpen( false );
+									} }
+								>
+									{ __( 'Remove image', 'funnelforms-pro' ) }
+								</Button>
+							) : null }
+						</div>
+					</div>
+				) : library ? (
 					<IconGrid
 						library={ library }
 						value={ value }

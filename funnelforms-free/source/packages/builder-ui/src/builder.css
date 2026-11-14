@@ -334,6 +334,18 @@
 	gap: 10px;
 }
 
+/* Two fields side by side keep their inputs on one line, even when one has a hint under it. */
+.ffxb-pair > .ffxb-field {
+	grid-template-rows: auto auto 1fr;
+	align-content: start;
+}
+
+/* A hint for both fields of a pair, under them. */
+.ffxb-pair__hint {
+	grid-column: 1 / -1;
+	margin: -20px 0 14px;
+}
+
 .ffxb-group {
 	display: flex;
 	flex-direction: column;
@@ -2860,14 +2872,85 @@
 	background: var(--ffxb-canvas);
 }
 
-.ffxb-canvas .react-flow__edge.selected .react-flow__edge-path,
-.ffxb-canvas .react-flow__edge:hover .react-flow__edge-path {
-	stroke: var(--ffxb-brand);
+.ffxb-canvas .react-flow__edge-path {
 	stroke-width: 2;
+	stroke-linecap: round;
+	transition: stroke 0.12s ease, opacity 0.12s ease;
 }
 
-.ffxb-canvas .ffxb-edge--conditional .react-flow__edge-path {
-	stroke-dasharray: 6 4;
+.ffxb-canvas .react-flow__connection-path {
+	stroke-width: 2.5;
+	stroke-dasharray: 7 5;
+	stroke-linecap: round;
+}
+
+/* Paths in the colour of the output they start at (ports.ts): answers, rules by kind, "Otherwise" grey and dashed. */
+.ffxb-canvas .ffxb-edge--next .react-flow__edge-path {
+	stroke: #8a84a0;
+}
+
+.ffxb-canvas .ffxb-edge--answer .react-flow__edge-path {
+	stroke: #8f73f7;
+}
+
+.ffxb-canvas .ffxb-edge--otherwise .react-flow__edge-path {
+	stroke: #a39db3;
+	stroke-dasharray: 5 5;
+}
+
+.ffxb-canvas .ffxb-edge--rule .react-flow__edge-path {
+	stroke: #2f6fed;
+}
+
+.ffxb-canvas .ffxb-edge--rule.ffxb-edge--below .react-flow__edge-path {
+	stroke: #d9730d;
+}
+
+.ffxb-canvas .ffxb-edge--rule.ffxb-edge--above .react-flow__edge-path {
+	stroke: #168f63;
+}
+
+.ffxb-canvas .ffxb-edge--rule.ffxb-edge--range .react-flow__edge-path,
+.ffxb-canvas .ffxb-edge--rule.ffxb-edge--equal .react-flow__edge-path {
+	stroke: var(--ffxb-brand);
+}
+
+/* The paths into the selected step. */
+.ffxb-canvas .react-flow__edge.ffxb-edge.is-in .react-flow__edge-path {
+	stroke-width: 2.5;
+}
+
+/* The paths out of the selected step, the selected path and the path under the pointer. */
+.ffxb-canvas .react-flow__edge.ffxb-edge.is-out .react-flow__edge-path,
+.ffxb-canvas .react-flow__edge.ffxb-edge.selected .react-flow__edge-path,
+.ffxb-canvas .react-flow__edge.ffxb-edge.is-hot .react-flow__edge-path,
+.ffxb-canvas .react-flow__edge.ffxb-edge:hover .react-flow__edge-path {
+	stroke: var(--ffxb-brand);
+	stroke-width: 2.5;
+}
+
+.ffxb-canvas .react-flow__edge.ffxb-edge.selected .react-flow__edge-path,
+.ffxb-canvas .react-flow__edge.ffxb-edge.is-hot .react-flow__edge-path {
+	stroke-dasharray: 7 5;
+	animation: ffxb-path-flow 0.6s linear infinite;
+}
+
+/* While one path is under the pointer, the others step back. */
+.ffxb-canvas .react-flow.has-hot .react-flow__edge.ffxb-edge:not(.is-hot):not(.selected) .react-flow__edge-path {
+	opacity: 0.3;
+}
+
+@keyframes ffxb-path-flow {
+	to {
+		stroke-dashoffset: -12;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ffxb-canvas .react-flow__edge.ffxb-edge.selected .react-flow__edge-path,
+	.ffxb-canvas .react-flow__edge.ffxb-edge.is-hot .react-flow__edge-path {
+		animation: none;
+	}
 }
 
 .ffxb-canvas .react-flow__edge-text {
@@ -2875,15 +2958,22 @@
 }
 
 .ffxb-node {
+	position: relative;
 	width: 240px;
-	padding: 10px 12px 12px;
+	padding: 12px 12px 12px;
 	border: 1px solid var(--ffxb-line);
-	border-radius: 12px;
+	border-radius: 14px;
 	background: var(--ffxb-surface);
 	box-shadow: var(--ffxb-shadow);
 	font-family: var(--ffxb-font);
 	font-size: 13px;
 	color: var(--ffxb-text);
+	transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.ffxb-node:hover {
+	border-color: #d5d0e2;
+	box-shadow: 0 1px 2px rgba(31, 29, 36, 0.06), 0 8px 24px rgba(31, 29, 36, 0.09);
 }
 
 .ffxb-node.is-selected {
@@ -3061,6 +3151,439 @@
 	width: 12px;
 	height: 12px;
 	border: 2px solid var(--ffxb-surface);
+	background: var(--ffxb-brand);
+	box-shadow: 0 0 0 1px rgba(31, 29, 36, 0.1);
+	transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+/* Paths come in at the head of a node, apart from the outputs below. */
+.ffxb-canvas .ffxb-node > .ffxb-handle--in {
+	top: 24px;
+	width: 8px;
+	height: 8px;
+	border-color: #b9b3c9;
+	background: var(--ffxb-surface);
+	box-shadow: none;
+}
+
+/* While a path is drawn, the whole card of every other node takes the drop (Canvas.tsx, NodeView). */
+.ffxb-canvas .ffxb-node > .ffxb-handle-drop {
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	min-width: 0;
+	min-height: 0;
+	border: 0;
+	border-radius: 14px;
+	background: transparent;
+	transform: none;
+	opacity: 0;
+}
+
+.ffxb-canvas .ffxb-node.is-drop > .ffxb-handle-drop {
+	z-index: 5;
+	pointer-events: all;
+	cursor: copy;
+}
+
+.ffxb-canvas .ffxb-node.is-drop > .ffxb-handle--in {
+	border-color: var(--ffxb-brand);
+}
+
+.ffxb-canvas .ffxb-node:has(> .ffxb-handle-drop.connectingto) {
+	border-color: var(--ffxb-brand);
+	box-shadow: 0 0 0 4px var(--ffxb-brand-soft), var(--ffxb-shadow);
+}
+
+/* The card the path under the pointer leads to. */
+.ffxb-canvas .ffxb-node.is-aimed {
+	border-color: var(--ffxb-brand-line);
+	box-shadow: 0 0 0 3px var(--ffxb-brand-soft), var(--ffxb-shadow);
+}
+
+.ffxb-canvas .ffxb-node:has(> .ffxb-handle-drop.connectingto) > .ffxb-handle--in {
+	background: var(--ffxb-brand);
+	transform: translate(-50%, -50%) scale(1.3);
+}
+
+/*
+ * Outputs of a node: one row per answer or rule in the order the form checks them, "Otherwise"
+ * last, each with the dot its path starts at on the edge of the card.
+ */
+.ffxb-node__outputs {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 4px;
+	margin: 12px -12px -12px;
+	padding: 8px;
+	border-top: 1px solid var(--ffxb-line);
+	border-radius: 0 0 13px 13px;
+	background: #faf9fd;
+}
+
+.ffxb-output {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	box-sizing: border-box;
+	min-height: 32px;
+	padding: 4px 16px 4px 10px;
+	border: 1px solid #e7e3f0;
+	border-radius: 8px;
+	background: var(--ffxb-surface);
+	color: var(--ffxb-text);
+	font-size: 12.5px;
+	line-height: 1.3;
+	transition: border-color 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease;
+}
+
+.ffxb-output:hover {
+	border-color: var(--ffxb-brand-line);
+}
+
+/* The path of this output is under the pointer, here or on the canvas. */
+.ffxb-output.is-hot {
+	border-color: var(--ffxb-brand);
+	box-shadow: 0 0 0 2px var(--ffxb-brand-soft);
+}
+
+/* A group of outputs begins: the answers after the rules checked first, the rules checked after them. */
+.ffxb-output.is-group-start {
+	margin-top: 7px;
+}
+
+.ffxb-output.is-group-start::before {
+	content: '';
+	position: absolute;
+	top: -7px;
+	right: 2px;
+	left: 2px;
+	border-top: 1px dashed #d9d4e6;
+}
+
+.ffxb-output__label {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+button.ffxb-output__label {
+	cursor: pointer;
+}
+
+button.ffxb-output__label:hover,
+button.ffxb-output__label:focus-visible {
+	color: var(--ffxb-brand);
+}
+
+/* An answer without a path of its own: it follows "Otherwise" until a path is drawn from its dot. */
+.ffxb-output--answer.is-free {
+	border-style: dashed;
+	border-color: #dcd8e6;
+	background: transparent;
+	color: var(--ffxb-muted);
+}
+
+.ffxb-output.is-warn {
+	border-color: #e3b65a;
+	background: #fffaf0;
+}
+
+.ffxb-output__symbol {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	min-width: 26px;
+	height: 22px;
+	padding: 0 6px;
+	border-radius: 6px;
+	background: #e8f0fe;
+	color: #1d5bd8;
+	font-size: 12px;
+	font-weight: 700;
+}
+
+.ffxb-output.is-below .ffxb-output__symbol,
+.ffxb-output.is-below .ffxb-output__op {
+	background: #fdf0e3;
+	color: #b85f06;
+}
+
+.ffxb-output.is-above .ffxb-output__symbol,
+.ffxb-output.is-above .ffxb-output__op {
+	background: #e3f5ee;
+	color: #0f7a54;
+}
+
+.ffxb-output.is-range .ffxb-output__symbol,
+.ffxb-output.is-equal .ffxb-output__symbol,
+.ffxb-output.is-range .ffxb-output__op,
+.ffxb-output.is-equal .ffxb-output__op {
+	background: var(--ffxb-brand-soft);
+	color: var(--ffxb-brand);
+}
+
+/* A number rule changed on the card: comparison, number (two for "between"), unit. */
+.ffxb-output__number {
+	display: flex;
+	flex: 1 1 auto;
+	align-items: center;
+	gap: 5px;
+	min-width: 0;
+}
+
+.ffxb-output__op {
+	flex: none;
+	box-sizing: border-box;
+	width: 30px;
+	height: 22px;
+	padding: 0;
+	border: 0;
+	border-radius: 6px;
+	background: #e8f0fe;
+	color: #1d5bd8;
+	font: 700 13px var(--ffxb-font);
+	text-align: center;
+	text-align-last: center;
+	cursor: pointer;
+	appearance: none;
+}
+
+.ffxb-output__value {
+	box-sizing: border-box;
+	min-width: 0;
+	height: 24px;
+	padding: 0 5px;
+	border: 1px solid #e0dcec;
+	border-radius: 6px;
+	background: var(--ffxb-surface);
+	color: var(--ffxb-text);
+	font: 600 12.5px var(--ffxb-font);
+	text-align: right;
+	appearance: textfield;
+}
+
+.ffxb-output__value::-webkit-outer-spin-button,
+.ffxb-output__value::-webkit-inner-spin-button {
+	margin: 0;
+	appearance: none;
+}
+
+.ffxb-output__op:focus-visible,
+.ffxb-output__value:focus {
+	border-color: var(--ffxb-brand);
+	outline: 2px solid var(--ffxb-brand-soft);
+	outline-offset: 0;
+}
+
+.ffxb-output__op:disabled,
+.ffxb-output__value:disabled {
+	cursor: default;
+	opacity: 0.7;
+}
+
+.ffxb-output__unit,
+.ffxb-output__dash {
+	flex: none;
+	color: var(--ffxb-muted);
+	font-size: 12px;
+}
+
+/* Takes the path away from an output; shown on its row under the pointer or with the focus. */
+.ffxb-output__clear {
+	display: inline-grid;
+	flex: none;
+	place-items: center;
+	width: 18px;
+	height: 18px;
+	margin-left: auto;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: none;
+	color: var(--ffxb-muted);
+	cursor: pointer;
+	opacity: 0;
+	transition: opacity 0.12s ease;
+}
+
+.ffxb-output:hover .ffxb-output__clear,
+.ffxb-output__clear:focus-visible {
+	opacity: 1;
+}
+
+.ffxb-output__clear:hover,
+.ffxb-output__clear:focus-visible {
+	background: var(--ffxb-danger-soft);
+	color: var(--ffxb-danger);
+}
+
+/* Words between the outputs: which field they follow, answers folded away, several answers chosen. */
+.ffxb-output-note {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 2px 6px;
+	color: var(--ffxb-muted);
+	font-size: 11.5px;
+	line-height: 1.35;
+}
+
+.ffxb-output__toggle {
+	margin-left: auto;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--ffxb-brand);
+	font: 600 12px var(--ffxb-font);
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.ffxb-output__field {
+	min-width: 0;
+	max-width: 62%;
+	margin-left: auto;
+	padding: 2px 4px;
+	border: 1px solid var(--ffxb-line);
+	border-radius: 6px;
+	background: var(--ffxb-surface);
+	color: var(--ffxb-text);
+	font: 600 12px var(--ffxb-font);
+}
+
+/* "Add a rule" on the card. */
+.ffxb-output-add {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	min-height: 28px;
+	padding: 0 10px;
+	border: 1px dashed var(--ffxb-brand-line);
+	border-radius: 8px;
+	background: none;
+	color: var(--ffxb-brand);
+	font: 600 12px var(--ffxb-font);
+	cursor: pointer;
+}
+
+.ffxb-output-add:hover,
+.ffxb-output-add:focus-visible {
+	border-style: solid;
+	background: var(--ffxb-brand-soft);
+}
+
+
+.ffxb-output--otherwise {
+	min-height: 28px;
+	border-color: transparent;
+	background: transparent;
+	color: var(--ffxb-muted);
+	font-size: 12px;
+}
+
+.ffxb-output--otherwise:hover {
+	border-color: transparent;
+}
+
+.ffxb-output--otherwise.is-hot {
+	border-color: var(--ffxb-brand);
+	background: var(--ffxb-surface);
+}
+
+.ffxb-output__name {
+	flex: none;
+	color: var(--ffxb-text);
+	font-weight: 600;
+}
+
+.ffxb-output__arrow {
+	flex: none;
+	color: #a39db3;
+}
+
+.ffxb-output__arrow::before {
+	content: '→';
+}
+
+.ffxb-output--otherwise.is-open {
+	border-color: #ecd49a;
+	background: var(--ffxb-warning-soft);
+	color: var(--ffxb-warning);
+	font-weight: 600;
+}
+
+.ffxb-output--otherwise.is-stuck {
+	border-color: #f3c4c1;
+	background: var(--ffxb-danger-soft);
+	color: var(--ffxb-danger);
+	font-weight: 600;
+}
+
+.ffxb-output--otherwise.is-open .ffxb-output__name,
+.ffxb-output--otherwise.is-stuck .ffxb-output__name {
+	color: inherit;
+}
+
+/* The dots sit on the edge of the card: past the padding and the border of the outputs. */
+.ffxb-canvas .ffxb-handle--output {
+	right: -9px;
+	background: #8f73f7;
+}
+
+.ffxb-canvas .ffxb-handle--output:hover,
+.ffxb-canvas .ffxb-handle--output.connectingfrom {
+	transform: translate(50%, -50%) scale(1.35);
+	box-shadow: 0 0 0 3px var(--ffxb-brand-soft);
+}
+
+.ffxb-canvas .ffxb-handle--output.is-free {
+	border-color: #c4bdd6;
+	background: var(--ffxb-surface);
+	box-shadow: none;
+}
+
+.ffxb-canvas .ffxb-handle--output.is-free:hover,
+.ffxb-canvas .ffxb-handle--output.is-free.connectingfrom {
+	border-color: var(--ffxb-brand);
+}
+
+.ffxb-canvas .ffxb-output.is-below .ffxb-handle {
+	background: #d9730d;
+}
+
+.ffxb-canvas .ffxb-output.is-above .ffxb-handle {
+	background: #168f63;
+}
+
+.ffxb-canvas .ffxb-output.is-range .ffxb-handle,
+.ffxb-canvas .ffxb-output.is-equal .ffxb-handle {
+	background: var(--ffxb-brand);
+}
+
+.ffxb-canvas .ffxb-output--rule.is-rule .ffxb-handle {
+	background: #2f6fed;
+}
+
+.ffxb-canvas .ffxb-handle--otherwise {
+	background: #a39db3;
+}
+
+.ffxb-canvas .ffxb-output.is-hot .ffxb-handle,
+.ffxb-canvas .ffxb-node.is-selected .ffxb-handle--output:not(.is-free) {
 	background: var(--ffxb-brand);
 }
 
@@ -3410,10 +3933,11 @@
 	box-shadow: var(--ffxb-shadow);
 }
 
+/* A thin bezel, so the device shows without taking room from the form (Preview.tsx: bezel). */
 .ffxb-preview__device--tablet,
 .ffxb-preview__device--mobile {
-	border: 8px solid var(--ffxb-text);
-	border-radius: 24px;
+	border: 3px solid var(--ffxb-text);
+	border-radius: 18px;
 }
 
 .ffxb-preview__frame {
@@ -4704,12 +5228,40 @@
 	font-weight: 700;
 }
 
-.ffxb-card__meta {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 2px 10px;
+/* The time sits at the right of the name; the column already says the lead status. */
+.ffxb-card__when {
+	flex: none;
+	margin-left: auto;
 	color: var(--ffxb-muted);
 	font-size: 12px;
+	white-space: nowrap;
+}
+
+.ffxb-card__reach,
+.ffxb-card__meta {
+	margin: 0;
+	overflow: hidden;
+	font-size: 12px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.ffxb-card__reach {
+	color: var(--ffxb-text);
+}
+
+.ffxb-card__meta {
+	color: var(--ffxb-muted);
+}
+
+.ffxb-card__badges {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+
+.ffxb-card__badges:empty {
+	display: none;
 }
 
 .ffxb-card__foot {
@@ -4717,21 +5269,39 @@
 	align-items: center;
 	justify-content: space-between;
 	gap: 8px;
+	padding-top: 8px;
+	border-top: 1px solid var(--ffxb-line);
 }
 
-.ffxb .ffxb-card__move {
-	width: auto;
-	min-height: 26px;
-	height: 26px;
-	margin: 0;
-	padding: 0 30px 0 8px;
+.ffxb-card__contact {
+	display: flex;
+	gap: 4px;
+}
+
+.ffxb .ffxb-card__icon {
+	display: inline-grid;
+	place-items: center;
+	width: 28px;
+	height: 28px;
 	border: 1px solid var(--ffxb-line);
 	border-radius: 8px;
-	background-color: var(--ffb-bg, #f6f5fa);
-	background-position: right 6px center;
 	color: var(--ffb-text-muted, #3d3950);
-	font: 600 12px var(--ffxb-font);
-	box-shadow: none;
+	text-decoration: none;
+}
+
+.ffxb-card__icon .ffx-icon {
+	width: 15px;
+	height: 15px;
+}
+
+.ffxb .ffxb-card__icon:hover,
+.ffxb .ffxb-card__icon:focus-visible {
+	border-color: var(--ffb-brand-200, #dac2ff);
+	color: var(--ffxb-brand);
+}
+
+.ffxb-card__assignee {
+	margin-left: auto;
 }
 
 /* Changes to the selected entries: a bar that stays at the bottom of the window. */
@@ -5036,12 +5606,14 @@
 	display: none;
 }
 
+/* Headings of the sections of an entry: large enough to find, with a fine line under each. */
 .ffxb-panel__heading {
-	margin: 0 0 10px;
-	color: var(--ffxb-muted);
-	font: 700 11.5px var(--ffxb-font);
-	letter-spacing: 0.06em;
-	text-transform: uppercase;
+	margin: 0 0 12px;
+	padding-bottom: 8px;
+	border-bottom: 1px solid var(--ffxb-line);
+	color: var(--ffxb-text);
+	font: 650 15px/1.3 var(--ffxb-font);
+	letter-spacing: 0;
 }
 
 .ffxb-panel__footer {
@@ -5201,6 +5773,74 @@
 .ffxb-appointment__meta {
 	color: var(--ffxb-muted);
 	font-size: 12px;
+}
+
+/* Entry: after sending, each step with its status and a button that runs it again. */
+.ffxb-after__lead {
+	margin: 0 0 10px;
+}
+
+.ffxb-after {
+	display: grid;
+	gap: 8px;
+	margin: 0 0 12px;
+	padding: 0;
+	list-style: none;
+}
+
+.ffxb-after__step {
+	padding: 10px 12px;
+	border: 1px solid var(--ffxb-line);
+	border-radius: 10px;
+}
+
+.ffxb-after__row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+
+.ffxb-after__name {
+	font-weight: 600;
+}
+
+.ffxb .ffxb-after__again {
+	margin-left: auto;
+}
+
+.ffxb-after__note {
+	margin: 6px 0 0;
+	color: var(--ffxb-muted);
+	font-size: 12px;
+}
+
+.ffxb-after__step .ffxb-deliveries__error {
+	display: block;
+	margin: 6px 0 0;
+}
+
+.ffxb-after__confirm {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin-top: 10px;
+	padding: 10px 12px;
+	border-radius: 8px;
+	background: var(--ffxb-canvas);
+}
+
+.ffxb-after__confirm p {
+	flex-basis: 100%;
+	margin: 0;
+	font-size: 13px;
+}
+
+.ffxb-after__more {
+	margin: 4px 0 8px;
+	color: var(--ffxb-muted);
+	font: 600 13px var(--ffxb-font);
 }
 
 .ffxb-deliveries {
@@ -6333,6 +6973,8 @@
 	display: flex;
 	flex-wrap: wrap;
 	gap: 4px;
+	/* Close to its list, with room before the next field. */
+	margin: -10px 0 12px;
 }
 
 .ffxb-google-fonts__filter {
@@ -6421,52 +7063,6 @@
 	margin-bottom: 8px;
 	object-fit: contain;
 	border-radius: 6px;
-}
-
-.ffxb-option-image {
-	position: relative;
-	display: inline-flex;
-	align-items: center;
-}
-
-.ffxb-option-image__remove {
-	position: absolute;
-	top: -6px;
-	right: -6px;
-	display: grid;
-	place-items: center;
-	width: 16px;
-	height: 16px;
-	padding: 0;
-	border: 1px solid var(--ffxb-line);
-	border-radius: 50%;
-	background: var(--ffxb-surface);
-	color: var(--ffxb-text);
-	font: 600 12px/1 var(--ffxb-font);
-	cursor: pointer;
-}
-
-.ffxb-option-image__remove:focus-visible {
-	outline: 2px solid var(--ffxb-brand);
-	outline-offset: 1px;
-}
-
-.ffxb-option-image__thumb {
-	display: block;
-	width: 32px;
-	height: 32px;
-	padding: 0;
-	overflow: hidden;
-	border: 1px solid var(--ffxb-line);
-	border-radius: var(--ffxb-radius-sm);
-	background: var(--ffxb-surface);
-	cursor: pointer;
-}
-
-.ffxb-option-image__thumb img {
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
 }
 
 /* Mail editor (MailEditor.tsx) */
@@ -6577,6 +7173,18 @@
 	color: var(--ffxb-brand);
 }
 
+/* An own image of the answer: the button shows it. */
+.ffxb-icon-choice.has-image {
+	overflow: hidden;
+	border-style: solid;
+}
+
+.ffxb-icon-choice.has-image img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
 .ffxb-icon-choice:hover:not(:disabled) {
 	border-color: var(--ffxb-brand-line);
 	color: var(--ffxb-brand);
@@ -6586,6 +7194,59 @@
 .ffxb-icon-picker__icon:focus-visible {
 	outline: 2px solid var(--ffxb-brand);
 	outline-offset: 1px;
+}
+
+/* Icon or own image (IconChoice with an image): two tabs in the dialog. */
+.ffxb-media-choice__tabs {
+	display: flex;
+	gap: 2px;
+	margin: 0 0 12px;
+	padding: 2px;
+	border-radius: var(--ffxb-radius-sm);
+	background: var(--ffxb-canvas);
+}
+
+.ffxb-media-choice__tab {
+	flex: 1;
+	padding: 7px 10px;
+	border: 0;
+	border-radius: 4px;
+	background: none;
+	color: var(--ffxb-muted);
+	font: 600 13px var(--ffxb-font);
+	cursor: pointer;
+}
+
+.ffxb-media-choice__tab.is-active {
+	background: var(--ffxb-surface);
+	color: var(--ffxb-text);
+	box-shadow: 0 1px 2px rgba(31, 29, 36, 0.08);
+}
+
+.ffxb-media-choice__tab:focus-visible {
+	outline: 2px solid var(--ffxb-brand);
+	outline-offset: 1px;
+}
+
+.ffxb-media-choice__image {
+	display: grid;
+	gap: 12px;
+	justify-items: start;
+}
+
+.ffxb-media-choice__preview {
+	max-width: 100%;
+	max-height: 220px;
+	border: 1px solid var(--ffxb-line);
+	border-radius: var(--ffxb-radius-sm);
+	background: var(--ffxb-canvas);
+	object-fit: contain;
+}
+
+.ffxb-media-choice__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
 }
 
 .ffxb-icon-field {
@@ -6921,10 +7582,34 @@
 
 .ffxb-answer-routes__list li {
 	display: grid;
-	grid-template-columns: minmax(0, 0.7fr) auto minmax(0, 1.5fr);
-	align-items: center;
 	gap: 6px;
 	margin: 0;
+}
+
+.ffxb-answer-routes__row {
+	display: grid;
+	grid-template-columns: minmax(0, 0.7fr) auto minmax(0, 1.5fr) auto;
+	align-items: center;
+	gap: 6px;
+}
+
+/* The place of the conditions of an answer without a path, so the rows line up. */
+.ffxb-answer-routes__none {
+	width: 26px;
+}
+
+/* More conditions for the path of an answer: with them it becomes a rule of its own. */
+.ffxb-answer-routes__row .ffxb-button {
+	padding: 4px;
+	color: var(--ffxb-muted);
+}
+
+.ffxb-answer-routes__list li.is-open .ffxb-answer-routes__row .ffxb-button {
+	color: var(--ffxb-brand);
+}
+
+.ffxb-answer-routes .ffxb-logic-rule .ffxb-path-editor {
+	padding-top: 10px;
 }
 
 .ffxb-answer-routes__answer {
@@ -6981,9 +7666,46 @@
 	border-left: 3px solid var(--ffxb-warning);
 }
 
+/* What comes first in the order the form checks: rules, the answers, rules after them. */
+.ffxb-logic-lead {
+	margin: 0 0 6px;
+	color: var(--ffxb-muted);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+}
+
+.ffxb-logic-rule__row {
+	display: flex;
+	align-items: flex-start;
+}
+
+.ffxb-logic-rule__move {
+	display: flex;
+	flex: none;
+	padding: 5px 4px 0 0;
+}
+
+.ffxb-logic-rule__move .ffxb-button {
+	padding: 4px;
+}
+
+.ffxb-rule__line .ffxb-rule__bound {
+	flex: 1 1 64px;
+}
+
+.ffxb-rule__and {
+	flex: none;
+	color: var(--ffxb-muted);
+	font-size: 12px;
+}
+
 .ffxb-logic-rule__head {
 	display: grid;
+	flex: 1 1 auto;
 	gap: 2px;
+	min-width: 0;
 	width: 100%;
 	padding: 8px 10px;
 	border: 0;
@@ -7000,29 +7722,55 @@
 	border-radius: var(--ffxb-radius-sm);
 }
 
-.ffxb-logic-rule__when::before {
-	content: counter(ffxb-rule);
-	display: inline-grid;
-	place-items: center;
-	width: 18px;
-	height: 18px;
-	margin-right: 6px;
-	border-radius: 50%;
-	background: var(--ffxb-canvas);
-	color: var(--ffxb-muted);
-	font-size: 11px;
-	font-weight: 700;
-	vertical-align: 1px;
+.ffxb-logic-rule__when {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	min-width: 0;
 }
 
-.ffxb-logic-rule__if {
-	color: var(--ffxb-brand);
+/* The sign of the rule, as on the card of the step. */
+.ffxb-logic-rule__sign {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	min-width: 26px;
+	height: 20px;
+	padding: 0 6px;
+	border-radius: 6px;
+	background: #e8f0fe;
+	color: #1d5bd8;
+	font-size: 12px;
 	font-weight: 700;
+}
+
+.ffxb-logic-rule__sign.is-below {
+	background: #fdf0e3;
+	color: #b85f06;
+}
+
+.ffxb-logic-rule__sign.is-above {
+	background: #e3f5ee;
+	color: #0f7a54;
+}
+
+.ffxb-logic-rule__sign.is-range,
+.ffxb-logic-rule__sign.is-equal {
+	background: var(--ffxb-brand-soft);
+	color: var(--ffxb-brand);
+}
+
+.ffxb-logic-rule__text {
+	min-width: 0;
+	overflow-wrap: anywhere;
+	font-weight: 600;
 }
 
 .ffxb-logic-rule__to {
 	overflow: hidden;
-	padding-left: 24px;
+	padding-left: 34px;
 	color: var(--ffxb-muted);
 	font-size: 12px;
 	font-weight: 600;

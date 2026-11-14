@@ -326,7 +326,10 @@ final class OverviewPage {
 						<h2><?php esc_html_e( 'Views and entries', 'funnelforms-free' ); ?></h2>
 						<?php echo Ui::button( __( 'Statistics', 'funnelforms-free' ), StatsPage::url(), 'ghost', 'arrow' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in button(). ?>
 					</div>
-					<?php StatsPage::chart( $report['daily'] ); ?>
+					<?php
+					StatsPage::chart( $report['daily'] );
+					StatsPage::script();
+					?>
 				</section>
 				<section class="ffx-card">
 					<div class="ffx-card__head">

@@ -6,6 +6,7 @@
  */
 import React, { useEffect, useState } from 'react';
 import type { FormDocument } from '@funnelforms/form-schema';
+import { localeTag } from '@funnelforms/form-core';
 import type { FormsApi, PredictionHistory } from '../api';
 import type { EarlierPrediction, MeasuredFigures, RealFigures } from '../predict';
 import { __, sprintf } from './i18n';
@@ -123,7 +124,7 @@ export function EarlierList( { current, history, locale, chosen, onOpen }: { cur
 function Measured( { label, m, locale }: { label: string; m: MeasuredFigures | null; locale?: string } ) {
 	const views = ( n: number ): string => {
 		try {
-			return new Intl.NumberFormat( locale?.replace( /_formal$/, '' ).replace( /_/g, '-' ) ).format( n );
+			return new Intl.NumberFormat( localeTag( locale ) ).format( n );
 		} catch {
 			return String( n );
 		}
@@ -146,7 +147,7 @@ export function EarlierView( { entry, doc, locale, onBack }: { entry: EarlierPre
 	};
 	const day = ( iso: string ): string => {
 		try {
-			return new Intl.DateTimeFormat( locale?.replace( /_formal$/, '' ).replace( /_/g, '-' ), { dateStyle: 'medium' } ).format( new Date( iso ) );
+			return new Intl.DateTimeFormat( localeTag( locale ), { dateStyle: 'medium' } ).format( new Date( iso ) );
 		} catch {
 			return iso.slice( 0, 10 );
 		}

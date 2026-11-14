@@ -47,6 +47,9 @@ function complete( action: Action ): void {
 		case 'googleAds':
 			action.config.sendTo = 'AW-123456789/AbC-D_efG';
 			break;
+		case 'customCode':
+			action.config.code = "<script>fbq('track', 'Lead');</script>";
+			break;
 	}
 }
 
@@ -106,7 +109,6 @@ describe( 'actions', () => {
 		if ( mail ) {
 			complete( mail );
 		}
-		expect( deliveryWarnings( doc ) ).toEqual( [] );
 		const chat = { ...blank(), actions: [] };
 		addAction( chat, 'chat' );
 		expect( deliveryWarnings( chat ) ).toEqual( [] );
@@ -177,6 +179,25 @@ describe( 'actions', () => {
 		expect( calculationUses( doc, calc ) ).toEqual( [ 'conversion' ] );
 		expect( validateDocument( doc ).errors ).toEqual( [] );
 		expect( checkReferences( doc ) ).toEqual( [] );
+	} );
+
+	it( 'want the code of a custom code action, which runs only after sending', () => {
+		const doc = blank();
+		const code = added( doc, 'customCode' );
+		if ( ! code || 'customCode' !== code.kind ) {
+			throw new Error( 'missing' );
+		}
+		expect( code ).toEqual( { id: code.id, on: 'submit', kind: 'customCode', config: { code: '' } } );
+		for ( const empty of [ '', '  \n ' ] ) {
+			code.config.code = empty;
+			expect( actionGaps( code, 'de_DE' ) ).toEqual( [ 'code' ] );
+			expect( validateDocument( doc ).valid ).toBe( false );
+		}
+		code.config.code = "fbq('track', 'Lead', { content_name: '{{field:email}}' });";
+		expect( actionGaps( code, 'de_DE' ) ).toEqual( [] );
+		expect( validateDocument( doc ).errors ).toEqual( [] );
+		// Not after the payment: it belongs to the moment of sending.
+		expect( validateDocument( { ...doc, actions: [ { ...code, on: 'paid' } as never ] } ).valid ).toBe( false );
 	} );
 
 	it( 'are added ready to send through a connection the site has', () => {

@@ -9,6 +9,7 @@
  */
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { localeTag } from '@funnelforms/form-core';
 import { TypesTab } from './AppointmentTypes';
 import {
 	addDays,
@@ -62,12 +63,7 @@ interface Formats {
 }
 
 function localeOf( userLocale: string | undefined ): string {
-	const tag = ( userLocale ?? '' ).split( '_' ).slice( 0, 2 ).join( '-' );
-	try {
-		return tag ? new Intl.Locale( tag ).toString() : 'en-US';
-	} catch {
-		return 'en-US';
-	}
+	return localeTag( userLocale ) ?? 'en-US';
 }
 
 /** A day (Y-m-d) as a Date at noon UTC, formatted in UTC: the same day everywhere. */
@@ -102,6 +98,9 @@ function makeFormats( locale: string, zone: string | undefined ): Formats {
 }
 
 function duration( minutes: number ): string {
+	if ( minutes >= 1440 && 0 === minutes % 1440 ) {
+		return 1440 === minutes ? __( '1 day', 'funnelforms-pro' ) : sprintf( /* translators: %d: number of days */ __( '%d days', 'funnelforms-pro' ), minutes / 1440 );
+	}
 	const h = Math.floor( minutes / 60 );
 	const m = minutes % 60;
 	return [ h ? sprintf( __( '%d h', 'funnelforms-pro' ), h ) : '', m || ! h ? sprintf( __( '%d min', 'funnelforms-pro' ), m ) : '' ].filter( Boolean ).join( ' ' );
@@ -693,7 +692,7 @@ function AppointmentDialog( { appointment: a, client, config, f, now, onChanged,
 					<StateBadge state={ state } />
 					<h2 id={ titleId }>{ 'move' === mode ? __( 'Choose a new time', 'funnelforms-pro' ) : 'cancel' === mode ? __( 'Cancel the appointment?', 'funnelforms-pro' ) : sprintf( __( '%1$s with %2$s', 'funnelforms-pro' ), a.type?.title ?? __( 'Appointment', 'funnelforms-pro' ), who ) }</h2>
 					<p className="ffx-appt-dialog__when">
-						{ f.long( a.start ) } – { f.time( a.end ) } · { duration( a.duration ) }
+						{ f.long( a.start ) } – { dayOf( a.start, f.zone ) === dayOf( a.end, f.zone ) ? f.time( a.end ) : f.long( a.end ) } · { duration( a.duration ) }
 					</p>
 				</div>
 				<button type="button" className="ffx-btn ffx-btn--ghost ffx-btn--sm ffx-appt-icon" aria-label={ __( 'Close', 'funnelforms-pro' ) } onClick={ () => ( ref.current?.open ? ref.current.close() : onClose() ) }>

@@ -410,13 +410,13 @@ final class Submission {
 	}
 
 	/**
-	 * Hidden values of the chosen options of a choice field.
+	 * Hidden values of the chosen options of a choice or dropdown field.
 	 *
 	 * @param array<string,mixed> $field Field.
 	 * @return string[]
 	 */
 	public function hidden_values( array $field ): array {
-		if ( 'choice' !== $field['type'] ) {
+		if ( ! in_array( $field['type'], array( 'choice', 'dropdown' ), true ) ) {
 			return array();
 		}
 		$out = array();

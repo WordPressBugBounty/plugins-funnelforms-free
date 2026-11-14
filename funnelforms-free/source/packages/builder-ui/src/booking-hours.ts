@@ -202,8 +202,9 @@ const PREVIEW_DAYS = 60;
 /**
  * The first days with free start times as visitors would see them when nothing else is booked
  * and no calendar is busy: the weekly hours or the day's own hours, without closed days, from the
- * notice on, within the booking window, every interval minutes, for the first duration. It
- * follows Availability::slots() of the plugin, in the time of the browser.
+ * notice on, within the booking window, every interval minutes, for the first duration. Whole
+ * days have one start a day, at the opening, when enough working days follow. It follows
+ * Availability::slots() of the plugin, in the time of the browser.
  */
 export function previewSlots( config: BookingConfig, now: Date, days = 3, perDay = 6 ): PreviewDay[] {
 	const duration = config.durations[ 0 ] ?? 30;
@@ -229,17 +230,34 @@ export function previewSlots( config: BookingConfig, now: Date, days = 3, perDay
 		last = Math.min( first + PREVIEW_DAYS - 1, offset( horizon.to ) );
 	}
 	const week = weekOf( config.hours );
+	const spansAt = ( day: Date ): Span[] => {
+		const date = dateKey( day );
+		if ( config.closed.some( ( range ) => range.from && range.from <= date && date <= ( range.to || range.from ) ) ) {
+			return [];
+		}
+		const special = config.special.find( ( s ) => s.date === date );
+		return special ? special.hours : spansOf( week, day.getDay() || 7 );
+	};
+	const wholeDays = 'day' === config.durationUnit;
+	// Whole days: does the duration find enough working days within a year (Availability::end())?
+	const workingDays = ( offset: number ): boolean => {
+		let left = Math.max( 1, Math.floor( duration / 1440 ) );
+		for ( let i = offset; i < offset + 366 && left > 0; i++ ) {
+			left -= spansAt( at( i ) ).length ? 1 : 0;
+		}
+		return 0 === left;
+	};
 	const out: PreviewDay[] = [];
 	for ( let i = first; i <= last && out.length < days; i++ ) {
 		const day = at( i );
 		const date = dateKey( day );
-		if ( config.closed.some( ( range ) => range.from && range.from <= date && date <= ( range.to || range.from ) ) ) {
-			continue;
-		}
-		const special = config.special.find( ( s ) => s.date === date );
-		const spans = special ? special.hours : spansOf( week, day.getDay() || 7 );
+		const spans = spansAt( day );
 		const starts = new Set<number>();
-		for ( const span of spans ) {
+		const opening = Math.min( ...spans.map( ( span ) => minutesOf( span.from ) ) );
+		if ( wholeDays && spans.length && day.getTime() + opening * 60000 >= earliest && workingDays( i ) ) {
+			starts.add( opening );
+		}
+		for ( const span of wholeDays ? [] : spans ) {
 			const close = minutesOf( span.to );
 			for ( let t = minutesOf( span.from ); t + duration <= close; t += step ) {
 				if ( day.getTime() + t * 60000 >= earliest ) {

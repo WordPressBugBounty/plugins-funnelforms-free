@@ -968,6 +968,13 @@
             "imageFull": {
               "type": "boolean"
             },
+            "imageRatio": {
+              "enum": [
+                "auto",
+                "1:1",
+                "16:9"
+              ]
+            },
             "prefillFromQuery": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_.-]{1,64}$"
@@ -4232,6 +4239,51 @@
                   "type": "string",
                   "maxLength": 1000,
                   "description": "What the form is about, in the site owner's words, for the agent (for example: request for a heat pump)."
+                }
+              }
+            },
+            "node": {
+              "$ref": "#/definitions/id",
+              "description": "Only when the entry is submitted through this contact node; all submits when missing."
+            },
+            "when": {
+              "$ref": "#/definitions/condition",
+              "description": "Runs only when this condition holds for the entry (answers, calculations, A/B variants); always when missing. Funnelforms Pro."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "on",
+            "kind",
+            "config"
+          ],
+          "description": "Custom code after sending (Funnelforms Pro): HTML or JavaScript, such as a tracking pixel, that the visitor's browser runs once the entry is stored, as the thank-you page appears or before the redirect. The plugin fills in the placeholders as plain text, sends the code only when an administrator allowed custom code on the site, and the runtime runs it only where marketing is allowed.",
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/id"
+            },
+            "on": {
+              "const": "submit"
+            },
+            "kind": {
+              "const": "customCode"
+            },
+            "config": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "code"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "pattern": "\\S",
+                  "maxLength": 50000,
+                  "description": "HTML with scripts, or plain JavaScript. Placeholders ({{field:<key>}}, {{calc:<id>}}, {{entry:id}}, …) become plain text without quotes or tags: characters other than letters, digits, spaces and @ . _ , : + - / % become \\uXXXX escapes. {{calc:<id>}} gives the plain number (1234.5)."
                 }
               }
             },

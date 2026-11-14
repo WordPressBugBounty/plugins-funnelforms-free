@@ -9,6 +9,7 @@
  * Escape closes and returns to the button.
  */
 import type { ContactField, PhoneCountries, PhoneField } from '@funnelforms/form-schema';
+import { localeTag } from '@funnelforms/form-core';
 import { h, uniqueId } from '../dom';
 import { checkPhone, COUNTRIES, country, e164, flag, formatInternational, formatTyped, parsePhone, startCountry } from '../phone';
 import { send as sendTo } from '../transport';
@@ -69,7 +70,7 @@ const emojiFlags = typeof navigator === 'undefined' || ! /Windows/.test( navigat
 function namer( locale: string ): ( iso: string ) => string {
 	let names: Intl.DisplayNames | null = null;
 	try {
-		names = new Intl.DisplayNames( [ locale.replace( /_formal$/, '' ).replace( '_', '-' ), 'en' ], { type: 'region' } );
+		names = new Intl.DisplayNames( [ localeTag( locale ) ?? 'en', 'en' ], { type: 'region' } );
 	} catch {
 		names = null;
 	}

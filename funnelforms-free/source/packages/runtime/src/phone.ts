@@ -4,6 +4,7 @@
  * (tools/phone/countries.mjs). Domain\Form\PhoneNumbers in the plugin mirrors these rules.
  * Only the phone chunk (chunks/phone.ts) and the builder use this module.
  */
+import { localeTag } from '@funnelforms/form-core';
 import data from '../../../plugin/assets/phone/countries.json';
 
 /** Calling code, national prefix, lengths, groups, example, pattern for shared calling codes. */
@@ -175,7 +176,7 @@ export function startCountry( own: string | undefined, locale: string, allowed?:
 	if ( fits( own ) ) {
 		return own;
 	}
-	const tag = locale.replace( /_formal$/, '' ).replace( '_', '-' );
+	const tag = localeTag( locale ) ?? '';
 	let region = /-([A-Z]{2})\b/.exec( tag )?.[ 1 ];
 	if ( ! region ) {
 		try {

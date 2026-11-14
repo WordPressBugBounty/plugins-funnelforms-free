@@ -14,6 +14,7 @@ use Funnelforms\Application\StatsOverview;
 use Funnelforms\Application\StatsPeriod;
 use Funnelforms\Edition\Edition;
 use Funnelforms\Edition\FreeSite;
+use Funnelforms\Http\FormsController;
 use Funnelforms\Http\FileDownload;
 use Funnelforms\Infrastructure\Repository\FormRepository;
 
@@ -81,12 +82,49 @@ final class StatsPage {
 	 * @param string $hook Hook suffix of the current admin page.
 	 */
 	public static function enqueue( string $hook ): void {
+		if ( null === self::$hook || $hook !== self::$hook ) {
+			return;
+		}
+		self::script();
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- a view, nothing changes.
-		if ( null === self::$hook || $hook !== self::$hook || ! isset( $_GET['form'] ) || self::per_form() || ! BuilderPage::built() ) {
+		if ( isset( $_GET['form'] ) && self::per_form() && null !== Edition::pro( StatsAnalysisSection::class ) ) {
+			// The result of "Analyse with AI" looks like that of the Predictive AI.
+			BuilderPage::styles();
+		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- a view, nothing changes.
+		if ( ! isset( $_GET['form'] ) || self::per_form() || ! BuilderPage::built() ) {
 			return;
 		}
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- a view, nothing changes.
 		BuilderPage::load_app( self::form_config( absint( $_GET['form'] ) ) );
+	}
+
+	/**
+	 * The script of the page: values on hover and click in the charts, the details of each step and
+	 * the AI analysis (Pro). Without it the page shows the same figures, as titles and tables.
+	 */
+	public static function script(): void {
+		wp_enqueue_script( 'funnelforms-stats', plugins_url( 'assets/admin/stats.js', FUNNELFORMS_PLUGIN_FILE ), array(), FUNNELFORMS_ASSET_VERSION, true );
+		$config = array(
+			'root'   => esc_url_raw( rest_url( FormsController::NAMESPACE . '/' ) ),
+			'nonce'  => wp_create_nonce( 'wp_rest' ),
+			'locale' => str_replace( '_', '-', get_user_locale() ),
+			'texts'  => array(
+				'views'    => __( 'Views', 'funnelforms-free' ),
+				'entries'  => __( 'Entries', 'funnelforms-free' ),
+				'before'   => __( 'Entries before', 'funnelforms-free' ),
+				'rate'     => __( 'Conversion rate', 'funnelforms-free' ),
+				'average'  => __( 'Average per day', 'funnelforms-free' ),
+				'close'    => __( 'Close', 'funnelforms-free' ),
+				'copied'   => __( 'Copied', 'funnelforms-free' ),
+				'working'  => __( 'The AI analyses the statistics. This takes up to a minute; you can stay on this page.', 'funnelforms-free' ),
+				'failed'   => __( 'The analysis could not be loaded. Please try again.', 'funnelforms-free' ),
+				'done'     => __( 'The analysis is ready.', 'funnelforms-free' ),
+				/* translators: 1: recommendations done, 2: all recommendations. */
+				'progress' => __( '%1$d of %2$d done', 'funnelforms-free' ),
+			),
+		);
+		wp_add_inline_script( 'funnelforms-stats', 'window.funnelformsStats = ' . wp_json_encode( $config ) . ';', 'before' );
 	}
 
 	/**
@@ -198,6 +236,10 @@ final class StatsPage {
 		self::wrong_period( $wrong );
 		$export = Edition::pro( StatsExport::class );
 		StatsUi::range_bar( $period, null === $export ? self::pro_export() : $export::buttons( $period, null ) );
+		$analysis = Edition::pro( StatsAnalysisSection::class );
+		if ( null !== $analysis ) {
+			$analysis::overview( $report['forms'], $period );
+		}
 
 		if ( $report['legacy'] > 0 ) {
 			echo '<div class="ffx-notice ffx-notice--info ffx-section"><p>';
@@ -238,6 +280,7 @@ final class StatsPage {
 						)
 					);
 					?>
+					<?php self::losses( $totals['views'], $totals['starts'], $totals['tracked'] ); ?>
 					<p class="ffx-small ffx-muted"><?php echo esc_html( $update ? __( 'Counted once per visit, for forms on Funnelforms 5.', 'funnelforms-free' ) : __( 'Counted once per visit.', 'funnelforms-free' ) ); ?></p>
 				<?php else : ?>
 					<p class="ffx-muted"><?php echo esc_html( $update ? __( 'No views in this period yet. Views are counted for published forms on Funnelforms 5, once per visit and without cookies.', 'funnelforms-free' ) : __( 'No views in this period yet. Views of published forms are counted once per visit and without cookies.', 'funnelforms-free' ) ); ?></p>
@@ -410,11 +453,11 @@ final class StatsPage {
 	 */
 	public static function legend( bool $previous = false ): void {
 		?>
-		<span class="ffx-legend">
-			<span class="ffx-legend__item ffx-legend__item--views"><?php esc_html_e( 'Views', 'funnelforms-free' ); ?></span>
-			<span class="ffx-legend__item ffx-legend__item--entries"><?php esc_html_e( 'Entries', 'funnelforms-free' ); ?></span>
+		<span class="ffx-legend" data-ffx-legend>
+			<span class="ffx-legend__item ffx-legend__item--views" data-ffx-series="views"><?php esc_html_e( 'Views', 'funnelforms-free' ); ?></span>
+			<span class="ffx-legend__item ffx-legend__item--entries" data-ffx-series="entries"><?php esc_html_e( 'Entries', 'funnelforms-free' ); ?></span>
 			<?php if ( $previous ) : ?>
-				<span class="ffx-legend__item ffx-legend__item--previous"><?php esc_html_e( 'Entries before', 'funnelforms-free' ); ?></span>
+				<span class="ffx-legend__item ffx-legend__item--previous" data-ffx-series="previous"><?php esc_html_e( 'Entries before', 'funnelforms-free' ); ?></span>
 			<?php endif; ?>
 		</span>
 		<?php
@@ -437,6 +480,7 @@ final class StatsPage {
 		$bars  = '';
 		$hits  = '';
 		$wide  = $count > 120 ? 8 : 6;
+		$data  = array();
 		foreach ( $daily as $i => $day ) {
 			$x     = 10 * $i + 5;
 			$area .= ' L' . $x . ',' . $top( $day['views'] );
@@ -444,7 +488,8 @@ final class StatsPage {
 			if ( $day['entries'] > 0 ) {
 				$bars .= '<rect class="ffx-chart__bar" x="' . ( $x - $wide / 2 ) . '" y="' . $top( $day['entries'] ) . '" width="' . $wide . '" height="' . number_format( 92 * $day['entries'] / $max, 2, '.', '' ) . '" rx="1.5"/>';
 			}
-			$date = wp_date( get_option( 'date_format' ), (int) strtotime( $day['date'] . ' 12:00:00' ) );
+			$date   = wp_date( get_option( 'date_format' ), (int) strtotime( $day['date'] . ' 12:00:00' ) );
+			$data[] = array( $date, $day['views'], $day['entries'], $previous ? (int) ( $day['previous'] ?? 0 ) : null );
 			if ( $previous ) {
 				/* translators: 1: date; 2: views; 3: entries; 4: entries on the same day of the period before. */
 				$label = sprintf( __( '%1$s: %2$s views, %3$s entries (before: %4$s)', 'funnelforms-free' ), $date, number_format_i18n( $day['views'] ), number_format_i18n( $day['entries'] ), number_format_i18n( (int) ( $day['previous'] ?? 0 ) ) );
@@ -463,8 +508,20 @@ final class StatsPage {
 		$format = __( 'M j', 'funnelforms-free' );
 		$date   = static fn( string $day ): string => wp_date( $format, (int) strtotime( $day . ' 12:00:00' ) );
 		?>
-		<div class="ffx-chart<?php echo 0 === $total ? ' is-empty' : ''; ?>">
+		<div class="ffx-chart<?php echo 0 === $total ? ' is-empty' : ''; ?>" data-ffx-chart="
+		<?php
+		echo esc_attr(
+			(string) wp_json_encode(
+				array(
+					'max'  => $max,
+					'days' => $data,
+				)
+			)
+		);
+		?>
+								">
 			<span class="ffx-chart__max"><?php echo esc_html( number_format_i18n( $max ) ); ?></span>
+			<span class="ffx-chart__mid"><?php echo esc_html( number_format_i18n( (int) round( $max / 2 ) ) ); ?></span>
 			<svg viewBox="0 0 <?php echo (int) $width; ?> 100" preserveAspectRatio="none" role="img" aria-label="<?php esc_attr_e( 'Views and entries per day', 'funnelforms-free' ); ?>">
 				<line class="ffx-chart__grid" x1="0" x2="<?php echo (int) $width; ?>" y1="8" y2="8"/>
 				<line class="ffx-chart__grid" x1="0" x2="<?php echo (int) $width; ?>" y1="54" y2="54"/>
@@ -508,6 +565,34 @@ final class StatsPage {
 			);
 		}
 		echo '</ol>';
+	}
+
+	/**
+	 * Where the funnel loses visitors: who saw the form and left before the first answer (bounce),
+	 * and who started and did not send it.
+	 *
+	 * @param int $views  Views.
+	 * @param int $starts Visitors who started.
+	 * @param int $sent   Visitors who sent the form.
+	 */
+	public static function losses( int $views, int $starts, int $sent ): void {
+		if ( $views <= 0 ) {
+			return;
+		}
+		$bounce    = max( 0, $views - $starts ) / $views;
+		$abandoned = $starts > 0 ? max( 0, $starts - $sent ) / $starts : null;
+		?>
+		<dl class="ffx-figures ffx-losses">
+			<div class="<?php echo $bounce >= 0.6 ? 'is-warn' : ''; ?>">
+				<dt><?php esc_html_e( 'Left before the first answer', 'funnelforms-free' ); ?></dt>
+				<dd><?php echo esc_html( StatsUi::percent( $bounce ) ); ?> <small><?php echo esc_html( number_format_i18n( max( 0, $views - $starts ) ) ); ?></small></dd>
+			</div>
+			<div class="<?php echo null !== $abandoned && $abandoned >= 0.5 ? 'is-warn' : ''; ?>">
+				<dt><?php esc_html_e( 'Started, not sent', 'funnelforms-free' ); ?></dt>
+				<dd><?php echo esc_html( StatsUi::percent( $abandoned ) ); ?> <small><?php echo esc_html( number_format_i18n( max( 0, $starts - $sent ) ) ); ?></small></dd>
+			</div>
+		</dl>
+		<?php
 	}
 
 	/**

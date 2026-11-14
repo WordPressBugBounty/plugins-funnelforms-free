@@ -180,7 +180,7 @@ function Stepper( { phase, progress, hasResult, running, onPhase, quota }: { pha
 					<span className="ffxb-pai-quota__bar" aria-hidden="true">
 						<span style={ { width: `${ quota.limit > 0 ? Math.round( ( 100 * quota.remaining ) / quota.limit ) : 0 }%` } } />
 					</span>
-					<span>{ sprintf( __( '%1$d of %2$d behaviour analyses left this month', 'funnelforms-pro' ), quota.remaining, quota.limit ) }</span>
+					<span>{ sprintf( __( '%1$d of %2$d AI analyses left this month', 'funnelforms-pro' ), quota.remaining, quota.limit ) }</span>
 				</div>
 			) : null }
 		</div>

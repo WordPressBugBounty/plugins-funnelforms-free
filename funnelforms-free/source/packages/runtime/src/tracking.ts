@@ -2,8 +2,9 @@ import { allowed } from './consent';
 
 /**
  * Tracking code the site owner attached to steps and the contact step in 3.x (conversion pixels,
- * gtag calls). The plugin sends it only when the owner allowed it on the site; it runs once per
- * step and page view, in a hidden box of the form, and only where marketing is allowed (allowed()).
+ * gtag calls), and the code of "Custom code" actions the plugin answers a submit with. The plugin
+ * sends it only when the owner allowed it on the site; it runs once per step and page view, in a
+ * hidden box of the form, and only where marketing is allowed (allowed()).
  */
 export function runCode( box: HTMLElement, code: string | undefined ): void {
 	if ( ! code || ! code.trim() || ! allowed( 'marketing' ) ) {

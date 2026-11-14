@@ -6,6 +6,7 @@
  * there. The figures are those the builder kept with the prediction (figures in the plugin).
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { localeTag } from '@funnelforms/form-core';
 import type { FormsApi, PredictionQuota } from '../api';
 import { __, sprintf } from './i18n';
 import { Empty, Spinner } from './ui';
@@ -82,7 +83,7 @@ function kindOf( f: PredictionOverviewForm ): Kind {
 }
 
 export function PredictionScreen( { api, config }: { api: FormsApi; config: PredictionScreenConfig } ) {
-	const locale = config.userLocale?.replace( '_', '-' );
+	const locale = localeTag( config.userLocale );
 	const ready = !! config.ai?.ready;
 	// undefined while it loads; null when the server could not be reached.
 	const [ quota, setQuota ] = useState<PredictionQuota | null | undefined>( undefined );
@@ -190,7 +191,7 @@ function OverviewCard( { form: f, href, locale, days }: { form: PredictionOvervi
 	);
 }
 
-/** The behaviour analyses of the license this month, on the brand surface of the hero. */
+/** The AI analyses of the license this month (Predictive AI and statistics together), on the brand surface of the hero. */
 export function QuotaMeter( { quota, ready, accountUrl, locale }: { quota: PredictionQuota | null | undefined; ready: boolean; accountUrl: string; locale?: string } ) {
 	if ( ! ready ) {
 		return null;
@@ -212,12 +213,12 @@ export function QuotaMeter( { quota, ready, accountUrl, locale }: { quota: Predi
 	const share = quota.limit > 0 ? Math.max( 0, Math.min( 1, quota.remaining / quota.limit ) ) : 0;
 	const reset = date( quota.resetsAt, locale );
 	return (
-		<aside className="ffxb-pai-overview__quota" aria-label={ __( 'Behaviour analyses available this month', 'funnelforms-pro' ) }>
-			<span>{ __( 'Behaviour analyses this month', 'funnelforms-pro' ) }</span>
+		<aside className="ffxb-pai-overview__quota" aria-label={ __( 'AI analyses left this month', 'funnelforms-pro' ) }>
+			<span>{ __( 'AI analyses left this month', 'funnelforms-pro' ) }</span>
 			<strong className="ffxb-pai-overview__left">
 				{ quota.remaining } <span>{ sprintf( __( 'of %d left', 'funnelforms-pro' ), quota.limit ) }</span>
 			</strong>
-			<span className="ffxb-pai-overview__meter" role="img" aria-label={ sprintf( __( '%1$d of %2$d behaviour analyses left this month', 'funnelforms-pro' ), quota.remaining, quota.limit ) }>
+			<span className="ffxb-pai-overview__meter" role="img" aria-label={ sprintf( __( '%1$d of %2$d AI analyses left this month', 'funnelforms-pro' ), quota.remaining, quota.limit ) }>
 				<span style={ { width: `${ share * 100 }%` } } />
 			</span>
 			{ quota.remaining > 0 && quota.remainingToday < quota.remaining ? <span>{ sprintf( __( '%d of them today on this website.', 'funnelforms-pro' ), quota.remainingToday ) }</span> : null }

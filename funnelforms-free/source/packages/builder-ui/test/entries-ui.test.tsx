@@ -2,7 +2,7 @@ import React, { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { EntriesApi, EntryDetail, EntrySummary, LeadStage, LeadStageInput } from '../src/api';
-import { abandonBadge, appointmentTime, deliveryName, EntriesScreen } from '../src/ui/Entries';
+import { abandonBadge, againTexts, appointmentTime, deliveryAction, deliveryName, EntriesScreen, teamNotes } from '../src/ui/Entries';
 
 ( globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean } ).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -309,7 +309,11 @@ describe( 'entries screen', () => {
 				],
 			},
 		];
-		const api = fakeApi( { entry: vi.fn( async ( id: number ) => detail( id, { aiCalls, deliveries: [ { id: 2, action: ':aicall:result:a_cmgarc', status: 'done', attempts: 1, error: null, updatedAt: null } ], actions: [ { id: 'a_cmgarc', kind: 'aiCall' } ] } ) ) } );
+		const notes = [
+			{ id: 5, text: 'Rückruf am Montag', author: { id: 2, name: 'Mia' }, createdAt: '2026-11-09T09:30:00Z' },
+			{ id: 6, text: 'AI Phone Agent: call finished (2:31).\nSummary: Möchte die Wohnung verkaufen.', author: null, createdAt: '2026-11-09T10:05:00Z' },
+		];
+		const api = fakeApi( { entry: vi.fn( async ( id: number ) => detail( id, { aiCalls, notes, deliveries: [ { id: 2, action: ':aicall:result:a_cmgarc', status: 'done', attempts: 1, error: null, updatedAt: null } ], actions: [ { id: 'a_cmgarc', kind: 'aiCall' } ] } ) ) } );
 		await act( async () => root.render( <EntriesScreen api={ api } config={ { user: { id: 1, admin: false } } } /> ) );
 		await settle();
 		await click( button( 'Erika Muster' ) );
@@ -327,6 +331,27 @@ describe( 'entries screen', () => {
 		// The job that fetches the result has a name, not its channel.
 		expect( panel.querySelector( '.ffxb-deliveries' )?.textContent ).toContain( 'AI Phone Agent: result of the call' );
 		expect( panel.textContent ).not.toContain( ':aicall:' );
+		// The call is in its own section, not a second time among the notes of the team.
+		const team = [ ...panel.querySelectorAll( '.ffxb-note__text' ) ].map( ( n ) => n.textContent );
+		expect( team ).toEqual( [ 'Rückruf am Montag' ] );
+		// After sending: the call can be made again, and the panel says when it happens.
+		const step = panel.querySelector( '.ffxb-after__step' ) as HTMLElement;
+		expect( step.textContent ).toContain( 'AI Phone Agent' );
+		expect( step.textContent ).toContain( 'Planned' );
+		await click( button( 'Call again', step ) );
+		expect( step.querySelector( '.ffxb-after__confirm' )?.textContent ).toContain( 'right away inside its call hours' );
+		await click( button( 'Call again', step.querySelector( '.ffxb-after__confirm' ) as HTMLElement ) );
+		expect( api.resend ).toHaveBeenCalledWith( 1, 'a_cmgarc' );
+		expect( panel.textContent ).toContain( 'Call planned. The result appears under AI Phone Agent.' );
+	} );
+
+	it( 'names what running a step again does, by kind, and finds the step of a run by hand', () => {
+		expect( [ 'email', 'autoresponder', 'webhook', 'crm', 'aiCall', 'optin' ].map( ( k ) => againTexts( k ).button ) ).toEqual( [ 'Send again', 'Send again', 'Trigger again', 'Transfer again', 'Call again', 'Send link again' ] );
+		expect( [ ':again:a1', 'a1', ':optin' ].map( deliveryAction ) ).toEqual( [ 'a1', 'a1', ':optin' ] );
+		const call = { action: 'a2', agent: '', status: 'done', next: null, attempts: [] };
+		const note = { id: 1, text: 'AI Phone Agent: not reached', author: null, createdAt: null };
+		expect( teamNotes( { notes: [ note ], aiCalls: [ call ] } ) ).toEqual( [ note ] );
+		expect( teamNotes( { notes: [ note ], aiCalls: [ { ...call, attempts: [ { attempt: 1, at: null, timeout: false, reached: false, goal: null, duration: 0, summary: '', details: [], transcript: [] } ] } ] } ) ).toEqual( [] );
 	} );
 
 	it( 'says when the spam folder is empty', async () => {
@@ -359,9 +384,17 @@ describe( 'entries screen', () => {
 		await click( button( 'Add note', panel ) );
 		expect( api.addNote ).toHaveBeenCalledWith( 1, 'Angebot geschickt' );
 
-		await choose( 'Action to send again', 'a1', panel );
-		await click( button( 'Send', panel ) );
+		// After sending: the webhook failed; running it again says first what the click does.
+		const step = panel.querySelector( '.ffxb-after__step' ) as HTMLElement;
+		expect( step.textContent ).toContain( 'Webhook' );
+		expect( step.textContent ).toContain( 'Failed' );
+		await click( button( 'Trigger again', step ) );
+		expect( api.resend ).not.toHaveBeenCalled();
+		const confirm = step.querySelector( '.ffxb-after__confirm' ) as HTMLElement;
+		expect( confirm.textContent ).toContain( 'with the settings the form has now' );
+		await click( button( 'Trigger again', confirm ) );
 		expect( api.resend ).toHaveBeenCalledWith( 1, 'a1' );
+		expect( panel.textContent ).toContain( 'Started. The status updates in a few seconds.' );
 
 		await choose( 'Lead status', 'contacted', panel );
 		expect( api.updateEntry ).toHaveBeenLastCalledWith( 1, { leadStatus: 'contacted' } );
@@ -464,8 +497,23 @@ describe( 'entries screen', () => {
 		const columns = container.querySelectorAll( '.ffxb-board__column' );
 		expect( columns ).toHaveLength( 4 );
 		expect( columns[ 0 ]?.querySelectorAll( '.ffxb-card' ) ).toHaveLength( 2 );
-		await choose( 'Lead status of Max Beispiel', 'won' );
+		// The column is the status: the cards have no status menu, but contact links and the time.
+		const card = columns[ 0 ]?.querySelectorAll( '.ffxb-card' )[ 1 ] as HTMLElement;
+		expect( card.querySelector( 'select' ) ).toBeNull();
+		expect( card.querySelector( '.ffxb-card__reach' )?.textContent ).toBe( 'max@example.org' );
+		expect( card.querySelector( 'a[href="mailto:max@example.org"]' )?.getAttribute( 'aria-label' ) ).toBe( 'Write an e-mail' );
+		expect( card.querySelector( '.ffxb-card__when time' ) ).not.toBeNull();
+		// Dropping a card on another column moves it.
+		await act( async () => {
+			const drop = new Event( 'drop', { bubbles: true, cancelable: true } );
+			Object.defineProperty( drop, 'dataTransfer', { value: { getData: ( type: string ) => ( 'text/plain' === type ? '2' : '' ) } } );
+			columns[ 2 ]?.dispatchEvent( drop );
+		} );
+		await settle();
 		expect( api.updateEntry ).toHaveBeenCalledWith( 2, { leadStatus: 'won' } );
+		// A click on the card opens the entry, where the status can be set without dragging.
+		await click( card.querySelector( '.ffxb-card__meta' ) as HTMLElement );
+		expect( window.location.search ).toContain( 'entry=2' );
 	} );
 
 	it( 'renames, adds, moves and deletes the stages of the board', async () => {
@@ -513,7 +561,6 @@ describe( 'entries screen', () => {
 		expect( container.querySelector( 'dialog[aria-label="Edit stage"]' ) ).toBeNull();
 		expect( container.textContent ).toContain( 'Stage “Offer sent” saved.' );
 		expect( [ ...container.querySelectorAll( '.ffxb-board__name' ) ].map( ( n ) => n.textContent ) ).toEqual( [ 'New', 'Won', 'Offer sent' ] );
-		expect( [ ...control<HTMLSelectElement>( 'Lead status of Max Beispiel' ).options ].map( ( o ) => o.text ) ).toEqual( [ 'New', 'Won', 'Offer sent' ] );
 
 		// Add a stage at the end.
 		await click( button( 'Add stage' ) );

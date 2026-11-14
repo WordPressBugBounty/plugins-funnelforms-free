@@ -2,6 +2,7 @@
  * The entries screen without React: filters in the address, names and values of entries, tags
  * as typed, the export link.
  */
+import { localeTag } from '@funnelforms/form-core';
 import type { EntryDevice, EntryFilter, EntrySummary, LeadStage, LeadStageInput, LeadStageTone, LeadStatus, PaymentStatus } from './api';
 
 /** Keys of the lead stages of 5.0; the site's stages may differ (LeadStage). */
@@ -293,10 +294,6 @@ export function change( now: number, before: number | null ): number | null {
 	return null === before || 0 === before ? null : Math.round( ( 100 * ( now - before ) ) / before );
 }
 
-function languageTag( locale?: string ): string | undefined {
-	return ( locale ?? '' ).replace( '_', '-' ) || undefined;
-}
-
 /**
  * When something happened, as people say it: "5 min. ago", "yesterday", "3 days ago"; a date
  * after a week.
@@ -309,7 +306,7 @@ export function relativeTime( iso: string | null, now: Date = new Date(), locale
 	if ( Number.isNaN( then.getTime() ) ) {
 		return '';
 	}
-	const tag = languageTag( locale );
+	const tag = localeTag( locale );
 	const seconds = Math.round( ( then.getTime() - now.getTime() ) / 1000 );
 	const past = -seconds;
 	let format: Intl.RelativeTimeFormat;

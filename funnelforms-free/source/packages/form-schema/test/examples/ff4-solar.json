@@ -1,0 +1,850 @@
+{
+    "schemaVersion": 1,
+    "id": "frm_import",
+    "title": "Solar-Anfrage",
+    "locales": {
+        "default": "de_DE",
+        "available": [
+            "de_DE"
+        ]
+    },
+    "start": "s_node-roof",
+    "nodes": [
+        {
+            "id": "s_node-roof",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "f-roof",
+                    "key": "roof_type",
+                    "label": {
+                        "de_DE": "Welche Dachform hat Ihr Haus?"
+                    },
+                    "description": {
+                        "de_DE": "Bitte wählen Sie eine Antwort"
+                    },
+                    "required": true,
+                    "type": "choice",
+                    "options": [
+                        {
+                            "id": "f-roof_o0",
+                            "label": {
+                                "de_DE": "Satteldach"
+                            },
+                            "value": "Satteldach",
+                            "media": {
+                                "kind": "lucide",
+                                "value": "house"
+                            },
+                            "hiddenValue": "gable"
+                        },
+                        {
+                            "id": "f-roof_o1",
+                            "label": {
+                                "de_DE": "Flachdach"
+                            },
+                            "value": "Flachdach",
+                            "media": {
+                                "kind": "lucide",
+                                "value": "building"
+                            },
+                            "calcValue": 2
+                        },
+                        {
+                            "id": "f-roof_o2",
+                            "label": {
+                                "de_DE": "Anderes"
+                            },
+                            "value": "Anderes",
+                            "media": {
+                                "kind": "image",
+                                "value": "https://cdn.example.org/forms/other.png"
+                            }
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false,
+                        "columns": {
+                            "desktop": 3
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": "s_node-area",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "f-area",
+                    "key": "f-area",
+                    "label": {
+                        "de_DE": "Wie groß ist die Dachfläche?"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "required": false,
+                    "type": "slider",
+                    "props": {
+                        "min": 10,
+                        "max": 200,
+                        "step": 5,
+                        "start": 50,
+                        "unit": {
+                            "text": {
+                                "de_DE": "m²"
+                            },
+                            "position": "after"
+                        },
+                        "thousandsSeparator": true,
+                        "manualInput": {
+                            "enabled": false,
+                            "label": {
+                                "de_DE": ""
+                            }
+                        },
+                        "separator": "."
+                    }
+                }
+            ]
+        },
+        {
+            "id": "s_node-info",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "f-info",
+                    "key": "f-info",
+                    "label": {
+                        "de_DE": "Hinweis"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "required": false,
+                    "type": "content",
+                    "props": {
+                        "html": {
+                            "de_DE": "<p>Flachdächer prüfen wir vor Ort.</p>"
+                        },
+                        "button": {
+                            "show": true,
+                            "label": {
+                                "de_DE": "Weiter (de_DE)"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": "s_node-extras",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "f-extras",
+                    "key": "f-extras",
+                    "label": {
+                        "de_DE": "Was interessiert Sie noch?"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "required": false,
+                    "type": "choice",
+                    "options": [
+                        {
+                            "id": "f-extras_o0",
+                            "label": {
+                                "de_DE": "Speicher"
+                            },
+                            "value": "Speicher",
+                            "media": {
+                                "kind": "lucide",
+                                "value": "circle-alert"
+                            }
+                        },
+                        {
+                            "id": "f-extras_o1",
+                            "label": {
+                                "de_DE": "Wallbox"
+                            },
+                            "value": "Wallbox"
+                        },
+                        {
+                            "id": "f-extras_o2",
+                            "label": {
+                                "de_DE": "Wärmepumpe"
+                            },
+                            "value": "Wärmepumpe"
+                        }
+                    ],
+                    "props": {
+                        "multiple": true,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "grid"
+                        },
+                        "hideIcons": false,
+                        "maxChoices": 3
+                    }
+                }
+            ]
+        },
+        {
+            "id": "s_node-zip",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "f-zip",
+                    "key": "f-zip",
+                    "label": {
+                        "de_DE": "Ihre Postleitzahl"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "required": true,
+                    "type": "text",
+                    "props": {
+                        "placeholder": {
+                            "de_DE": "z. B. 10115"
+                        },
+                        "maxLength": 5,
+                        "restrict": "digits"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "s_node-date",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "f-date",
+                    "key": "f-date",
+                    "label": {
+                        "de_DE": "Wann soll es losgehen?"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "required": false,
+                    "type": "date",
+                    "props": {
+                        "placeholder": {
+                            "de_DE": ""
+                        },
+                        "format": "dd/mm/yy",
+                        "allow": "future"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "s_node-wait",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "f-wait",
+                    "key": "f-wait",
+                    "label": {
+                        "de_DE": "Wir berechnen Ihr Angebot"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "required": false,
+                    "type": "content",
+                    "props": {
+                        "html": {
+                            "de_DE": ""
+                        },
+                        "autoAdvanceMs": 2000,
+                        "button": {
+                            "show": false,
+                            "label": {
+                                "de_DE": "Weiter (de_DE)"
+                            }
+                        },
+                        "loader": {
+                            "style": "circle",
+                            "messages": [
+                                {
+                                    "de_DE": "Einen Moment …"
+                                }
+                            ],
+                            "percent": true
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": "c_node-contact",
+            "type": "contact",
+            "title": {
+                "de_DE": "Wohin dürfen wir Ihr Angebot senden?"
+            },
+            "description": {
+                "de_DE": "Wir melden uns innerhalb von 24 Stunden."
+            },
+            "submitLabel": {
+                "de_DE": "Angebot anfordern"
+            },
+            "fields": [
+                {
+                    "id": "field-1712000000001",
+                    "type": "text",
+                    "key": "field-1712000000001",
+                    "label": {
+                        "de_DE": "Vorname"
+                    },
+                    "required": true,
+                    "props": {
+                        "placeholder": {
+                            "de_DE": ""
+                        },
+                        "icon": "lucide:user"
+                    }
+                },
+                {
+                    "id": "field-1712000000002",
+                    "type": "email",
+                    "key": "field-1712000000002",
+                    "label": {
+                        "de_DE": "E-Mail"
+                    },
+                    "required": true,
+                    "props": {
+                        "placeholder": {
+                            "de_DE": ""
+                        },
+                        "b2bOnly": false
+                    }
+                },
+                {
+                    "id": "field-1712000000003",
+                    "type": "phone",
+                    "key": "field-1712000000003",
+                    "label": {
+                        "de_DE": "Telefon"
+                    },
+                    "required": false,
+                    "props": {
+                        "placeholder": {
+                            "de_DE": ""
+                        }
+                    }
+                },
+                {
+                    "id": "field-1712000000004",
+                    "type": "select",
+                    "key": "field-1712000000004",
+                    "label": {
+                        "de_DE": "Erreichbarkeit"
+                    },
+                    "required": false,
+                    "props": {
+                        "placeholder": {
+                            "de_DE": ""
+                        },
+                        "options": [
+                            {
+                                "id": "field-1712000000004_o0",
+                                "label": {
+                                    "de_DE": "Vormittags"
+                                }
+                            },
+                            {
+                                "id": "field-1712000000004_o1",
+                                "label": {
+                                    "de_DE": "Nachmittags"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id": "field-1712000000005",
+                    "type": "consent",
+                    "key": "field-1712000000005",
+                    "label": {
+                        "de_DE": ""
+                    },
+                    "required": true,
+                    "props": {
+                        "html": {
+                            "de_DE": "Ich akzeptiere die <a href=\"https://www.example.org/datenschutz\" target=\"_blank\" rel=\"noopener\">Datenschutzerklärung</a>"
+                        }
+                    }
+                }
+            ],
+            "showBottomBar": true,
+            "layout": {
+                "columns": {
+                    "desktop": 2
+                }
+            },
+            "tracking": {
+                "afterSubmit": "window.dataLayer=window.dataLayer||[];dataLayer.push({event:'lead'});"
+            }
+        },
+        {
+            "id": "s_node-zip-again",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "f-zip_2",
+                    "key": "f-zip",
+                    "label": {
+                        "de_DE": "Ihre Postleitzahl"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "required": true,
+                    "type": "text",
+                    "props": {
+                        "placeholder": {
+                            "de_DE": "z. B. 10115"
+                        },
+                        "maxLength": 5,
+                        "restrict": "digits"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "r_action-redirect",
+            "type": "end",
+            "success": null,
+            "redirect": {
+                "url": {
+                    "de_DE": "https://www.example.org/zu-klein?f={{field:f-area}}"
+                },
+                "newTab": false,
+                "delayMs": 0,
+                "params": []
+            }
+        },
+        {
+            "id": "e_node-contact",
+            "type": "end",
+            "success": {
+                "show": true,
+                "text": {
+                    "de_DE": "Wir melden uns zu Ihrer Anfrage für {{field:roof_type}} unter {{field:field-1712000000002}}."
+                },
+                "heading": {
+                    "de_DE": "Vielen Dank, {{field:field-1712000000001}}!"
+                },
+                "animation": "confetti",
+                "button": {
+                    "label": {
+                        "de_DE": "Zur Startseite"
+                    },
+                    "url": {
+                        "de_DE": "https://www.example.org"
+                    },
+                    "newTab": true
+                },
+                "downloads": [
+                    {
+                        "label": {
+                            "de_DE": "Broschüre"
+                        },
+                        "url": "https://cdn.example.org/files/broschuere.pdf"
+                    }
+                ],
+                "showAnswers": true
+            },
+            "redirect": {
+                "url": {
+                    "de_DE": "https://www.example.org/danke"
+                },
+                "newTab": false,
+                "delayMs": 5000,
+                "params": [
+                    {
+                        "name": "plz",
+                        "value": {
+                            "de_DE": "{{field:f-zip}}"
+                        }
+                    }
+                ],
+                "countdown": true
+            }
+        }
+    ],
+    "edges": [
+        {
+            "id": "e_497db18efa86",
+            "from": "s_node-roof",
+            "to": "s_node-info",
+            "when": {
+                "field": "f-roof",
+                "op": "selected",
+                "value": "f-roof_o1"
+            }
+        },
+        {
+            "id": "e_9d379133943a",
+            "from": "s_node-roof",
+            "to": "s_node-zip-again",
+            "when": {
+                "field": "f-roof",
+                "op": "selected",
+                "value": "f-roof_o2"
+            }
+        },
+        {
+            "id": "e_8958b4d076a7",
+            "from": "s_node-roof",
+            "to": "s_node-area",
+            "default": true
+        },
+        {
+            "id": "e_2e1cce4f38ec",
+            "from": "s_node-area",
+            "to": "r_action-redirect",
+            "when": {
+                "field": "f-area",
+                "op": "lt",
+                "value": 20
+            }
+        },
+        {
+            "id": "e_096473bf5747",
+            "from": "s_node-area",
+            "to": "s_node-extras",
+            "default": true
+        },
+        {
+            "id": "e_375acdc118f1",
+            "from": "s_node-info",
+            "to": "s_node-extras",
+            "default": true
+        },
+        {
+            "id": "e_620d870e2432",
+            "from": "s_node-extras",
+            "to": "s_node-zip",
+            "when": {
+                "all": [
+                    {
+                        "field": "f-extras",
+                        "op": "selected",
+                        "value": "f-extras_o0"
+                    },
+                    {
+                        "field": "f-extras",
+                        "op": "selected",
+                        "value": "f-extras_o1"
+                    },
+                    {
+                        "field": "f-extras",
+                        "op": "eq",
+                        "value": 2,
+                        "number": "count"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "e_d0a4a931f23e",
+            "from": "s_node-extras",
+            "to": "s_node-zip",
+            "when": {
+                "field": "f-extras",
+                "op": "gt",
+                "value": 2,
+                "number": "count"
+            }
+        },
+        {
+            "id": "e_facf40eae072",
+            "from": "s_node-extras",
+            "to": "s_node-zip",
+            "default": true
+        },
+        {
+            "id": "e_ae06ea50213b",
+            "from": "s_node-zip",
+            "to": "c_node-contact",
+            "when": {
+                "field": "f-zip",
+                "op": "startsWith",
+                "value": "99"
+            }
+        },
+        {
+            "id": "e_cbfb74125233",
+            "from": "s_node-zip",
+            "to": "s_node-date",
+            "when": {
+                "field": "f-zip",
+                "op": "empty"
+            }
+        },
+        {
+            "id": "e_c69a9ee9738e",
+            "from": "s_node-zip",
+            "to": "s_node-date",
+            "default": true
+        },
+        {
+            "id": "e_838f3f6429ea",
+            "from": "s_node-date",
+            "to": "s_node-wait",
+            "default": true
+        },
+        {
+            "id": "e_1d9acc7a9a91",
+            "from": "s_node-wait",
+            "to": "c_node-contact",
+            "default": true
+        },
+        {
+            "id": "e_fa8090102ec2",
+            "from": "c_node-contact",
+            "to": "e_node-contact",
+            "default": true
+        },
+        {
+            "id": "e_365865664949",
+            "from": "s_node-zip-again",
+            "to": "c_node-contact",
+            "default": true
+        }
+    ],
+    "calculations": [],
+    "actions": [
+        {
+            "id": "a_ff4_admin",
+            "on": "submit",
+            "kind": "email",
+            "config": {
+                "to": {
+                    "de_DE": "vertrieb@example.org"
+                },
+                "cc": {
+                    "de_DE": ""
+                },
+                "bcc": {
+                    "de_DE": "archiv@example.org"
+                },
+                "from": {
+                    "de_DE": ""
+                },
+                "fromName": {
+                    "de_DE": ""
+                },
+                "replyTo": {
+                    "de_DE": "{{field:field-1712000000002}}"
+                },
+                "subject": {
+                    "de_DE": "Neue Anfrage: {{form:title}} von {{field:field-1712000000001}}"
+                },
+                "body": {
+                    "de_DE": "<p>{{answers}}</p><p>IP: </p><p>{{field:f-area}} m², </p>"
+                },
+                "nl2br": false,
+                "transport": {
+                    "type": "wp_mail"
+                },
+                "layout": "plain"
+            }
+        },
+        {
+            "id": "a_ff4_confirmation",
+            "on": "submit",
+            "kind": "autoresponder",
+            "config": {
+                "to": {
+                    "de_DE": "{{field:field-1712000000002}}"
+                },
+                "cc": {
+                    "de_DE": ""
+                },
+                "bcc": {
+                    "de_DE": ""
+                },
+                "from": {
+                    "de_DE": ""
+                },
+                "fromName": {
+                    "de_DE": ""
+                },
+                "replyTo": {
+                    "de_DE": ""
+                },
+                "subject": {
+                    "de_DE": "Danke für Ihre Anfrage"
+                },
+                "body": {
+                    "de_DE": "Hallo {{field:field-1712000000001}},\nwir melden uns."
+                },
+                "nl2br": true,
+                "transport": {
+                    "type": "wp_mail"
+                },
+                "layout": "plain",
+                "recipientField": "field-1712000000002"
+            }
+        },
+        {
+            "id": "a_ff4_webhook_1",
+            "on": "submit",
+            "kind": "webhook",
+            "config": {
+                "url": "https://hooks.example.org/catch/123",
+                "format": "ff4"
+            }
+        },
+        {
+            "id": "a_ff4_webhook_2",
+            "on": "submit",
+            "kind": "webhook",
+            "config": {
+                "url": "https://crm.example.org/hook",
+                "format": "ff4"
+            }
+        }
+    ],
+    "style": {
+        "preset": "default",
+        "tokens": {
+            "color.primary": "#16a34a",
+            "color.text": "#1f2937",
+            "color.heading": "#111827",
+            "color.button": "#16a34a",
+            "color.onButton": "#ffffff",
+            "color.background": "#f0fdf4",
+            "color.backgroundEnd": "#dcfce7",
+            "background.angle": "135",
+            "font.family": "Inter",
+            "font.heading": "Montserrat",
+            "font.weight.heading": "bold",
+            "font.size": "16",
+            "font.size.heading": "28",
+            "space.gap": "12",
+            "space.padding": "32",
+            "border.width": "1",
+            "radius.card": "12",
+            "radius.input": "12",
+            "radius.button": "12",
+            "border.style": "solid",
+            "shadow": "soft",
+            "animation": "fadeRight"
+        },
+        "theme": "green",
+        "css": ".ff-card{border:0}"
+    },
+    "settings": {
+        "uiLocale": "",
+        "progressBar": {
+            "show": true,
+            "percent": false
+        },
+        "loadingAnimation": false,
+        "scrollToTop": {
+            "desktop": false,
+            "mobile": true
+        },
+        "rtl": false,
+        "autoHeight": true,
+        "iconFont": false,
+        "savePartialEntries": false,
+        "heading": {
+            "de_DE": "Ihr Solar-Check"
+        },
+        "saveProgress": true,
+        "timeLimit": {
+            "minutes": 30
+        },
+        "access": {
+            "maxEntries": 500
+        },
+        "retentionDays": 180
+    },
+    "layout": {
+        "nodes": {
+            "s_node-roof": {
+                "x": 300,
+                "y": 0
+            },
+            "s_node-area": {
+                "x": 600,
+                "y": 0
+            },
+            "s_node-info": {
+                "x": 600,
+                "y": 300
+            },
+            "s_node-extras": {
+                "x": 900,
+                "y": 0
+            },
+            "s_node-zip": {
+                "x": 1200,
+                "y": 0
+            },
+            "s_node-date": {
+                "x": 1500,
+                "y": 0
+            },
+            "s_node-wait": {
+                "x": 1800,
+                "y": 0
+            },
+            "c_node-contact": {
+                "x": 2100,
+                "y": 0
+            },
+            "s_node-zip-again": {
+                "x": 900,
+                "y": 600
+            },
+            "r_action-redirect": {
+                "x": 1500,
+                "y": 400
+            },
+            "e_node-contact": {
+                "x": 2460,
+                "y": 0
+            }
+        }
+    },
+    "meta": {
+        "import": {
+            "source": "ff4",
+            "sourceId": "7d1c5a3e-0000-4000-8000-000000000001",
+            "version": 1,
+            "notes": [
+                "ff4_external_media",
+                "ff4_icon_not_found:DoesNotExistIcon",
+                "field_type_not_imported:payment:Anzahlung",
+                "template_field_not_imported:unknown_var",
+                "ff4_condition_now_works:Ihre Postleitzahl",
+                "ff4_condition_not_imported:Wann soll es losgehen?",
+                "ff4_action_on_path_passed:webhook",
+                "ff4_font:Inter",
+                "ff4_retention_days:180",
+                "ff4_custom_css_imported",
+                "ff4_tracking_code_imported",
+                "template_tag_not_imported:{{user_ip}}",
+                "template_field_not_imported:{{unbekannt}}",
+                "ff4_sms_not_imported",
+                "ff4_webhook_method_post:PUT",
+                "ff4_webhooks_imported"
+            ]
+        }
+    }
+}

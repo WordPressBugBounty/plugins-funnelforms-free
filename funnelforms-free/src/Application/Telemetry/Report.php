@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Funnelforms\Application\Telemetry;
 
+use Funnelforms\Application\Actions\ActionQueue;
 use Funnelforms\Application\FormRenderer;
 use Funnelforms\Application\FormStats;
 use Funnelforms\Application\FormTemplates;
@@ -1056,7 +1057,7 @@ final class Report {
 				$document          = null === $form || null === $form['current_revision_id'] ? null : $repo->document( (int) $form['current_revision_id'] );
 				$kinds[ $form_id ] = null === $document ? null : new Document( $document );
 			}
-			$action = null === $kinds[ $form_id ] ? null : $kinds[ $form_id ]->action( (string) $row['channel'] );
+			$action = null === $kinds[ $form_id ] ? null : $kinds[ $form_id ]->action( ActionQueue::action_id( (string) $row['channel'] ) );
 			$kind   = (string) ( $action['kind'] ?? '' );
 			if ( in_array( $kind, array( 'email', 'autoresponder' ), true ) ) {
 				$out['mail_failures'] += (int) $row['n'];

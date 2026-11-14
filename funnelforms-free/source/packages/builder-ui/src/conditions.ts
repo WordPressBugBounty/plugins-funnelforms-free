@@ -4,7 +4,7 @@
  * variants come from the tests and are only shown.
  */
 import type { Condition, Edge, Field, FormDocument, Option } from '@funnelforms/form-schema';
-import { connect, findNode, leaves } from './document';
+import { connect, findNode, leaves, newId } from './document';
 
 export { leaves };
 
@@ -15,14 +15,25 @@ export type VariantRule = Extract<Condition, { experiment: string }>;
 /** One rule of a condition: on an answer, a calculation or an A/B variant. */
 export type Leaf = Rule | CalcRule | VariantRule;
 
+/**
+ * "Between" as the builder edits it: a number from `min` to `max`. Stored as two rules that must
+ * both hold (at least `min`, at most `max`), so the form and the plugin need nothing new.
+ */
+export interface Between {
+	field: string;
+	op: 'between';
+	min: number;
+	max: number;
+}
+
 /** Rules that must all or any hold; a group may hold groups. */
 export interface Group {
 	mode: 'all' | 'any';
-	items: Array<Leaf | Group>;
+	items: Array<Leaf | Between | Group>;
 }
-type NumberOp = 'lt' | 'lte' | 'gt' | 'gte' | 'eq' | 'neq';
-/** An operator as the builder offers it: the number of chosen answers is an operator of its own there. */
-export type RuleOp = Rule[ 'op' ] | `count:${ NumberOp }`;
+export type NumberOp = 'lt' | 'lte' | 'gt' | 'gte' | 'eq' | 'neq';
+/** An operator as the builder offers it: the number of chosen answers and "between" are operators of their own there. */
+export type RuleOp = Rule[ 'op' ] | `count:${ NumberOp }` | 'between';
 
 export interface RuleSet {
 	mode: 'all' | 'any';
@@ -73,7 +84,7 @@ export function opsFor( kind: RuleKind, field?: Field ): RuleOp[] {
 		case 'option':
 			return field && 'choice' === field.type && ! field.props.multiple ? [ 'selected', ...PRESENCE ] : [ 'selected', 'selectedOnly', 'count:gte', 'count:lte', 'count:eq', ...PRESENCE ];
 		case 'number':
-			return [ 'gte', 'gt', 'lte', 'lt', 'eq', 'neq', ...PRESENCE ];
+			return [ 'gte', 'gt', 'lte', 'lt', 'between', 'eq', 'neq', ...PRESENCE ];
 		case 'text':
 		case 'address':
 			return [ ...TEXT_OPS, ...PRESENCE ];
@@ -85,7 +96,10 @@ export function opsFor( kind: RuleKind, field?: Field ): RuleOp[] {
 }
 
 /** The builder's operator of a rule. */
-export function ruleOp( rule: Rule ): RuleOp {
+export function ruleOp( rule: Rule | Between ): RuleOp {
+	if ( 'between' === rule.op ) {
+		return 'between';
+	}
 	return 'number' in rule && 'count' === rule.number ? `count:${ rule.op as NumberOp }` : rule.op;
 }
 
@@ -165,10 +179,20 @@ export function fromRuleSet( set: RuleSet ): Condition | null {
 	return 'all' === set.mode ? { all: set.rules } : { any: set.rules };
 }
 
-/** A rule of the same field with another operator, keeping what still fits; `field` gives the first option. */
-export function withOp( rule: Rule, op: RuleOp, field?: Field ): Rule {
-	const value = 'value' in rule ? rule.value : undefined;
+/** A rule of the same field with another operator, keeping what still fits; `field` gives the first option and the bounds of a number. */
+export function withOp( rule: Rule | Between, op: RuleOp, field?: Field ): Rule | Between {
+	let value: string | number | undefined;
+	if ( 'between' === rule.op ) {
+		value = rule.min;
+	} else if ( 'value' in rule ) {
+		value = rule.value;
+	}
 	const part = 'part' in rule ? rule.part : undefined;
+	if ( 'between' === op ) {
+		const min = 'number' === typeof value ? value : Number( value ) || 0;
+		const top = field && ( 'slider' === field.type || 'rating' === field.type || 'number' === field.type ) ? field.props.max : undefined;
+		return { field: rule.field, op, min, max: 'between' === rule.op ? rule.max : Math.max( min, top ?? min ) };
+	}
 	if ( 'selected' === op || 'selectedOnly' === op ) {
 		const first = field && 'options' in field ? field.options[ 0 ]?.id ?? '' : '';
 		return { field: rule.field, op, value: 'string' === typeof value && ( ! field || ! ( 'options' in field ) || field.options.some( ( o ) => o.id === value ) ) ? value : first };
@@ -224,8 +248,43 @@ export function connectFromCanvas( doc: FormDocument, from: string, to: string )
 
 /* ------------------------------------------------------------------ groups */
 
-export function isGroup( item: Leaf | Group ): item is Group {
+export function isGroup( item: Leaf | Between | Group ): item is Group {
 	return 'items' in item;
+}
+
+export function isBetween( item: Leaf | Between | Group | Condition ): item is Between {
+	return 'op' in item && 'between' === item.op;
+}
+
+/** "Between" at a place in a list of rules that must all hold: at least a number, then at most a number, of one field. */
+function betweenAt( list: Condition[], i: number ): Between | null {
+	const low = list[ i ];
+	const high = list[ i + 1 ];
+	if ( ! low || ! high || ! ( 'field' in low ) || ! ( 'field' in high ) || low.field !== high.field || 'gte' !== low.op || 'lte' !== high.op || low.number || high.number ) {
+		return null;
+	}
+	return { field: low.field, op: 'between', min: low.value, max: high.value };
+}
+
+/** The rules of a list that must all hold, with "between" where two of them say it. */
+export function withBetween( list: Condition[] ): Array<Condition | Between> {
+	const out: Array<Condition | Between> = [];
+	for ( let i = 0; i < list.length; i++ ) {
+		const between = betweenAt( list, i );
+		const item = list[ i ];
+		if ( between ) {
+			out.push( between );
+			i++;
+		} else if ( item ) {
+			out.push( item );
+		}
+	}
+	return out;
+}
+
+/** The two rules "between" is stored as. */
+export function betweenRules( between: Between ): Condition {
+	return { all: [ { field: between.field, op: 'gte', value: between.min }, { field: between.field, op: 'lte', value: between.max } ] };
 }
 
 /** A condition as a group of rules; without a condition an empty group of all. */
@@ -234,8 +293,20 @@ export function toGroup( condition: Condition | undefined ): Group {
 		return { mode: 'all', items: [] };
 	}
 	if ( 'all' in condition || 'any' in condition ) {
-		const list = 'all' in condition ? condition.all : condition.any;
-		return { mode: 'all' in condition ? 'all' : 'any', items: list.map( ( c ) => ( 'all' in c || 'any' in c ? toGroup( c ) : c ) ) };
+		const list: Array<Condition | Between> = 'all' in condition ? withBetween( condition.all ) : condition.any;
+		const items = list.map( ( c ): Leaf | Between | Group => {
+			if ( isBetween( c ) ) {
+				return c;
+			}
+			if ( 'all' in c || 'any' in c ) {
+				const inner = toGroup( c );
+				const [ only ] = inner.items;
+				// "Between" alone in a group is one rule.
+				return 1 === inner.items.length && only && isBetween( only ) ? only : inner;
+			}
+			return c;
+		} );
+		return { mode: 'all' in condition ? 'all' : 'any', items };
 	}
 	return { mode: 'all', items: [ condition ] };
 }
@@ -248,7 +319,12 @@ export function toGroup( condition: Condition | undefined ): Group {
 export function fromGroup( group: Group, nested = false ): Condition | null {
 	const items: Condition[] = [];
 	for ( const item of group.items ) {
-		const condition = isGroup( item ) ? fromGroup( item, true ) : item;
+		let condition: Condition | null;
+		if ( isGroup( item ) ) {
+			condition = fromGroup( item, true );
+		} else {
+			condition = isBetween( item ) ? betweenRules( item ) : item;
+		}
 		if ( ! condition ) {
 			continue;
 		}
@@ -365,43 +441,153 @@ function answerRule( field: string, option: string ): Rule {
 	return { field, op: 'selected', value: option };
 }
 
-/** The path of each answer of a choice or dropdown field: a path from the node asking for just that answer. */
+/**
+ * The answers of a field a condition asks for: one chosen answer, or one of several (`any`), as
+ * paths per answer are stored (the 3.x import groups answers that lead to the same step). Null
+ * for every other condition.
+ */
+export function answerOptions( when: Condition | undefined, fieldId: string ): string[] | null {
+	if ( ! when ) {
+		return null;
+	}
+	const list = 'any' in when ? when.any : [ when ];
+	const out: string[] = [];
+	for ( const c of list ) {
+		if ( ! ( 'field' in c ) || c.field !== fieldId || 'selected' !== c.op ) {
+			return null;
+		}
+		out.push( String( c.value ) );
+	}
+	return out.length ? out : null;
+}
+
+/**
+ * The path of each answer of a choice or dropdown field: the first path of the node that asks
+ * for just this answer or for one of several answers including it.
+ */
 export function answerRoutes( doc: FormDocument, nodeId: string, fieldId: string ): AnswerRoute[] {
 	const node = findNode( doc, nodeId );
 	const field = node && 'step' === node.type ? node.fields.find( ( f ) => f.id === fieldId ) : undefined;
 	if ( ! field || ! ( 'options' in field ) ) {
 		return [];
 	}
+	const claimed = new Map<string, Edge>();
+	for ( const edge of doc.edges ) {
+		if ( edge.from !== nodeId || edge.default ) {
+			continue;
+		}
+		for ( const option of answerOptions( edge.when, fieldId ) ?? [] ) {
+			if ( ! claimed.has( option ) ) {
+				claimed.set( option, edge );
+			}
+		}
+	}
 	return field.options.map( ( option ) => {
-		const edge = doc.edges.find( ( e ) => e.from === nodeId && ! e.default && e.when && 'field' in e.when && e.when.field === fieldId && 'selected' === e.when.op && e.when.value === option.id );
+		const edge = claimed.get( option.id );
 		return edge ? { option, edge } : { option };
 	} );
 }
 
 /**
+ * Puts the new path of an answer where the answers stand in their field: before the path of the
+ * next answer that has one, else after the path of the answer before it. So with several answers
+ * chosen, the answer higher up in the list decides, as the builder says.
+ */
+export function placeAnswerPath( doc: FormDocument, nodeId: string, fieldId: string, optionId: string, edgeId: string ): void {
+	const routes = answerRoutes( doc, nodeId, fieldId );
+	const at = routes.findIndex( ( r ) => r.option.id === optionId );
+	const after = routes.slice( at + 1 ).find( ( r ) => r.edge && r.edge.id !== edgeId )?.edge;
+	const before = routes
+		.slice( 0, at )
+		.reverse()
+		.find( ( r ) => r.edge && r.edge.id !== edgeId )?.edge;
+	const from = doc.edges.findIndex( ( e ) => e.id === edgeId );
+	const [ edge ] = from >= 0 && ( after || before ) ? doc.edges.splice( from, 1 ) : [];
+	if ( ! edge ) {
+		return;
+	}
+	const to = after ? doc.edges.findIndex( ( e ) => e.id === after.id ) : doc.edges.findIndex( ( e ) => e.id === before?.id ) + 1;
+	doc.edges.splice( to, 0, edge );
+}
+
+/**
+ * A first rule for a new path of a node, and never the same as a path the node has. What the
+ * answers of the step cannot say comes first: a rule on another kind of field of the node, two
+ * answers of a choice of several chosen together, then the first answer of a field answered
+ * before (the nearest first). Last an answer of the node's own choice without a path, which is
+ * the path of that answer.
+ */
+export function freshRule( doc: FormDocument, nodeId: string, fields: ConditionField[] ): Condition | null {
+	const taken = new Set( doc.edges.filter( ( e ) => e.from === nodeId && e.when ).map( ( e ) => JSON.stringify( e.when ) ) );
+	const routed = new Set<string>();
+	for ( const edge of doc.edges ) {
+		for ( const f of edge.from === nodeId ? fields : [] ) {
+			( answerOptions( edge.when, f.field.id ) ?? [] ).forEach( ( option ) => routed.add( f.field.id + ' ' + option ) );
+		}
+	}
+	const own = fields.filter( ( f ) => f.nodeId === nodeId );
+	const earlier = fields.filter( ( f ) => f.nodeId !== nodeId ).reverse();
+	const options = ( f: ConditionField ): Option[] => ( 'option' === f.kind && 'options' in f.field ? f.field.options : [] );
+	const answers = ( f: ConditionField ): Condition[] => options( f ).filter( ( o ) => ! routed.has( f.field.id + ' ' + o.id ) ).map( ( o ) => answerRule( f.field.id, o.id ) );
+	const starter = ( f: ConditionField ): Condition[] => {
+		const rule = options( f ).length ? null : starterRule( f.field );
+		return rule ? [ rule ] : [];
+	};
+	const together = ( f: ConditionField ): Condition[] => {
+		const [ a, b ] = options( f );
+		return a && b && ( f.field.props as { multiple?: boolean } ).multiple ? [ { all: [ answerRule( f.field.id, a.id ), answerRule( f.field.id, b.id ) ] } ] : [];
+	};
+	const candidates: Condition[] = [ ...own.flatMap( starter ), ...own.flatMap( together ), ...earlier.flatMap( ( f ) => [ ...starter( f ), ...answers( f ) ] ), ...own.flatMap( answers ) ];
+	const [ first ] = [ ...own, ...earlier ];
+	return candidates.find( ( rule ) => ! taken.has( JSON.stringify( rule ) ) ) ?? ( first ? starterRule( first.field ) : null );
+}
+
+/**
  * Sends visitors with this answer to a node; null (or the target of the default path) lets the
- * answer follow the other paths again.
+ * answer follow the other paths again. `own` keeps a path of its own even to the target of the
+ * default path (drawn on the canvas). A path shared with other answers is split: the answer gets
+ * its own path at the same place in the order, the others keep theirs.
  */
 export function setAnswerRoute( doc: FormDocument, nodeId: string, fieldId: string, optionId: string, to: string | null ): void {
+	routeAnswer( doc, nodeId, fieldId, optionId, to );
+}
+
+/** As setAnswerRoute; returns the id of the answer's path, null when it follows the others. */
+export function routeAnswer( doc: FormDocument, nodeId: string, fieldId: string, optionId: string, to: string | null, own = false ): string | null {
 	const route = answerRoutes( doc, nodeId, fieldId ).find( ( r ) => r.option.id === optionId );
 	if ( ! route ) {
-		return;
+		return null;
 	}
 	const fallback = doc.edges.find( ( e ) => e.from === nodeId && e.default )?.to;
-	if ( null === to || to === fallback ) {
-		if ( route.edge ) {
-			const id = route.edge.id;
-			doc.edges = doc.edges.filter( ( e ) => e.id !== id );
+	const follow = null === to || ( to === fallback && ! own );
+	const routeId = route.edge?.id;
+	const edge = routeId ? doc.edges.find( ( e ) => e.id === routeId ) : undefined;
+	if ( ! edge ) {
+		const id = follow || null === to ? null : connect( doc, nodeId, to, answerRule( fieldId, optionId ) );
+		if ( id ) {
+			placeAnswerPath( doc, nodeId, fieldId, optionId, id );
 		}
-		return;
+		return id;
 	}
-	if ( route.edge ) {
-		const id = route.edge.id;
-		const edge = doc.edges.find( ( e ) => e.id === id );
-		if ( edge ) {
-			edge.to = to;
+	const shared = ( answerOptions( edge.when, fieldId ) ?? [] ).some( ( o ) => o !== optionId );
+	if ( ! follow && edge.to === to ) {
+		return edge.id;
+	}
+	if ( ! shared ) {
+		if ( follow || null === to ) {
+			doc.edges = doc.edges.filter( ( e ) => e.id !== edge.id );
+			return null;
 		}
-		return;
+		edge.to = to;
+		return edge.id;
 	}
-	connect( doc, nodeId, to, answerRule( fieldId, optionId ) );
+	// Take the answer out of the shared path.
+	const rest = ( 'any' in ( edge.when ?? {} ) ? ( edge.when as { any: Condition[] } ).any : [] ).filter( ( c ) => ! ( 'field' in c && c.field === fieldId && 'selected' === c.op && c.value === optionId ) );
+	edge.when = 1 === rest.length && rest[ 0 ] ? rest[ 0 ] : { any: rest };
+	if ( follow || null === to || ! findNode( doc, to ) || to === nodeId ) {
+		return null;
+	}
+	const split: Edge = { id: newId( doc, 'e' ), from: nodeId, to, when: answerRule( fieldId, optionId ) };
+	doc.edges.splice( doc.edges.indexOf( edge ), 0, split );
+	return split.id;
 }

@@ -140,6 +140,13 @@ export function setupPopup( root: HTMLElement, start: ( form: HTMLElement ) => v
 			dialog.setAttribute( 'open', '' );
 		}
 		start( form );
+		// A name for the dialog, so screen readers say what opened: the first heading, else the widget's text.
+		const heading = form.querySelector( '.ffx-question, .ffx-heading, .ffx-contact-title' )?.cloneNode( true ) as HTMLElement | undefined;
+		heading?.querySelectorAll( '.ffx-required, .ffx-sr-only' ).forEach( ( el ) => el.remove() );
+		const name = heading?.textContent?.trim() || data.ffxWidgetText || '';
+		if ( name ) {
+			dialog.setAttribute( 'aria-label', name );
+		}
 	};
 
 	if ( automatic && pausedUntil( uid ) > Date.now() ) {

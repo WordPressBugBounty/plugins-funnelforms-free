@@ -5,6 +5,7 @@
 export { holds, isoDate, itemCount, next, shownAnswers, usesCalculations, type Answers, type CalcValues, type ConditionContext } from './conditions';
 export { assignVariants, settledVariant, startNode, type Variants } from './experiments';
 export { toFloat, toInt, toText } from './numbers';
+export { localeTag } from './locale';
 export { pickText } from './text';
 export { progressMap } from './graph';
 export { PREFILL_CONTACT_TYPES, PREFILL_PARAM, PREFILL_STEP_TYPES } from './prefill';

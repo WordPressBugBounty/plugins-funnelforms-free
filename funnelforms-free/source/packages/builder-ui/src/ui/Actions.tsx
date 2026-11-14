@@ -4,7 +4,7 @@
  * needs the right to see entries; whoever lacks it can prepare them, and someone with the right
  * publishes.
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { Action, Condition, FormDocument, Text } from '@funnelforms/form-schema';
 import { ACTION_FOR_TYPE, ACTION_KINDS, actionGaps, addAction, addActionFor, addCrmAction, CONNECTION_TYPES, duplicateAction, emailFields, integrationsUrl, removeAction, retiredConnection, setRecipient, type ActionKind, type ActionTexts } from '../actions';
 import type { Connection, ConnectionTest } from '../api';
@@ -20,6 +20,7 @@ import { describeCondition, fieldTitle } from './describe';
 import { __, sprintf } from './i18n';
 import { AiCallEditor } from './AiCall';
 import { CrmAction } from './CrmAction';
+import { CodeNotices } from './CustomCode';
 import { useCrmCatalog } from './CrmConnections';
 import { ConditionEditor } from './Logic';
 import { MailEditor } from './MailEditor';
@@ -42,6 +43,7 @@ export function kindName( kind: string ): string {
 		conversion: __( 'Conversion (Meta, GA4, TikTok)', 'funnelforms-pro' ),
 		googleAds: __( 'Google Ads conversion', 'funnelforms-pro' ),
 		crm: __( 'CRM, newsletter or spreadsheet', 'funnelforms-pro' ),
+		customCode: __( 'Custom code', 'funnelforms-pro' ),
 	};
 	return names[ kind ] ?? kind;
 }
@@ -169,6 +171,7 @@ function gapText( gap: ReturnType<typeof actionGaps>[ number ] ): string {
 		sendTo: __( 'Enter the conversion ID and label, e.g. AW-123456789/AbC-D_efG.', 'funnelforms-pro' ),
 		agent: __( 'Choose the agent that calls.', 'funnelforms-pro' ),
 		consent: __( 'Choose the consent field: the lead is called only when it is checked.', 'funnelforms-pro' ),
+		code: __( 'Enter the code that runs after sending.', 'funnelforms-pro' ),
 	};
 	return texts[ gap ];
 }
@@ -194,6 +197,11 @@ function target( action: Action, locale: string, connections: Connection[] ): st
 			return [ CRM_NAMES[ action.config.provider ] ?? action.config.provider, label( action.config.connectionRef ) ].filter( Boolean ).join( ' · ' );
 		case 'googleAds':
 			return action.config.sendTo;
+		case 'customCode': {
+			// The first line of the code, so several pieces can be told apart.
+			const line = action.config.code.trim().split( '\n' )[ 0 ] ?? '';
+			return line.length > 48 ? line.slice( 0, 47 ) + '…' : line;
+		}
 		default:
 			return '';
 	}
@@ -891,7 +899,7 @@ function ActionEditor( { doc, action, connections, onConnections }: { doc: FormD
 
 	const common = (
 		<>
-			{ ( doc.settings.payment || 'paid' === action.on ) && 'googleAds' !== action.kind ? (
+			{ ( doc.settings.payment || 'paid' === action.on ) && 'googleAds' !== action.kind && 'customCode' !== action.kind ? (
 				<Select
 					label={ __( 'When', 'funnelforms-pro' ) }
 					value={ action.on }
@@ -1220,6 +1228,8 @@ function ActionEditor( { doc, action, connections, onConnections }: { doc: FormD
 					{ common }
 				</>
 			);
+		case 'customCode':
+			return 'free' === process.env.FUNNELFORMS_EDITION ? <ProAction kind={ action.kind } /> : <CustomCodeEditor doc={ doc } action={ action } common={ common } />;
 		default:
 			return (
 				<>
@@ -1228,4 +1238,51 @@ function ActionEditor( { doc, action, connections, onConnections }: { doc: FormD
 				</>
 			);
 	}
+}
+
+/**
+ * Custom code after sending: HTML or JavaScript the visitor's browser runs once the entry is
+ * stored, with placeholders the plugin fills in as plain text. Changing it needs the right to use
+ * unfiltered HTML, like the custom code of a contact step.
+ */
+function CustomCodeEditor( { doc, action, common }: { doc: FormDocument; action: Extract<Action, { kind: 'customCode' }>; common: React.ReactNode } ) {
+	const { rights, readOnly } = useEnv();
+	const set = useConfigValue( action );
+	// Where the cursor was last in the code: a placeholder goes there, else at the end.
+	const cursor = useRef<number | null>( null );
+	const locked = readOnly || ! rights.code;
+	const insert = ( token: string ): void => {
+		const value = action.config.code;
+		const at = Math.min( cursor.current ?? value.length, value.length );
+		set( 'code', value.slice( 0, at ) + token + value.slice( at ) );
+		cursor.current = at + token.length;
+	};
+	return (
+		<>
+			<CodeNotices />
+			<FieldRow label={ __( 'Code', 'funnelforms-pro' ) } hint={ __( 'Runs as the thank-you page appears, or before the redirect. The place for a conversion.', 'funnelforms-pro' ) }>
+				{ ( id ) => (
+					<textarea
+						id={ id }
+						className="ffxb-input ffxb-input--code"
+						rows={ 8 }
+						spellCheck={ false }
+						placeholder={ "<script>\n  fbq('track', 'Lead');\n</script>" }
+						value={ action.config.code }
+						disabled={ locked }
+						onChange={ ( e ) => {
+							cursor.current = e.target.selectionStart;
+							set( 'code', e.target.value );
+						} }
+						onBlur={ ( e ) => {
+							cursor.current = e.currentTarget.selectionStart;
+						} }
+					/>
+				) }
+			</FieldRow>
+			{ locked ? null : <Placeholders doc={ doc } onInsert={ insert } /> }
+			<p className="ffxb-hint">{ __( 'Placeholders become plain text without quotes: in JavaScript put them in quotes, for example \'{{field:email}}\'. Results of calculations become plain numbers such as 1234.5.', 'funnelforms-pro' ) }</p>
+			{ common }
+		</>
+	);
 }

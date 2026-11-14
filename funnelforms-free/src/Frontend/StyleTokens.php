@@ -178,6 +178,11 @@ final class StyleTokens {
 		if ( in_array( $align, array( 'center', 'end', 'full' ), true ) ) {
 			$out .= '--ffx-next-margin:0;' . ( 'full' === $align ? '--ffx-button-flex:1 1 0;' : '' );
 		}
+		// Descriptions under a question are narrower than it; they move to its side with it.
+		$text = $tokens['align.text'] ?? '';
+		if ( 'left' === $text || 'right' === $text ) {
+			$out .= '--ffx-description-inline:' . ( 'left' === $text ? '0 auto' : 'auto 0' ) . ';';
+		}
 		if ( 'custom' === ( $tokens['shadow'] ?? '' ) ) {
 			$out .= '--ffx-shadow:' . self::shadow( $tokens ) . ';';
 		}

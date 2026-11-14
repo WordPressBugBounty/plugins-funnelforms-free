@@ -173,7 +173,7 @@ final class FormTemplates {
 	}
 
 	/**
-	 * The template category of the site's industry, for the gallery to start with: the industry
+	 * The template category of the site's industry, whose templates the gallery shows first: the industry
 	 * named in the diagnostic data settings, otherwise the industry of the template the setup
 	 * assistant started with; empty when neither says.
 	 */

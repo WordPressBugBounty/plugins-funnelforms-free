@@ -223,6 +223,11 @@ export function styleCss( tokens: StyleTokens ): string {
 	if ( [ 'center', 'end', 'full' ].includes( align ) ) {
 		out += '--ffx-next-margin:0;' + ( 'full' === align ? '--ffx-button-flex:1 1 0;' : '' );
 	}
+	// Descriptions under a question are narrower than it; they move to its side with it.
+	const text = tokens[ 'align.text' ] ?? '';
+	if ( 'left' === text || 'right' === text ) {
+		out += '--ffx-description-inline:' + ( 'left' === text ? '0 auto' : 'auto 0' ) + ';';
+	}
 	if ( 'custom' === tokens.shadow ) {
 		const shadowColor = value( 'shadow.color', 'color', ( tokens[ 'shadow.color' ] ?? '' ).trim() );
 		out +=

@@ -188,7 +188,7 @@ describe( 'template gallery', () => {
 		expect( facet( 'Energy and heating' ).getAttribute( 'aria-pressed' ) ).toBe( 'false' );
 	} );
 
-	it( 'puts recommended templates first and starts with the industry of the site', async () => {
+	it( 'starts with all templates, those of the site\'s industry and recommended ones first', async () => {
 		const ranked = ( locale?: string ): TemplateCatalog => {
 			const c = catalog( locale, { industry: 'energy' } );
 			c.templates[ 2 ] = { ...c.templates[ 2 ], rank: 1 } as FormTemplate;
@@ -197,35 +197,32 @@ describe( 'template gallery', () => {
 		};
 		const api = fakeApi( { templates: vi.fn( async ( locale?: string ) => ranked( locale ) ) } );
 		await open( api );
-		expect( facet( 'Energy and heating' ).getAttribute( 'aria-pressed' ) ).toBe( 'true' );
-		expect( titles() ).toEqual( [ 'Photovoltaik-Rechner' ] );
-		await act( async () => facet( 'Energy and heating' ).click() );
-		expect( titles() ).toEqual( [ 'Produktberater', 'Photovoltaik-Rechner', 'Dachdecker' ] );
+		expect( facet( 'All templates' ).getAttribute( 'aria-pressed' ) ).toBe( 'true' );
+		expect( facet( 'Energy and heating' ).getAttribute( 'aria-pressed' ) ).toBe( 'false' );
+		expect( titles() ).toEqual( [ 'Photovoltaik-Rechner', 'Produktberater', 'Dachdecker' ] );
 
 		// Loading another language keeps the filter the person chose.
+		await act( async () => facet( 'Energy and heating' ).click() );
+		expect( titles() ).toEqual( [ 'Photovoltaik-Rechner' ] );
 		const select = container.querySelector( '.ffxb-gallery__language select' ) as HTMLSelectElement;
 		await act( async () => {
 			Object.getOwnPropertyDescriptor( HTMLSelectElement.prototype, 'value' )?.set?.call( select, 'fr_FR' );
 			select.dispatchEvent( new Event( 'change', { bubbles: true } ) );
 		} );
 		await settle();
-		expect( titles() ).toHaveLength( 3 );
+		expect( titles() ).toEqual( [ 'Photovoltaik-Rechner' ] );
+		expect( facet( 'Energy and heating' ).getAttribute( 'aria-pressed' ) ).toBe( 'true' );
 	} );
 
-	it( 'searches every industry while the industry of the site is preselected', async () => {
+	it( 'searches every industry unless the owner chose one', async () => {
 		await open( fakeApi( { templates: vi.fn( async () => catalog( 'de_DE', { industry: 'energy' } ) ) } ) );
-		expect( titles() ).toEqual( [ 'Photovoltaik-Rechner' ] );
 		const search = container.querySelector( '.ffxb-gallery__search input' ) as HTMLInputElement;
 		await type( search, 'dachrinne' );
 		expect( titles() ).toEqual( [ 'Dachdecker' ] );
 		expect( facet( 'All templates' ).getAttribute( 'aria-pressed' ) ).toBe( 'true' );
-		expect( facet( 'Energy and heating' ).getAttribute( 'aria-pressed' ) ).toBe( 'false' );
-		// Without a search the site's industry is back.
-		await type( search, '' );
-		expect( titles() ).toEqual( [ 'Photovoltaik-Rechner' ] );
-		expect( facet( 'Energy and heating' ).getAttribute( 'aria-pressed' ) ).toBe( 'true' );
 
 		// An industry the owner clicks stays while searching.
+		await type( search, '' );
 		await act( async () => facet( 'Online shops' ).click() );
 		await type( search, 'dachrinne' );
 		expect( titles() ).toEqual( [] );

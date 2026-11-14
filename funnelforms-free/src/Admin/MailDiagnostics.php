@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Funnelforms\Admin;
 
+use Funnelforms\Application\Actions\ActionQueue;
 use Funnelforms\Application\Actions\MailError;
 use Funnelforms\Application\Actions\MailServer;
 use Funnelforms\Application\Capabilities;
@@ -152,7 +153,7 @@ final class MailDiagnostics {
 			$entry    = $entries->find( (int) $row['entry_id'] );
 			$revision = (int) ( $entry['meta']['v5']['revisionId'] ?? 0 );
 			$document = $revision > 0 ? $forms->document( $revision ) : null;
-			$action   = null === $document ? null : ( new Document( $document ) )->action( (string) $row['channel'] );
+			$action   = null === $document ? null : ( new Document( $document ) )->action( ActionQueue::action_id( (string) $row['channel'] ) );
 			$action   = null !== $optin && $optin::JOB === $row['channel'] ? array( 'kind' => 'optin' ) : $action;
 			$out[]    = array(
 				'id'       => (int) $row['id'],

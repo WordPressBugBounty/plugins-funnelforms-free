@@ -1,7 +1,7 @@
 import type { Api } from './api';
 import { allowed } from './consent';
 
-export type StatsEvent = 'view' | 'start' | 'step' | 'variant' | 'answer' | 'source' | 'invalid' | 'field' | 'device' | 'visitor';
+export type StatsEvent = 'view' | 'start' | 'step' | 'variant' | 'answer' | 'source' | 'invalid' | 'field' | 'device' | 'visitor' | 'time' | 'back' | 'exit';
 
 type Event = { event: StatsEvent; step: string; variant?: string };
 
@@ -9,6 +9,9 @@ type Event = { event: StatsEvent; step: string; variant?: string };
 const BATCH = 30;
 
 const FLUSH_MS = 1500;
+
+/** Longest time on a step that is reported, in seconds; longer counts as this. */
+export const MAX_SECONDS = 1800;
 
 /**
  * Key in localStorage of the visitor id of the extended statistics, "<id>.<expiry in ms>". The id
@@ -58,7 +61,9 @@ function extendedEvents( sid: string ): Event[] | null {
 /**
  * Form statistics: the form was seen, the visitor began, which steps were shown (with the node
  * before), the answers of choice and dropdown fields, and fields whose check stopped the visitor,
- * each once per page view. Events are sent in small batches, and right away when the page is
+ * each once per page view; after the visitor started also the seconds on each question (time),
+ * the steps the visitor went back from (back) and the step on screen when the page was hidden or
+ * closed before sending (exit). Events are sent in small batches, and right away when the page is
  * hidden or closed. The plugin adds the sent form itself (FormStats in the plugin).
  *
  * Extended level (Pro): when statistics are allowed at the time of the view (allowed()), the view
@@ -74,6 +79,11 @@ export class Stats {
 	private timer?: ReturnType<typeof setTimeout>;
 	/** Whether the extended level applies to this page view; decided with the view. */
 	private extended = false;
+	/** The question or contact step on screen and since when (ms), for the time on each step. */
+	private onStep = '';
+	private since = 0;
+	/** The visitor started (first click, key or focus), and has not sent the form yet. */
+	private started = false;
 
 	/**
 	 * @param enabled False for previews in the block editor and Elementor (inert), which count nothing.
@@ -97,12 +107,15 @@ export class Stats {
 		if ( referrer || search ) {
 			this.withView.push( { event: 'source', step: referrer, variant: search } );
 		}
-		document.addEventListener( 'visibilitychange', () => {
-			if ( document.visibilityState === 'hidden' ) {
-				this.flush( true );
-			}
-		} );
-		window.addEventListener( 'pagehide', () => this.flush( true ) );
+		// The page is hidden or closed on a step after the visitor started: the step and the seconds
+		// on it (exit, once per step). The plugin counts the last one of a page view that did not send
+		// the form, so a visitor who only switched tabs and went on is not counted there.
+		const leave = (): void => {
+			this.lap( 'exit' );
+			this.flush( true );
+		};
+		document.addEventListener( 'visibilitychange', () => document.visibilityState === 'hidden' && leave() );
+		window.addEventListener( 'pagehide', leave );
 	}
 
 	/** Counts the view once the form is on screen (at once where the browser cannot tell). */
@@ -138,8 +151,46 @@ export class Stats {
 
 	/** An event once per page view; a step with the node before it as variant ('' for the first). */
 	record( event: StatsEvent, step = '', variant?: string ): void {
+		if ( event === 'start' ) {
+			this.started = true;
+		}
 		if ( this.once( event, step + '|' + variant ) ) {
 			this.push( ...( event === 'view' ? this.withView : [] ), { event, step, variant } );
+		}
+	}
+
+	/**
+	 * A node is shown: the seconds the question or contact step before it was on screen are
+	 * reported (time, once per step and page view, its first visit), once the visitor has started.
+	 * Ends and the form being sent stop the clock (sent()).
+	 *
+	 * @param node     Node shown.
+	 * @param question A step or contact step (false for an end).
+	 */
+	enter( node: string, question: boolean ): void {
+		this.lap( 'time' );
+		this.onStep = question ? node : '';
+		this.since = Date.now();
+	}
+
+	/** The visitor went back from the step on screen. */
+	back(): void {
+		if ( this.onStep ) {
+			this.record( 'back', this.onStep );
+		}
+	}
+
+	/** The form was sent: no time and no leaving are reported any more. */
+	sent(): void {
+		this.lap( 'time' );
+		this.onStep = '';
+		this.started = false;
+	}
+
+	/** Reports the seconds on the step on screen as `event`, once per step. */
+	private lap( event: 'time' | 'exit' ): void {
+		if ( this.started && this.onStep && this.once( event, this.onStep ) ) {
+			this.push( { event, step: this.onStep, variant: String( Math.min( MAX_SECONDS, Math.max( 0, Math.round( ( Date.now() - this.since ) / 1000 ) ) ) ) } );
 		}
 	}
 

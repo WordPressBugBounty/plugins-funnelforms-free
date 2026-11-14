@@ -6,6 +6,7 @@
  */
 import React, { useMemo, useState } from 'react';
 import type { FormDocument } from '@funnelforms/form-schema';
+import { localeTag } from '@funnelforms/form-core';
 import { funnelScore, isBetter, worthApplying, type Prediction, type PredictionSuggestion, type StoredPrediction } from '../predict';
 import { __, sprintf } from './i18n';
 import { number, type PredictionMode } from './Prediction';
@@ -29,7 +30,7 @@ export function when( iso: string, locale?: string ): string {
 		return '';
 	}
 	try {
-		return new Intl.DateTimeFormat( locale?.replace( /_formal$/, '' ).replace( /_/g, '-' ), { dateStyle: 'medium', timeStyle: 'short' } ).format( new Date( time ) );
+		return new Intl.DateTimeFormat( localeTag( locale ), { dateStyle: 'medium', timeStyle: 'short' } ).format( new Date( time ) );
 	} catch {
 		return iso.slice( 0, 16 ).replace( 'T', ' ' );
 	}

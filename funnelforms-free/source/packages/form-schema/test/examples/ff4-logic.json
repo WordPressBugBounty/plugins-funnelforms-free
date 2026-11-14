@@ -1,0 +1,683 @@
+{
+    "schemaVersion": 1,
+    "id": "frm_import",
+    "title": "Logik-Beispiel",
+    "locales": {
+        "default": "de_DE",
+        "available": [
+            "de_DE"
+        ]
+    },
+    "start": "s_n-who",
+    "nodes": [
+        {
+            "id": "s_n-who",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "f-who",
+                    "key": "f-who",
+                    "label": {
+                        "de_DE": "Für wen ist die Anfrage?"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "required": true,
+                    "type": "choice",
+                    "options": [
+                        {
+                            "id": "f-who_o0",
+                            "label": {
+                                "de_DE": "Für mich"
+                            },
+                            "value": "Für mich"
+                        },
+                        {
+                            "id": "f-who_o1",
+                            "label": {
+                                "de_DE": "Für meine Firma"
+                            },
+                            "value": "Für meine Firma"
+                        },
+                        {
+                            "id": "f-who_o2",
+                            "label": {
+                                "de_DE": "Für einen Kunden"
+                            },
+                            "value": "Für einen Kunden"
+                        },
+                        {
+                            "id": "f-who_o3",
+                            "label": {
+                                "de_DE": "Ich sehe mich nur um"
+                            },
+                            "value": "Ich sehe mich nur um"
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": true,
+                        "columns": {
+                            "desktop": 4
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": "s_n-size",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "f-size",
+                    "key": "f-size",
+                    "label": {
+                        "de_DE": "Wie groß ist die Fläche?"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "required": true,
+                    "type": "slider",
+                    "props": {
+                        "min": 10,
+                        "max": 200,
+                        "step": 5,
+                        "start": 50,
+                        "unit": {
+                            "text": {
+                                "de_DE": "m²"
+                            },
+                            "position": "after"
+                        },
+                        "thousandsSeparator": false,
+                        "manualInput": {
+                            "enabled": false,
+                            "label": {
+                                "de_DE": ""
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": "s_n-note",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "f-note",
+                    "key": "f-note",
+                    "label": {
+                        "de_DE": "Gibt es schon ein Angebot?"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "required": false,
+                    "type": "text",
+                    "props": {
+                        "placeholder": {
+                            "de_DE": "ja oder nein"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": "s_n-where",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "f-where",
+                    "key": "f-where",
+                    "label": {
+                        "de_DE": "Wo steht das Haus?"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "required": true,
+                    "type": "address",
+                    "props": {
+                        "zoom": 11,
+                        "start": {
+                            "name": "München",
+                            "lat": 48.137,
+                            "lng": 11.575
+                        },
+                        "combined": false,
+                        "showCountry": true,
+                        "placesAutocomplete": false
+                    }
+                }
+            ]
+        },
+        {
+            "id": "s_n-extras",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "f-extras",
+                    "key": "f-extras",
+                    "label": {
+                        "de_DE": "Was soll dazu?"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "required": false,
+                    "type": "choice",
+                    "options": [
+                        {
+                            "id": "f-extras_o0",
+                            "label": {
+                                "de_DE": "Speicher"
+                            },
+                            "value": "Speicher"
+                        },
+                        {
+                            "id": "f-extras_o1",
+                            "label": {
+                                "de_DE": "Wallbox"
+                            },
+                            "value": "Wallbox"
+                        },
+                        {
+                            "id": "f-extras_o2",
+                            "label": {
+                                "de_DE": "Wärmepumpe"
+                            },
+                            "value": "Wärmepumpe"
+                        }
+                    ],
+                    "props": {
+                        "multiple": true,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "grid"
+                        },
+                        "hideIcons": true,
+                        "maxChoices": 3
+                    }
+                }
+            ]
+        },
+        {
+            "id": "s_n-rating",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "f-rating",
+                    "key": "f-rating",
+                    "label": {
+                        "de_DE": "Wie eilig ist es?"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "required": true,
+                    "type": "rating",
+                    "props": {
+                        "min": 1,
+                        "max": 5,
+                        "style": "numbers",
+                        "lowLabel": {
+                            "de_DE": ""
+                        },
+                        "highLabel": {
+                            "de_DE": ""
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "id": "s_n-when",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "f-when",
+                    "key": "f-when",
+                    "label": {
+                        "de_DE": "Wann soll es losgehen?"
+                    },
+                    "description": {
+                        "de_DE": ""
+                    },
+                    "required": true,
+                    "type": "date",
+                    "props": {
+                        "placeholder": {
+                            "de_DE": ""
+                        },
+                        "format": "dd.mm.yy"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "c_n-contact",
+            "type": "contact",
+            "title": {
+                "de_DE": "Your contact details"
+            },
+            "description": {
+                "de_DE": ""
+            },
+            "submitLabel": {
+                "de_DE": "Anfrage senden"
+            },
+            "fields": [
+                {
+                    "id": "salutation",
+                    "type": "salutation",
+                    "key": "salutation",
+                    "label": {
+                        "de_DE": "Salutation"
+                    },
+                    "required": true,
+                    "props": {
+                        "allow": {
+                            "male": true,
+                            "female": true,
+                            "diverse": true,
+                            "company": false
+                        }
+                    }
+                },
+                {
+                    "id": "name",
+                    "type": "name",
+                    "key": "name",
+                    "label": {
+                        "de_DE": "Name"
+                    },
+                    "required": true,
+                    "props": {
+                        "placeholder": {
+                            "de_DE": ""
+                        }
+                    }
+                },
+                {
+                    "id": "email",
+                    "type": "email",
+                    "key": "email",
+                    "label": {
+                        "de_DE": "E-mail address"
+                    },
+                    "required": true,
+                    "props": {
+                        "placeholder": {
+                            "de_DE": ""
+                        },
+                        "b2bOnly": false
+                    }
+                }
+            ],
+            "showBottomBar": true
+        },
+        {
+            "id": "r_a-late",
+            "type": "end",
+            "success": null,
+            "redirect": {
+                "url": {
+                    "de_DE": "https://www.example.org/spaeter"
+                },
+                "newTab": false,
+                "delayMs": 0,
+                "params": []
+            }
+        },
+        {
+            "id": "e_n-contact",
+            "type": "end",
+            "success": {
+                "show": true,
+                "text": {
+                    "de_DE": "Thank you! We will get back to you soon."
+                }
+            },
+            "redirect": null
+        }
+    ],
+    "edges": [
+        {
+            "id": "e_55149563bcbe",
+            "from": "s_n-who",
+            "to": "s_n-size",
+            "when": {
+                "field": "f-who",
+                "op": "selected",
+                "value": "f-who_o0"
+            }
+        },
+        {
+            "id": "e_ec238235fa6a",
+            "from": "s_n-who",
+            "to": "s_n-extras",
+            "when": {
+                "field": "f-who",
+                "op": "selected",
+                "value": "f-who_o1"
+            }
+        },
+        {
+            "id": "e_fe429c1ff2eb",
+            "from": "s_n-who",
+            "to": "s_n-note",
+            "when": {
+                "field": "f-who",
+                "op": "selected",
+                "value": "f-who_o2"
+            }
+        },
+        {
+            "id": "e_26d89907ee6d",
+            "from": "s_n-size",
+            "to": "s_n-note",
+            "when": {
+                "field": "f-size",
+                "op": "lt",
+                "value": 20
+            }
+        },
+        {
+            "id": "e_5fe9e258f040",
+            "from": "s_n-size",
+            "to": "s_n-where",
+            "when": {
+                "field": "f-size",
+                "op": "eq",
+                "value": 20
+            }
+        },
+        {
+            "id": "e_c03d5e8efcf5",
+            "from": "s_n-size",
+            "to": "s_n-extras",
+            "when": {
+                "field": "f-size",
+                "op": "gt",
+                "value": 20
+            }
+        },
+        {
+            "id": "e_e551640e1bdf",
+            "from": "s_n-note",
+            "to": "s_n-where",
+            "when": {
+                "field": "f-note",
+                "op": "equalsText",
+                "value": "ja"
+            }
+        },
+        {
+            "id": "e_df6f909b6744",
+            "from": "s_n-note",
+            "to": "s_n-extras",
+            "when": {
+                "field": "f-note",
+                "op": "notEqualsText",
+                "value": "ja"
+            }
+        },
+        {
+            "id": "e_ea83f4afba09",
+            "from": "s_n-where",
+            "to": "s_n-rating",
+            "when": {
+                "any": [
+                    {
+                        "field": "f-where",
+                        "op": "startsWith",
+                        "value": "80",
+                        "part": "zip"
+                    },
+                    {
+                        "field": "f-where",
+                        "op": "startsWith",
+                        "value": "81",
+                        "part": "zip"
+                    },
+                    {
+                        "field": "f-where",
+                        "op": "startsWith",
+                        "value": "82",
+                        "part": "zip"
+                    },
+                    {
+                        "field": "f-where",
+                        "op": "startsWith",
+                        "value": "83",
+                        "part": "zip"
+                    },
+                    {
+                        "field": "f-where",
+                        "op": "startsWith",
+                        "value": "84",
+                        "part": "zip"
+                    },
+                    {
+                        "field": "f-where",
+                        "op": "startsWith",
+                        "value": "85",
+                        "part": "zip"
+                    },
+                    {
+                        "field": "f-where",
+                        "op": "startsWith",
+                        "value": "86",
+                        "part": "zip"
+                    },
+                    {
+                        "field": "f-where",
+                        "op": "startsWith",
+                        "value": "87",
+                        "part": "zip"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "e_57717f5ca3e3",
+            "from": "s_n-where",
+            "to": "s_n-when",
+            "when": {
+                "field": "f-where",
+                "op": "startsWith",
+                "value": "9",
+                "part": "zip"
+            }
+        },
+        {
+            "id": "e_a54a4f939766",
+            "from": "s_n-where",
+            "to": "c_n-contact",
+            "when": {
+                "field": "f-where",
+                "op": "equalsText",
+                "value": "Österreich",
+                "part": "country"
+            }
+        },
+        {
+            "id": "e_ff0131776085",
+            "from": "s_n-where",
+            "to": "s_n-extras",
+            "default": true
+        },
+        {
+            "id": "e_950ba3228e89",
+            "from": "s_n-extras",
+            "to": "s_n-rating",
+            "when": {
+                "all": [
+                    {
+                        "field": "f-extras",
+                        "op": "selected",
+                        "value": "f-extras_o0"
+                    },
+                    {
+                        "field": "f-extras",
+                        "op": "selected",
+                        "value": "f-extras_o2"
+                    },
+                    {
+                        "field": "f-extras",
+                        "op": "eq",
+                        "value": 2,
+                        "number": "count"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "e_b9e2daab6d10",
+            "from": "s_n-extras",
+            "to": "s_n-when",
+            "when": {
+                "field": "f-extras",
+                "op": "gt",
+                "value": 1,
+                "number": "count"
+            }
+        },
+        {
+            "id": "e_743719c1b787",
+            "from": "s_n-extras",
+            "to": "c_n-contact",
+            "default": true
+        },
+        {
+            "id": "e_1ddc19f22845",
+            "from": "s_n-rating",
+            "to": "c_n-contact",
+            "when": {
+                "field": "f-rating",
+                "op": "gt",
+                "value": 3
+            }
+        },
+        {
+            "id": "e_ebafe642de13",
+            "from": "s_n-rating",
+            "to": "s_n-when",
+            "when": {
+                "field": "f-rating",
+                "op": "lt",
+                "value": 4
+            }
+        },
+        {
+            "id": "e_784846f2ba2e",
+            "from": "s_n-when",
+            "to": "c_n-contact",
+            "when": {
+                "field": "f-when",
+                "op": "dateBefore",
+                "value": "2027-01-01"
+            }
+        },
+        {
+            "id": "e_f35693bd9116",
+            "from": "s_n-when",
+            "to": "r_a-late",
+            "when": {
+                "field": "f-when",
+                "op": "dateAfter",
+                "value": "2027-06-30"
+            }
+        },
+        {
+            "id": "e_cf3e730c404e",
+            "from": "c_n-contact",
+            "to": "e_n-contact",
+            "default": true
+        }
+    ],
+    "calculations": [],
+    "actions": [],
+    "style": {
+        "preset": "default",
+        "tokens": {}
+    },
+    "settings": {
+        "uiLocale": "",
+        "progressBar": {
+            "show": true,
+            "percent": true
+        },
+        "loadingAnimation": false,
+        "scrollToTop": {
+            "desktop": false,
+            "mobile": true
+        },
+        "rtl": false,
+        "autoHeight": true,
+        "iconFont": false,
+        "savePartialEntries": false
+    },
+    "layout": {
+        "nodes": {
+            "s_n-who": {
+                "x": 300,
+                "y": 0
+            },
+            "s_n-size": {
+                "x": 640,
+                "y": -260
+            },
+            "s_n-note": {
+                "x": 640,
+                "y": 54
+            },
+            "s_n-where": {
+                "x": 980,
+                "y": -260
+            },
+            "s_n-extras": {
+                "x": 980,
+                "y": 60
+            },
+            "s_n-rating": {
+                "x": 1320,
+                "y": -260
+            },
+            "s_n-when": {
+                "x": 1320,
+                "y": 60
+            },
+            "c_n-contact": {
+                "x": 1660,
+                "y": -100
+            },
+            "r_a-late": {
+                "x": 1660,
+                "y": 240
+            },
+            "e_n-contact": {
+                "x": 2020,
+                "y": -100
+            }
+        }
+    },
+    "meta": {
+        "import": {
+            "source": "ff4",
+            "sourceId": "7d1c5a3e-0000-4000-8000-000000000003",
+            "version": 1,
+            "notes": [
+                "ff4_condition_not_imported:Wo steht das Haus?",
+                "ff4_address_in_parts:Wo steht das Haus?"
+            ]
+        }
+    }
+}

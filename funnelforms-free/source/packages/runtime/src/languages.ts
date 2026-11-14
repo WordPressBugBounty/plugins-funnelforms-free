@@ -4,11 +4,12 @@
  * A row of links, not a list box: moving through a list box with the arrow keys would already
  * load the page in another language (WCAG 3.2.2).
  */
+import { localeTag } from '@funnelforms/form-core';
 import { h } from './dom';
 
 /** The language's name in itself (Deutsch, English, Français), with the country where it tells variants apart. */
 export function nativeName( locale: string, all: string[] ): string {
-	const tag = locale.replace( /_formal$/, '' ).replace( /_/g, '-' );
+	const tag = localeTag( locale ) ?? locale;
 	const language = tag.split( '-' )[ 0 ] ?? tag;
 	// Only one variant of the language: its plain name; several: with the country.
 	const variants = all.filter( ( l ) => l.split( '_' )[ 0 ] === language ).length;
@@ -29,9 +30,9 @@ export function addressIn( href: string, locale: string ): string {
 	return url.toString();
 }
 
-/** The BCP 47 tag of a locale (de_DE_formal: de-DE). */
+/** The BCP 47 tag of a locale (de_DE_formal: de-DE); "und" (the browser's language) if there is none. */
 export function languageTag( locale: string ): string {
-	return locale.replace( /_formal$/, '' ).replace( /_/g, '-' );
+	return localeTag( locale ) ?? 'und';
 }
 
 export function languageSwitch( locales: string[], current: string, label: string ): HTMLElement {

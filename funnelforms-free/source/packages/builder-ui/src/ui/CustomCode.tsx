@@ -1,9 +1,11 @@
 /**
  * Custom JavaScript of a contact step (node.tracking): when the step appears, and after sending,
  * as the thank-you page appears or before the redirect, the place for a conversion pixel. In Free
- * and Pro. The plugin sends the code to visitors only when the site allows it (TrackingCode), the
- * runtime runs it once per visit and only with consent to marketing, and saving changed code
- * needs the right to use unfiltered HTML (SensitiveChanges).
+ * and Pro; Pro adds code after sending as an action (customCode, with placeholders and
+ * conditions), so there the contact step shows its own after-sending code only while it has one,
+ * as forms from 3.x bring it. The plugin sends the code to visitors only when the site allows it
+ * (TrackingCode), the runtime runs it once per visit and only with consent to marketing, and
+ * saving changed code needs the right to use unfiltered HTML (SensitiveChanges).
  */
 import React from 'react';
 import type { FormDocument, FormNode } from '@funnelforms/form-schema';
@@ -21,7 +23,6 @@ type Moment = 'onShow' | 'afterSubmit';
 export function ContactCode( { node }: { node: ContactNode } ) {
 	const { store, rights, readOnly } = useEnv();
 	const change = store.getState().change;
-	const setting = codeSetting();
 	const edit = ( moment: Moment ) => ( value: string ) =>
 		change( ( d ) => {
 			const n = findNode( d, node.id );
@@ -51,8 +52,30 @@ export function ContactCode( { node }: { node: ContactNode } ) {
 			) }
 		</Field>
 	);
+	// In Pro, code after sending is an action; a contact step keeps showing the code it has.
+	const afterSubmit = 'free' === process.env.FUNNELFORMS_EDITION || Boolean( node.tracking?.afterSubmit?.trim() );
 	return (
 		<Section title={ __( 'Custom code', 'funnelforms-pro' ) }>
+			<CodeNotices />
+			{ code( 'onShow', __( 'When the step appears', 'funnelforms-pro' ), __( 'For example to count visitors who reached the contact step.', 'funnelforms-pro' ) ) }
+			{ afterSubmit ? (
+				code( 'afterSubmit', __( 'After sending (thank-you page)', 'funnelforms-pro' ), __( 'Runs as the thank-you page appears, or before the redirect. The place for a conversion.', 'funnelforms-pro' ) )
+			) : (
+				<p className="ffxb-hint">{ __( 'For code after sending, add the action "Custom code" under Actions.', 'funnelforms-pro' ) }</p>
+			) }
+		</Section>
+	);
+}
+
+/**
+ * What custom code needs, above every place it is edited: where it runs and with which consent,
+ * whether the site runs it at all, and the right to change it.
+ */
+export function CodeNotices() {
+	const { rights } = useEnv();
+	const setting = codeSetting();
+	return (
+		<>
 			<p className="ffxb-hint">
 				{ __( 'JavaScript or HTML such as a conversion pixel. It runs once per visit in the visitor\'s browser.', 'funnelforms-pro' ) }{ ' ' }
 				{ euPrivacy()
@@ -76,9 +99,7 @@ export function ContactCode( { node }: { node: ContactNode } ) {
 				</Notice>
 			) }
 			{ rights.code ? null : <Notice>{ rightName( 'unfiltered_html' ) }</Notice> }
-			{ code( 'onShow', __( 'When the step appears', 'funnelforms-pro' ), __( 'For example to count visitors who reached the contact step.', 'funnelforms-pro' ) ) }
-			{ code( 'afterSubmit', __( 'After sending (thank-you page)', 'funnelforms-pro' ), __( 'Runs as the thank-you page appears, or before the redirect. The place for a conversion.', 'funnelforms-pro' ) ) }
-		</Section>
+		</>
 	);
 }
 

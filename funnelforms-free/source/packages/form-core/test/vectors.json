@@ -1905,6 +1905,482 @@
             "next": "n9_0"
         },
         {
+            "doc": "ff4-logic",
+            "node": "s_n-who",
+            "answers": {
+                "f-who": []
+            },
+            "next": null
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-who",
+            "answers": {
+                "f-who": [
+                    "f-who_o0"
+                ]
+            },
+            "next": "s_n-size"
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-who",
+            "answers": {
+                "f-who": [
+                    "f-who_o1"
+                ]
+            },
+            "next": "s_n-extras"
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-who",
+            "answers": {
+                "f-who": [
+                    "f-who_o2"
+                ]
+            },
+            "next": "s_n-note"
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-who",
+            "answers": {
+                "f-who": [
+                    "f-who_o3"
+                ]
+            },
+            "next": null
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-size",
+            "answers": {
+                "f-size": 10
+            },
+            "next": "s_n-note"
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-size",
+            "answers": {
+                "f-size": 200
+            },
+            "next": "s_n-extras"
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-size",
+            "answers": {
+                "f-size": 50
+            },
+            "next": "s_n-extras"
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-size",
+            "answers": {
+                "f-size": 105
+            },
+            "next": "s_n-extras"
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-size",
+            "answers": {
+                "f-size": 19
+            },
+            "next": "s_n-note"
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-size",
+            "answers": {
+                "f-size": 20
+            },
+            "next": "s_n-where"
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-size",
+            "answers": {
+                "f-size": 21
+            },
+            "next": "s_n-extras"
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-note",
+            "answers": {
+                "f-note": ""
+            },
+            "next": "s_n-extras"
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-note",
+            "answers": {
+                "f-note": "5"
+            },
+            "next": "s_n-extras"
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-note",
+            "answers": {
+                "f-note": " 12px"
+            },
+            "next": "s_n-extras"
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-note",
+            "answers": {
+                "f-note": "abc"
+            },
+            "next": "s_n-extras"
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-note",
+            "answers": {
+                "f-note": "0x1A"
+            },
+            "next": "s_n-extras"
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-note",
+            "answers": {
+                "f-note": "-3.9"
+            },
+            "next": "s_n-extras"
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-where",
+            "answers": {},
+            "next": "s_n-extras"
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-extras",
+            "answers": {
+                "f-extras": []
+            },
+            "next": "c_n-contact"
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-extras",
+            "answers": {
+                "f-extras": [
+                    "f-extras_o0"
+                ]
+            },
+            "next": "c_n-contact"
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-extras",
+            "answers": {
+                "f-extras": [
+                    "f-extras_o1"
+                ]
+            },
+            "next": "c_n-contact"
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-extras",
+            "answers": {
+                "f-extras": [
+                    "f-extras_o2"
+                ]
+            },
+            "next": "c_n-contact"
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-extras",
+            "answers": {
+                "f-extras": [
+                    "f-extras_o0",
+                    "f-extras_o1"
+                ]
+            },
+            "next": "s_n-when"
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-rating",
+            "answers": {},
+            "next": null
+        },
+        {
+            "doc": "ff4-logic",
+            "node": "s_n-when",
+            "answers": {},
+            "next": null
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-roof",
+            "answers": {
+                "f-roof": []
+            },
+            "next": "s_node-area"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-roof",
+            "answers": {
+                "f-roof": [
+                    "f-roof_o0"
+                ]
+            },
+            "next": "s_node-area"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-roof",
+            "answers": {
+                "f-roof": [
+                    "f-roof_o1"
+                ]
+            },
+            "next": "s_node-info"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-roof",
+            "answers": {
+                "f-roof": [
+                    "f-roof_o2"
+                ]
+            },
+            "next": "s_node-zip-again"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-area",
+            "answers": {
+                "f-area": 10
+            },
+            "next": "r_action-redirect"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-area",
+            "answers": {
+                "f-area": 200
+            },
+            "next": "s_node-extras"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-area",
+            "answers": {
+                "f-area": 50
+            },
+            "next": "s_node-extras"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-area",
+            "answers": {
+                "f-area": 105
+            },
+            "next": "s_node-extras"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-area",
+            "answers": {
+                "f-area": 19
+            },
+            "next": "r_action-redirect"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-area",
+            "answers": {
+                "f-area": 20
+            },
+            "next": "s_node-extras"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-area",
+            "answers": {
+                "f-area": 21
+            },
+            "next": "s_node-extras"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-info",
+            "answers": {},
+            "next": "s_node-extras"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-extras",
+            "answers": {
+                "f-extras": []
+            },
+            "next": "s_node-zip"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-extras",
+            "answers": {
+                "f-extras": [
+                    "f-extras_o0"
+                ]
+            },
+            "next": "s_node-zip"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-extras",
+            "answers": {
+                "f-extras": [
+                    "f-extras_o1"
+                ]
+            },
+            "next": "s_node-zip"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-extras",
+            "answers": {
+                "f-extras": [
+                    "f-extras_o2"
+                ]
+            },
+            "next": "s_node-zip"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-extras",
+            "answers": {
+                "f-extras": [
+                    "f-extras_o0",
+                    "f-extras_o1"
+                ]
+            },
+            "next": "s_node-zip"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-zip",
+            "answers": {
+                "f-zip": ""
+            },
+            "next": "s_node-date"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-zip",
+            "answers": {
+                "f-zip": "5"
+            },
+            "next": "s_node-date"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-zip",
+            "answers": {
+                "f-zip": " 12px"
+            },
+            "next": "s_node-date"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-zip",
+            "answers": {
+                "f-zip": "abc"
+            },
+            "next": "s_node-date"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-zip",
+            "answers": {
+                "f-zip": "0x1A"
+            },
+            "next": "s_node-date"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-zip",
+            "answers": {
+                "f-zip": "-3.9"
+            },
+            "next": "s_node-date"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-date",
+            "answers": {},
+            "next": "s_node-wait"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-wait",
+            "answers": {},
+            "next": "c_node-contact"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-zip-again",
+            "answers": {
+                "f-zip_2": ""
+            },
+            "next": "c_node-contact"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-zip-again",
+            "answers": {
+                "f-zip_2": "5"
+            },
+            "next": "c_node-contact"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-zip-again",
+            "answers": {
+                "f-zip_2": " 12px"
+            },
+            "next": "c_node-contact"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-zip-again",
+            "answers": {
+                "f-zip_2": "abc"
+            },
+            "next": "c_node-contact"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-zip-again",
+            "answers": {
+                "f-zip_2": "0x1A"
+            },
+            "next": "c_node-contact"
+        },
+        {
+            "doc": "ff4-solar",
+            "node": "s_node-zip-again",
+            "answers": {
+                "f-zip_2": "-3.9"
+            },
+            "next": "c_node-contact"
+        },
+        {
             "doc": "synthetic-kitchen-sink",
             "node": "n0_0",
             "answers": {
@@ -2012,6 +2488,231 @@
             "node": "n1_1",
             "answers": {},
             "next": "n2_0"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n0_0",
+            "answers": {
+                "q1": []
+            },
+            "next": "n1_0"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n0_0",
+            "answers": {
+                "q1": [
+                    "q1_o0"
+                ]
+            },
+            "next": "n4_0"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n0_0",
+            "answers": {
+                "q1": [
+                    "q1_o1"
+                ]
+            },
+            "next": "n4_1"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n0_0",
+            "answers": {
+                "q1": [
+                    "q1_o2"
+                ]
+            },
+            "next": "n1_0"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n0_0",
+            "answers": {
+                "q1": [
+                    "q1_o3"
+                ]
+            },
+            "next": "n4_2"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n0_0",
+            "answers": {
+                "q1": [
+                    "q1_o4"
+                ]
+            },
+            "next": "n4_2"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n1_0",
+            "answers": {
+                "q2": []
+            },
+            "next": "n2_0"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n1_0",
+            "answers": {
+                "q2": [
+                    "q2_o0"
+                ]
+            },
+            "next": "n4_3"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n1_0",
+            "answers": {
+                "q2": [
+                    "q2_o1"
+                ]
+            },
+            "next": "n2_0"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n1_0",
+            "answers": {
+                "q2": [
+                    "q2_o2"
+                ]
+            },
+            "next": "n4_3"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n2_0",
+            "answers": {
+                "q3": 0
+            },
+            "next": "n4_2"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n2_0",
+            "answers": {
+                "q3": 100
+            },
+            "next": "n4_0"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n2_0",
+            "answers": {
+                "q3": 50
+            },
+            "next": "n3_0"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n2_0",
+            "answers": {
+                "q3": -1
+            },
+            "next": "n4_1"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n2_0",
+            "answers": {
+                "q3": 1
+            },
+            "next": "n4_1"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n2_0",
+            "answers": {
+                "q3": 9
+            },
+            "next": "n4_1"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n2_0",
+            "answers": {
+                "q3": 10
+            },
+            "next": "n3_0"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n2_0",
+            "answers": {
+                "q3": 11
+            },
+            "next": "n3_0"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n2_0",
+            "answers": {
+                "q3": 49
+            },
+            "next": "n3_0"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n2_0",
+            "answers": {
+                "q3": 51
+            },
+            "next": "n4_0"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n3_0",
+            "answers": {
+                "q4": []
+            },
+            "next": "n4_0"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n3_0",
+            "answers": {
+                "q4": [
+                    "q4_o0"
+                ]
+            },
+            "next": "n4_0"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n3_0",
+            "answers": {
+                "q4": [
+                    "q4_o1"
+                ]
+            },
+            "next": "n4_1"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n3_0",
+            "answers": {
+                "q4": [
+                    "q4_o2"
+                ]
+            },
+            "next": "n4_0"
+        },
+        {
+            "doc": "synthetic-logic",
+            "node": "n3_0",
+            "answers": {
+                "q4": [
+                    "q4_o0",
+                    "q4_o1"
+                ]
+            },
+            "next": "n4_0"
         }
     ]
 }

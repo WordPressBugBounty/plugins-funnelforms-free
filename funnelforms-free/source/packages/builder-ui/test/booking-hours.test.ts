@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { BookingConfig } from '../src/api';
+import { durationFits, durationName, durationsIn } from '../src/ui/BookingTypes';
 import { bookingProblems, hoursOf, meetingProblem, nextSpan, noticeMinutes, noticeOf, overlapping, previewSlots, validSpan, weekOf, weekSummary } from '../src/booking-hours';
 
 describe( 'weekly hours', () => {
@@ -121,3 +122,36 @@ describe( 'appointment type editor', () => {
 		expect( previewSlots( config( { hours: [] } ), now ) ).toEqual( [] );
 	} );
 } );
+
+describe( 'appointments over whole days', () => {
+	it( 'previews one start a day, at the opening, when enough working days follow', () => {
+		// Wednesday, 21 October 2026, 07:00; weekdays 9 to 17 (the defaults of these tests).
+		const now = new Date( 2026, 9, 21, 7, 0 );
+		const days = previewSlots( config( { durationUnit: 'day', durations: [ 5 * 1440 ], notice: 0 } ), now );
+		expect( days ).toEqual( [
+			{ date: '2026-10-21', times: [ '09:00' ], more: 0 },
+			{ date: '2026-10-22', times: [ '09:00' ], more: 0 },
+			{ date: '2026-10-23', times: [ '09:00' ], more: 0 },
+		] );
+		// Only Mondays open: each Monday of the two weeks ahead starts four Mondays in a row.
+		const mondays = config( { durationUnit: 'day', durations: [ 4 * 1440 ], hours: [ { days: [ 1 ], from: '08:00', to: '16:00' } ] } );
+		expect( previewSlots( mondays, now ).map( ( d ) => d.date + ' ' + d.times.join() ) ).toEqual( [ '2026-10-26 08:00', '2026-11-02 08:00' ] );
+		// Without any hours there is no working day to run over.
+		expect( previewSlots( config( { durationUnit: 'day', durations: [ 1440 ], hours: [] } ), now ) ).toEqual( [] );
+	} );
+} );
+
+describe( 'duration units', () => {
+	it( 'keeps durations that fit the new unit, else offers its first choice', () => {
+		expect( durationsIn( 'hour', [ 30, 120 ] ) ).toEqual( [ 30, 120 ] );
+		expect( durationsIn( 'day', [ 30, 120 ] ) ).toEqual( [ 1440 ] );
+		expect( durationsIn( 'minute', [ 7200 ] ) ).toEqual( [ 30 ] );
+		expect( durationFits( 14 * 1440, 'day' ) ).toBe( true );
+		expect( durationFits( 15 * 1440, 'day' ) ).toBe( false );
+		expect( durationFits( 2500, 'minute' ) ).toBe( false );
+		expect( durationName( 7200 ) ).toBe( '5 days' );
+		expect( durationName( 1440 ) ).toBe( '1 day' );
+		expect( durationName( 90 ) ).toBe( '1 h 30 min' );
+	} );
+} );
+

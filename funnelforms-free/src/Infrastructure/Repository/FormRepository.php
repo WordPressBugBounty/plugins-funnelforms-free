@@ -536,6 +536,8 @@ final class FormRepository {
 		$wpdb->delete( Schema::table( 'forms' ), array( 'id' => $form_id ) );
 		delete_option( 'funnelforms_prediction_' . $form_id );
 		delete_option( 'funnelforms_prediction_history_' . $form_id );
+		delete_option( 'funnelforms_stats_analysis_' . $form_id );
+		delete_transient( 'funnelforms_stats_analysis_job_' . $form_id );
 		unset( self::$rows[ $form_id ] );
 	}
 

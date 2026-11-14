@@ -122,3 +122,5 @@ foreach ( array( 'ffx_db_version', 'ffx_migration_state', 'ffx_migration_lock', 
 }
 // The last prediction of each form (Predictive AI, Pro).
 $wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like( 'funnelforms_prediction_' ) . '%' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- once, on uninstall.
+// The last analysis of the statistics of each form (Analyse with AI, Pro).
+$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like( 'funnelforms_stats_analysis_' ) . '%' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- once, on uninstall.

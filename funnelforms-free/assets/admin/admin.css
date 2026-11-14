@@ -9386,3 +9386,633 @@ span.ffx-abline--3,
 	background: #ecebfa;
 	color: #5b5fc7;
 }
+
+/* Statistics: values on hover and click (assets/admin/stats.js), step details, AI Analyzer (Admin\StatsAnalysisSection) */
+
+/* The tip hangs at the end of <body>, outside .ffx-app, so it does not inherit the tokens: every value has its fallback. */
+.ffx-tip {
+	position: absolute;
+	z-index: 100000;
+	min-width: 140px;
+	max-width: 280px;
+	padding: 10px 12px;
+	border-radius: 10px;
+	background: var(--ffb-text, #0f0b1e);
+	box-shadow: var(--ffb-shadow-lg, 0 24px 56px -12px rgb(31 15 92 / 0.24), 0 4px 10px rgb(31 15 92 / 0.06));
+	color: #fff;
+	font-family: var(--ffb-font, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+	text-align: left;
+	font-size: 12.5px;
+	line-height: 1.45;
+	pointer-events: none;
+}
+
+.ffx-tip.is-pinned {
+	padding-right: 30px;
+	pointer-events: auto;
+}
+
+.ffx-tip__head {
+	margin-bottom: 4px;
+	font-weight: 600;
+}
+
+.ffx-tip__row {
+	display: flex;
+	justify-content: space-between;
+	gap: 16px;
+	font-variant-numeric: tabular-nums;
+}
+
+.ffx-tip__row::before {
+	content: '';
+	align-self: center;
+	width: 8px;
+	height: 8px;
+	margin-right: -10px;
+	border-radius: 2px;
+	background: transparent;
+}
+
+.ffx-tip__row.is-views::before {
+	background: var(--ffb-brand-200, #dac2ff);
+}
+
+.ffx-tip__row.is-entries::before {
+	background: var(--ffb-brand-400, #9c42fd);
+}
+
+.ffx-tip__row.is-previous::before {
+	background: var(--ffb-neutral-dot, #87839a);
+}
+
+.ffx-tip__row span {
+	flex: 1;
+	opacity: 0.8;
+}
+
+.ffx-tip__foot {
+	margin-top: 6px;
+	padding-top: 6px;
+	border-top: 1px solid rgb(255 255 255 / 0.18);
+	opacity: 0.8;
+}
+
+.ffx-tip__close {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+	width: 22px;
+	height: 22px;
+	padding: 0;
+	border: 0;
+	border-radius: 6px;
+	background: transparent;
+	color: #fff;
+	font-size: 16px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.ffx-tip__close:hover,
+.ffx-tip__close:focus-visible {
+	background: rgb(255 255 255 / 0.16);
+}
+
+.ffx-chart:focus-visible {
+	outline: 2px solid var(--ffb-focus);
+	outline-offset: 4px;
+	border-radius: 6px;
+}
+
+.ffx-chart svg {
+	cursor: crosshair;
+}
+
+.ffx-chart__mid {
+	position: absolute;
+	top: calc(8px + 220px * 0.54 - 8px);
+	left: 0;
+	color: var(--ffb-text-subtle);
+	font-size: 11px;
+	font-variant-numeric: tabular-nums;
+}
+
+.ffx-chart__layer {
+	position: absolute;
+	pointer-events: none;
+}
+
+.ffx-chart__guide {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 0;
+	border-left: 1px dashed var(--ffb-brand-400);
+}
+
+.ffx-chart__dot {
+	position: absolute;
+	width: 10px;
+	height: 10px;
+	margin: -5px 0 0 -5px;
+	border: 2px solid #fff;
+	border-radius: 50%;
+	box-shadow: var(--ffb-shadow-sm);
+}
+
+.ffx-chart__dot--views {
+	background: var(--ffb-brand-300);
+}
+
+.ffx-chart__dot--entries {
+	background: var(--ffb-accent);
+}
+
+.ffx-chart__dot--previous {
+	background: var(--ffb-neutral-dot);
+}
+
+.ffx-chart.is-hide-views .ffx-chart__area,
+.ffx-chart.is-hide-entries .ffx-chart__bar,
+.ffx-chart.is-hide-previous .ffx-chart__previous {
+	display: none;
+}
+
+.ffx-legend__toggle {
+	padding: 2px 6px;
+	border: 0;
+	border-radius: 6px;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+}
+
+.ffx-legend__toggle:hover {
+	background: var(--ffb-surface-hover);
+}
+
+.ffx-legend__toggle:focus-visible {
+	outline: 2px solid var(--ffb-focus);
+}
+
+.ffx-legend__toggle[aria-pressed='false'] {
+	opacity: 0.45;
+	text-decoration: line-through;
+}
+
+.ffx-heat td[data-ffx-tip],
+.ffx-histo__col[data-ffx-tip] {
+	cursor: pointer;
+}
+
+.ffx-heat td[data-ffx-tip]:hover {
+	outline: 2px solid var(--ffb-brand-400);
+	outline-offset: -2px;
+}
+
+.ffx-losses {
+	margin-top: 12px;
+}
+
+.ffx-losses > .is-warn {
+	background: var(--ffb-warning-bg);
+}
+
+.ffx-losses dd small {
+	margin-left: 4px;
+	color: var(--ffb-text-subtle);
+	font-family: var(--ffb-font);
+	font-size: 12px;
+	font-weight: 500;
+}
+
+.ffx-steptable__toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	font-weight: 600;
+	text-align: left;
+	cursor: pointer;
+}
+
+.ffx-steptable__toggle::after {
+	content: '';
+	width: 7px;
+	height: 7px;
+	margin-left: 10px;
+	border-right: 2px solid var(--ffb-text-subtle);
+	border-bottom: 2px solid var(--ffb-text-subtle);
+	transform: rotate(45deg) translateY(-2px);
+	transition: transform 0.15s var(--ffb-ease);
+}
+
+.ffx-steptable__toggle[aria-expanded='true']::after {
+	transform: rotate(-135deg) translateY(-2px);
+}
+
+.ffx-steptable__toggle:hover .ffx-steptable__title {
+	color: var(--ffb-accent-text);
+}
+
+.ffx-steptable__toggle:focus-visible {
+	outline: 2px solid var(--ffb-focus);
+	outline-offset: 2px;
+	border-radius: 4px;
+}
+
+.ffx-steptable__row.is-open {
+	background: var(--ffb-surface-hover);
+}
+
+.ffx-steptable__detail > td {
+	padding: 4px 24px 20px;
+	background: var(--ffb-surface-hover);
+}
+
+.ffx-stepdetail {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: 20px;
+}
+
+.ffx-stepdetail h3 {
+	margin: 12px 0 8px;
+	font-size: 13px;
+}
+
+.ffx-stepdetail__fields {
+	grid-column: 1 / -1;
+}
+
+.ffx-table--compact th,
+.ffx-table--compact td {
+	padding: 6px 10px;
+	font-size: 13px;
+}
+
+.ffx-analyze {
+	display: grid;
+	grid-template-columns: minmax(0, 3fr) minmax(240px, 2fr);
+	gap: 16px 32px;
+	align-items: center;
+	border-color: var(--ffb-brand-100);
+	background: var(--ffb-hero);
+}
+
+.ffx-analyze h2 {
+	margin: 8px 0 4px;
+}
+
+.ffx-analyze__intro p {
+	margin: 6px 0 0;
+}
+
+.ffx-analyze__intro .ffx-small svg {
+	width: 14px;
+	height: 14px;
+	vertical-align: -2px;
+}
+
+.ffx-analyze__side {
+	display: grid;
+	gap: 8px;
+}
+
+.ffx-analyze__form {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 10px;
+}
+
+.ffx-analyze__form label {
+	display: grid;
+	gap: 4px;
+	font-size: 12.5px;
+	font-weight: 500;
+	color: var(--ffb-text-muted);
+}
+
+.ffx-analyze__form select {
+	min-width: 140px;
+}
+
+.ffx-analyze__progress,
+.ffx-analyze__error {
+	grid-column: 1 / -1;
+}
+
+.ffx-analyze__progress:not([hidden]) {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 12px 14px;
+	border-radius: 12px;
+	background: var(--ffb-surface);
+}
+
+.ffx-analyze__error {
+	margin: 0;
+}
+
+.ffx-spinner {
+	flex: none;
+	width: 20px;
+	height: 20px;
+	border: 3px solid var(--ffb-brand-100);
+	border-top-color: var(--ffb-accent);
+	border-radius: 50%;
+	animation: ffx-spin 0.9s linear infinite;
+}
+
+@keyframes ffx-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ffx-spinner {
+		animation-duration: 3s;
+	}
+}
+
+/* The result of "Analyse with AI" in the look of the Predictive AI (.ffxb-pai-*, assets/builder/builder.css). */
+.ffx-analysis .ffxb {
+	font-family: var(--ffb-font);
+}
+
+/* The headings of the admin pages (.ffx-app h2, h3) are dark; on the dark hero and in the cards they follow the Predictive AI. */
+.ffx-app .ffx-analysis .ffxb-pai-hero__verdict {
+	color: #fff;
+	font-size: 22px;
+}
+
+.ffx-app .ffx-analysis .ffxb-pai-rec h3 {
+	margin: 2px 0 0;
+}
+
+.ffx-analysis__earlier {
+	margin-bottom: 16px;
+}
+
+.ffx-analysis__earlier a {
+	margin-left: 6px;
+	font-weight: 600;
+}
+
+.ffx-analysis__how {
+	margin-top: 8px;
+}
+
+.ffx-app .ffx-analysis__how > summary {
+	color: #c9b8ff;
+	display: inline-flex;
+	list-style: none;
+	cursor: pointer;
+}
+
+.ffx-analysis__how > summary::-webkit-details-marker {
+	display: none;
+}
+
+.ffx-analysis__how > summary::after {
+	content: '▾';
+	margin-left: 6px;
+}
+
+.ffx-analysis__how[open] > summary::after {
+	content: '▴';
+}
+
+.ffx-analysis__how .ffxb-pai-help {
+	margin-top: 10px;
+}
+
+.ffx-analysis__summary,
+.ffx-analysis__history {
+	padding: 16px 18px;
+}
+
+.ffx-analysis__summary h3 {
+	margin: 0 0 6px;
+	font-size: 16px;
+}
+
+.ffx-analysis__summary p {
+	margin: 0;
+}
+
+.ffx-analysis__findings {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 12px;
+}
+
+.ffx-findings {
+	padding: 12px 14px;
+	border-radius: 12px;
+	background: var(--ffb-surface-2);
+}
+
+.ffx-findings--problem {
+	background: var(--ffb-danger-bg);
+}
+
+.ffx-findings--strength {
+	background: var(--ffb-success-bg);
+}
+
+.ffx-findings h3 {
+	margin: 0 0 6px;
+	font-size: 13px;
+}
+
+.ffx-findings ul {
+	display: grid;
+	gap: 8px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ffx-findings li {
+	margin: 0;
+}
+
+.ffx-findings__metric {
+	display: block;
+	color: var(--ffb-text-subtle);
+	font-size: 12px;
+}
+
+/* "Worth knowing" sits in the column of the result, which keeps 20px between its parts; the recommendations get a little more. */
+.ffx-findings--note + .ffx-analysis__recs {
+	margin-top: 12px;
+}
+
+.ffx-analysis__recs {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.ffx-analysis__recs .ffxb-pai-recs__head h3 {
+	margin: 0;
+}
+
+.ffx-analysis__count {
+	color: var(--ffb-text-subtle);
+	font-size: 12.5px;
+	font-variant-numeric: tabular-nums;
+}
+
+.ffx-rec__priority {
+	padding: 1px 8px;
+	border-radius: 999px;
+	background: var(--ffb-neutral-bg);
+	color: var(--ffb-text-subtle);
+	font-size: 11.5px;
+	font-weight: 600;
+}
+
+.ffx-rec__priority.is-high {
+	background: var(--ffb-danger-bg);
+	color: var(--ffb-danger-fg);
+}
+
+.ffx-rec__priority.is-medium {
+	background: var(--ffb-warning-bg);
+	color: var(--ffb-warning-fg);
+}
+
+.ffx-rec .ffxb-pai-rec__source svg {
+	flex: none;
+	width: 14px;
+	height: 14px;
+}
+
+.ffx-rec__action,
+.ffx-rec__impact {
+	margin: 0;
+}
+
+.ffx-rec__impact {
+	font-size: 12.5px;
+}
+
+.ffx-rec .ffxb-pai-rec__foot {
+	align-items: center;
+}
+
+.ffx-rec__check {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.ffx-rec__check input {
+	width: 18px;
+	height: 18px;
+	margin: 0;
+}
+
+.ffx-rec .ffxb-pai-btn svg {
+	width: 14px;
+	height: 14px;
+}
+
+.ffx-rec.is-done {
+	opacity: 0.7;
+}
+
+.ffx-rec.is-done h3 {
+	text-decoration: line-through;
+}
+
+.ffx-rec.is-done .ffxb-pai-rec__reason,
+.ffx-rec.is-done .ffxb-pai-rec__source,
+.ffx-rec.is-done .ffx-rec__action,
+.ffx-rec.is-done .ffx-rec__impact {
+	display: none;
+}
+
+.ffx-analysis__hint {
+	margin: 0;
+	font-size: 12.5px;
+}
+
+.ffx-analysis__history h3,
+.ffx-analyze__done h3 {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0 0 10px;
+	font-size: 14px;
+}
+
+.ffx-analysis__history h3 svg,
+.ffx-analyze__done h3 svg {
+	width: 16px;
+	height: 16px;
+}
+
+.ffx-analysis__history ul,
+.ffx-analyze__done ul {
+	display: grid;
+	gap: 8px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ffx-analysis__history li,
+.ffx-analyze__done li {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 4px 12px;
+	margin: 0;
+}
+
+.ffx-analysis__history li.is-current {
+	font-weight: 600;
+}
+
+.ffx-analysis__history li a {
+	margin-left: auto;
+	font-weight: 600;
+}
+
+.ffx-analysis__history p {
+	margin: 10px 0 0;
+}
+
+.ffx-analyze__done {
+	grid-column: 1 / -1;
+	padding-top: 14px;
+	border-top: 1px solid var(--ffb-border);
+}
+
+.ffx-analyze__done li a {
+	font-weight: 600;
+}
+
+@media (max-width: 782px) {
+	.ffx-analyze {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.ffx-steptable__detail > td {
+		padding: 4px 12px 16px;
+	}
+}

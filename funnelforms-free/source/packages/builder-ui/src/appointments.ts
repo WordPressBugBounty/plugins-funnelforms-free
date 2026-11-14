@@ -2,6 +2,7 @@
  * The appointments page without React: talking to the appointments API, the days of the agenda
  * and the calendar in the site's time zone, filters and counts. ui/Appointments.tsx shows it.
  */
+import { localeTag } from '@funnelforms/form-core';
 import { ApiError, type Appointment } from './api';
 import { restFetch } from './rest-bridge';
 
@@ -236,7 +237,7 @@ function readableZone( timezone: string, locale?: string ): string {
 
 /** The language of the admin page, for names of time zones outside the appointments screen. */
 export function pageLocale(): string | undefined {
-	return ( 'undefined' !== typeof document && document.documentElement.lang ) || undefined;
+	return localeTag( 'undefined' !== typeof document ? document.documentElement.lang : undefined );
 }
 
 const partsCache = new Map<string, Intl.DateTimeFormat>();

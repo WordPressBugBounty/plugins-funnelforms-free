@@ -1,7 +1,7 @@
 /**
- * Start of a new form: a gallery of templates by goal and industry (both at once), recommended
- * ones first, starting with the site's industry, with a search through texts and synonyms (of all
- * industries, unless the owner chose one), a
+ * Start of a new form: a gallery of templates by goal and industry (both at once). It starts with
+ * all templates, those of the site's industry first and recommended ones first, with a search
+ * through texts and synonyms (of all industries, unless the owner chose one), a
  * thumbnail of the first question, what the template does for leads, a live preview and the
  * language of the form, an empty form by name, or a draft the AI writes from a description
  * (Funnelforms Pro). Funnelforms Free shows the templates of Pro locked; they lead to the page
@@ -142,9 +142,12 @@ function shows( template: FormTemplate, filter: Filter ): boolean {
 	return ( null === filter.goal || template.goal === filter.goal ) && ( null === filter.category || template.category === filter.category );
 }
 
-/** Templates to use before locked ones, recommended ones (rank) first, otherwise in the order of the catalog. */
-function ranked( templates: FormTemplate[] ): FormTemplate[] {
-	const key = ( t: FormTemplate ): number => ( locked( t ) ? 1e6 : 0 ) + ( t.rank ?? 1e5 );
+/**
+ * Templates to use before locked ones, those of the site's industry next, recommended ones (rank)
+ * first, otherwise in the order of the catalog.
+ */
+function ranked( templates: FormTemplate[], industry?: string | null ): FormTemplate[] {
+	const key = ( t: FormTemplate ): number => ( locked( t ) ? 1e6 : 0 ) + ( industry && t.category !== industry ? 2e5 : 0 ) + ( t.rank ?? 1e5 );
 	return templates
 		.map( ( t, i ) => ( { t, i } ) )
 		.sort( ( a, b ) => key( a.t ) - key( b.t ) || a.i - b.i )
@@ -160,11 +163,8 @@ export function NewFormDialog( { api, category, ai, onCreated, onClose }: { api:
 	const [ catalog, setCatalog ] = useState<TemplateCatalog | null>( null );
 	const [ loading, setLoading ] = useState( true );
 	const [ locale, setLocale ] = useState( '' );
-	const [ chosen, setFilter ] = useState<Filter>( ALL );
-	// The site's industry is chosen once, when the templates first arrive.
-	const preset = useRef( false );
-	// The industry is still the one of the site, not one the owner clicked: a search looks through all industries.
-	const [ auto, setAuto ] = useState( false );
+	// All templates at the start; those of the site's industry come first.
+	const [ filter, setFilter ] = useState<Filter>( ALL );
 	const [ search, setSearch ] = useState( '' );
 	const [ step, setStep ] = useState<Step>( 'gallery' );
 	const [ title, setTitle ] = useState( '' );
@@ -185,12 +185,6 @@ export function NewFormDialog( { api, category, ai, onCreated, onClose }: { api:
 				if ( current ) {
 					setCatalog( result );
 					setLoading( false );
-					const industry = result.industry;
-					if ( ! preset.current && industry && result.templates.some( ( t ) => t.category === industry ) ) {
-						setFilter( { goal: null, category: industry } );
-						setAuto( true );
-					}
-					preset.current = true;
 				}
 			},
 			() => {
@@ -207,14 +201,10 @@ export function NewFormDialog( { api, category, ai, onCreated, onClose }: { api:
 	}, [ api, locale ] );
 
 	const words = useMemo( () => fold( search ).split( /\s+/ ).filter( Boolean ), [ search ] );
-	const filter: Filter = auto && words.length > 0 ? { ...chosen, category: null } : chosen;
 	/** An industry or all templates chosen by the owner, which a search keeps. */
-	const choose = ( f: Filter ): void => {
-		setAuto( false );
-		setFilter( f );
-	};
+	const choose = ( f: Filter ): void => setFilter( f );
 	const found = useMemo( () => ( catalog?.templates ?? [] ).filter( ( t ) => matches( t, words ) ), [ catalog, words ] );
-	const shown = ranked( found.filter( ( t ) => shows( t, filter ) ) );
+	const shown = ranked( found.filter( ( t ) => shows( t, filter ) ), catalog?.industry );
 	const filtered = null !== filter.goal || null !== filter.category;
 	// The AI form builder and the empty form, on the unfiltered gallery and whenever no template fits.
 	const starts = null !== catalog && ( ( ! filtered && 0 === words.length ) || 0 === shown.length );

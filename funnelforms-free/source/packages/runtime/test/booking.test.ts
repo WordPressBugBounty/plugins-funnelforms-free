@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { weekStart, zoneName } from '../src/booking';
+import { durationLabel, durationText, weekStart, zoneName } from '../src/booking';
 
 describe( 'weekStart', () => {
 	it( 'starts the week on Monday in Europe and on Sunday in the US', () => {
@@ -26,5 +26,14 @@ describe( 'zoneName', () => {
 	it( 'falls back to the city', () => {
 		expect( zoneName( 'Not/A_Zone', 'de-DE' ) ).toBe( 'A Zone' );
 		expect( zoneName( 'Asia/Kolkata', 'de-DE' ) ).not.toContain( '/' );
+	} );
+} );
+
+describe( 'durations', () => {
+	it( 'shows whole days as days in the language of the form, the rest as hours and minutes', () => {
+		expect( durationLabel( 7200, 'de-DE' ) ).toBe( '5 Tage' );
+		expect( durationLabel( 1440, 'en-US' ) ).toBe( '1 day' );
+		expect( durationLabel( 90, 'de-DE' ) ).toBe( '1 h 30 min' );
+		expect( durationText( 30 ) ).toBe( '30 min' );
 	} );
 } );

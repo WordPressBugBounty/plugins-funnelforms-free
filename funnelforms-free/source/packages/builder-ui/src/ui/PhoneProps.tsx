@@ -5,6 +5,7 @@
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import type { PhoneCountries, PhoneSms, Text } from '@funnelforms/form-schema';
+import { localeTag } from '@funnelforms/form-core';
 import data from '../../../../plugin/assets/phone/countries.json';
 import type { Connection } from '../api';
 import { CONNECTION_TYPES } from '../actions';
@@ -23,7 +24,7 @@ const CODES = ( data as unknown as { countries: Record<string, [ string ]> } ).c
 /** Names of the countries in the language of the admin, sorted. */
 export function useCountries(): Array<{ iso: string; name: string; code: string }> {
 	return useMemo( () => {
-		const lang = document.documentElement.lang || 'en';
+		const lang = localeTag( document.documentElement.lang ) ?? 'en';
 		let names: Intl.DisplayNames | null = null;
 		try {
 			names = new Intl.DisplayNames( [ lang, 'en' ], { type: 'region' } );

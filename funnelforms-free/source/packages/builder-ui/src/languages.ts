@@ -4,6 +4,7 @@
  * the default text where a translation is missing (form-core pickText, Document::text).
  */
 import type { FormDocument, Text } from '@funnelforms/form-schema';
+import { localeTag } from '@funnelforms/form-core';
 
 /**
  * Languages the builder offers to add: those with a catalog in plugin/languages, so buttons and
@@ -44,10 +45,10 @@ export const LANGUAGES = [
 
 /** The language's name, in `display`'s language; `formal` marks the formal address. */
 export function languageName( locale: string, display: string, formal = 'formal' ): string {
-	const tag = locale.replace( /_formal$/, '' ).replace( /_/g, '-' );
+	const tag = localeTag( locale ) ?? locale;
 	let name = tag;
 	try {
-		name = new Intl.DisplayNames( [ display.replace( /_formal$/, '' ).replace( /_/g, '-' ) ], { type: 'language', languageDisplay: 'standard' } ).of( tag ) ?? tag;
+		name = new Intl.DisplayNames( [ localeTag( display ) ?? 'en' ], { type: 'language', languageDisplay: 'standard' } ).of( tag ) ?? tag;
 	} catch {
 		// Unknown tags keep their code.
 	}

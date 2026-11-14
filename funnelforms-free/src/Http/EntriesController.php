@@ -955,7 +955,8 @@ final class EntriesController {
 	}
 
 	/**
-	 * POST entries/<id>/resend: queues the action again as a new delivery.
+	 * POST entries/<id>/resend: runs an action again as a new delivery, with the settings the form
+	 * has now. For the AI Phone Agent it plans another call (AiCalls::again()).
 	 *
 	 * @param \WP_REST_Request $request Request.
 	 */
@@ -975,7 +976,24 @@ final class EntriesController {
 				400
 			);
 		}
-		( new ActionQueue( $entries ) )->enqueue( (int) $entry['id'], array( array( 'id' => $action ) ) );
+		$kind    = (string) ( array_column( self::actions( $entry ), 'kind', 'id' )[ $action ] ?? '' );
+		$channel = 'optin' === $kind ? $action : ActionQueue::AGAIN . $action;
+		$calls   = 'aiCall' === $kind ? Edition::pro( AiCalls::class ) : null;
+		if ( null !== $calls ) {
+			$call    = ( new Document( (array) self::revision_document( $entry ) ) )->action( $action );
+			$channel = $calls::again( $entries, (int) $entry['id'], $action, (array) ( $call['config'] ?? array() ) );
+			if ( 'running' === $channel ) {
+				return new \WP_REST_Response(
+					array(
+						'code'    => 'call_running',
+						'message' => __( 'A call is under way right now. Try again once it has ended.', 'funnelforms-free' ),
+					),
+					409
+				);
+			}
+		}
+		// Runs with the settings the form has now (ActionQueue::AGAIN), e.g. a corrected webhook.
+		( new ActionQueue( $entries ) )->enqueue( (int) $entry['id'], array( array( 'id' => $channel ) ) );
 		return new \WP_REST_Response( array( 'queued' => true ), 202 );
 	}
 

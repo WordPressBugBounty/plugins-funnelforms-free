@@ -54,6 +54,9 @@ final class Ff4Messages {
 			case 'ff4_condition_not_imported':
 				/* translators: %s: label of a field */
 				return sprintf( __( 'A condition on "%s" (range or region) has no counterpart; that path was left out. Rebuild it with branches.', 'funnelforms-free' ), $detail );
+			case 'ff4_address_in_parts':
+				/* translators: %s: label of a field */
+				return sprintf( __( 'A path after "%s" checks the postal code, the city or the country. The step now asks the address in separate inputs, so these parts can be checked.', 'funnelforms-free' ), $detail );
 			case 'ff4_condition_now_works':
 				/* translators: %s: label of a field */
 				return sprintf( __( 'A path after "%s" checked whether an answer is empty or does not contain a text. Funnelforms 4 never took it; now it is taken. Check it.', 'funnelforms-free' ), $detail );

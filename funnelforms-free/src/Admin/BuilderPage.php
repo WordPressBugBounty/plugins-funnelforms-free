@@ -92,6 +92,16 @@ final class BuilderPage {
 	}
 
 	/**
+	 * Loads only the styles of the admin app, for a page that shows parts in its look without the
+	 * app (the result of "Analyse with AI" on the statistics of a form).
+	 */
+	public static function styles(): void {
+		if ( self::built() ) {
+			wp_enqueue_style( self::HANDLE, plugins_url( 'assets/builder/builder.css', FUNNELFORMS_PLUGIN_FILE ), array(), FUNNELFORMS_ASSET_VERSION );
+		}
+	}
+
+	/**
 	 * Loads the admin app (the builder, or another screen of it such as the entries) with its
 	 * settings.
 	 *

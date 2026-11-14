@@ -72,8 +72,14 @@ final class ActionRunner {
 		$entry    = $this->entries->find( (int) $job['entry_id'] );
 		$revision = (int) ( $entry['meta']['v5']['revisionId'] ?? 0 );
 		$document = null === $entry ? null : $this->forms->document( $revision );
-		$action   = null === $document ? null : ( new Document( $document ) )->action( (string) $job['channel'] );
-		$pro      = Edition::pro( ProActions::class );
+		$channel  = (string) $job['channel'];
+		$action   = null === $document ? null : ( new Document( $document ) )->action( ActionQueue::action_id( $channel ) );
+		if ( null !== $action && $channel !== $action['id'] ) {
+			// Run again by hand: with the settings the form has now (a corrected webhook address,
+			// another recipient); the answers stay those of the version the visitor sent.
+			$action = $this->current( (int) ( $entry['form_id'] ?? 0 ), $action );
+		}
+		$pro = Edition::pro( ProActions::class );
 		if ( null !== $document && null !== $pro ) {
 			// Jobs of double opt-in, appointments and reminders are not actions of the document.
 			$action = $pro::job_action( (string) $job['channel'] ) ?? $action;
@@ -123,5 +129,20 @@ final class ActionRunner {
 			return;
 		}
 		$this->entries->update_job( $job_id, 'failed', $attempts, $error );
+	}
+
+	/**
+	 * An action as the published form has it now; the action of the entry's version when the
+	 * form no longer has it (or has another kind under its ID).
+	 *
+	 * @param int                 $form_id Form.
+	 * @param array<string,mixed> $action  Action of the entry's version.
+	 * @return array<string,mixed>
+	 */
+	private function current( int $form_id, array $action ): array {
+		$form     = $form_id > 0 ? $this->forms->by_id( $form_id ) : null;
+		$document = null === $form || null === $form['current_revision_id'] ? null : $this->forms->document( (int) $form['current_revision_id'] );
+		$current  = null === $document ? null : ( new Document( $document ) )->action( (string) $action['id'] );
+		return null !== $current && ( $current['kind'] ?? '' ) === $action['kind'] ? $current : $action;
 	}
 }

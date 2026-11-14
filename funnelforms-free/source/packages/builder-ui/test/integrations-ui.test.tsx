@@ -106,6 +106,16 @@ describe( 'integrations', () => {
 		expect( [ ...container.querySelectorAll( '.ffx-cal-more a' ) ].map( ( a ) => a.getAttribute( 'href' ) ) ).toEqual( [ config.appointmentsUrl, config.interfacesUrl ] );
 	} );
 
+	// 5.0.8: "Deutsch (Sie)" (de_DE_formal) became the tag de-DE_formal, the date threw and the page stayed empty.
+	it.each( [ 'de_DE_formal', 'de_CH_informal', 'nl_NL_formal', 'de_AT', 'pt_PT_ao90' ] )( 'shows the calendars with the WordPress language %s', async ( userLocale ) => {
+		const api = fakeApi();
+		await act( async () => root.render( <IntegrationsScreen api={ api } config={ { ...config, userLocale } } /> ) );
+		await settle();
+		const rows = [ ...container.querySelectorAll( '.ffx-cal-list:not(.ffx-meetings__services) > .ffx-cal-row' ) ];
+		expect( rows ).toHaveLength( 2 );
+		expect( rows[ 0 ]?.textContent ).toContain( '2026' );
+	} );
+
 	it( 'gives a calendar to a team member and chooses the calendars checked for busy times', async () => {
 		const api = fakeApi();
 		await act( async () => root.render( <IntegrationsScreen api={ api } config={ config } /> ) );
@@ -293,6 +303,51 @@ describe( 'appointment types on the appointments page', () => {
 		await act( async () => button( 'Save', dialog ).click() );
 		await settle();
 		expect( api.saveBookingType ).toHaveBeenLastCalledWith( 1, 'Beratung', expect.objectContaining( { kind: 'call', location: 'meet.example.test/beratung', durations: [ 45 ] } ) );
+	} );
+
+	it( 'takes durations in hours or whole days, for appointments over several days', async () => {
+		const api = {
+			bookingTypes: vi.fn( async () => data ),
+			saveBookingType: vi.fn( async ( _id: number | null, title: string, c: BookingConfig ) => ( { ref: 'bt:1', id: 1, title, config: c, legacy: false, cronofy: false } ) ),
+			deleteBookingType: vi.fn(),
+			startCalendarSignIn: vi.fn(),
+			calendarSignIn: vi.fn(),
+			createConnection: vi.fn(),
+			updateConnection: vi.fn(),
+		};
+		await act( async () => root.render( <TypesTab root="/" nonce="n" canConnect={ false } api={ api } say={ vi.fn() } /> ) );
+		await settle();
+		await act( async () => button( 'Edit Beratung' ).click() );
+		const dialog = container.querySelector( 'dialog[aria-label="Edit appointment type"]' ) as HTMLDialogElement;
+		const control = ( label: string ): HTMLInputElement & HTMLSelectElement => document.getElementById( [ ...dialog.querySelectorAll( 'label' ) ].find( ( l ) => l.textContent === label )?.htmlFor ?? '' ) as HTMLInputElement & HTMLSelectElement;
+		const chips = (): string[] => [ ...dialog.querySelectorAll<HTMLButtonElement>( '.ffxb-bt-chip' ) ].map( ( b ) => b.textContent ?? '' );
+		expect( control( 'Duration in' ).value ).toBe( 'minute' );
+		expect( control( 'A start time every' ) ).not.toBeNull();
+
+		// Hours: the chips are hours; minutes that fit stay.
+		await choose( control( 'Duration in' ), 'hour' );
+		expect( chips() ).toContain( '8 h' );
+		expect( control( 'Other duration (hours)' ) ).not.toBeNull();
+
+		// Days: whole working days, one start a day, so no interval.
+		await choose( control( 'Duration in' ), 'day' );
+		expect( chips() ).toEqual( [ '1 day', '2 days', '3 days', '5 days' ] );
+		expect( control( 'A start time every' ) ).toBeNull();
+		expect( dialog.textContent ).toContain( 'Days are working days' );
+		const other = control( 'Other duration (days)' );
+		await act( async () => {
+			Object.getOwnPropertyDescriptor( HTMLInputElement.prototype, 'value' )?.set?.call( other, '15' );
+			other.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+		} );
+		expect( button( 'Add', dialog ).disabled ).toBe( true );
+		await act( async () => {
+			Object.getOwnPropertyDescriptor( HTMLInputElement.prototype, 'value' )?.set?.call( other, '4' );
+			other.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+		} );
+		await act( async () => button( 'Add', dialog ).click() );
+		await act( async () => button( 'Save', dialog ).click() );
+		await settle();
+		expect( api.saveBookingType ).toHaveBeenLastCalledWith( 1, 'Beratung', expect.objectContaining( { durationUnit: 'day', durations: [ 1440, 5760 ] } ) );
 	} );
 } );
 

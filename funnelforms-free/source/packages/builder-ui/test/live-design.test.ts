@@ -46,6 +46,15 @@ describe( 'messages of the preview frame', () => {
 		// An empty button colour follows the accent colour.
 		expect( partTokens( 'button' ).rows[ 0 ]?.fallback( { 'color.primary': '#0e7490' } ) ).toBe( '#0e7490' );
 		expect( partTokens( 'progress' ).rows.map( ( r ) => r.key ) ).toEqual( [ 'color.progress', 'color.progressTrack' ] );
+		// Questions, answers, inputs and the form have their font beside their colours.
+		expect( partTokens( 'question' ).rows.map( ( r ) => [ r.key, r.kind ] ) ).toEqual( [
+			[ 'color.heading', 'color' ],
+			[ 'font.heading', 'font' ],
+			[ 'font.size.heading', 'px' ],
+		] );
+		expect( partTokens( 'answer' ).rows.some( ( r ) => 'font.field' === r.key ) ).toBe( true );
+		expect( partTokens( 'input' ).rows.some( ( r ) => 'font.field' === r.key ) ).toBe( true );
+		expect( partTokens( 'form' ).rows.find( ( r ) => 'font' === r.kind )?.key ).toBe( 'font.family' );
 	} );
 } );
 

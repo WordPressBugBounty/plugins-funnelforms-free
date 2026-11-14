@@ -198,6 +198,7 @@ function choice( field: ChoiceField, ctx: FieldContext, label: string, head: HTM
 		p.iconPosition && p.iconPosition !== 'top' ? `ffx-icon-${ p.iconPosition }` : '',
 		p.size && p.size !== 'm' ? `ffx-size-${ p.size }` : '',
 		p.imageFull ? 'ffx-image-full' : '',
+		p.imageFull && p.imageRatio ? `ffx-image-${ { auto: 'auto', '1:1': 'square', '16:9': 'wide' }[ p.imageRatio ] ?? '' }` : '',
 	];
 	const list = h( 'div', { class: classes.filter( Boolean ).join( ' ' ) } );
 	// Without a number per row the tiles fill rows evenly: 4 in one row, 5 and 6 in rows of 3, 8 in rows of 4.
@@ -222,10 +223,12 @@ function choice( field: ChoiceField, ctx: FieldContext, label: string, head: HTM
 		} );
 	};
 
-	for ( const option of field.options ) {
+	field.options.forEach( ( option, index ) => {
 		const optionLabel = trusted( 'span', ctx.text( option.label ), { class: 'ffx-option-label' } );
+		// An answer with only an image (decorative, alt="") still needs a name for screen readers: its number.
+		const unnamed = '' === plain( ctx, option ).trim() ? ctx.t( 'answer_n' ).replace( 'answer_n', 'Answer %d' ).replace( '%d', String( index + 1 ) ) : null;
 		if ( p.multiple ) {
-			const input = h( 'input', { type: 'checkbox', value: option.id, checked: chosen().includes( option.id ), 'aria-describedby': describedBy } );
+			const input = h( 'input', { type: 'checkbox', value: option.id, checked: chosen().includes( option.id ), 'aria-describedby': describedBy, 'aria-label': unnamed } );
 			input.addEventListener( 'change', () => {
 				const ids = field.options.map( ( o ) => o.id ).filter( ( id ) => id === option.id ? input.checked : chosen().includes( id ) );
 				ctx.set( field.id, ids );
@@ -236,7 +239,7 @@ function choice( field: ChoiceField, ctx: FieldContext, label: string, head: HTM
 			} );
 			list.append( h( 'label', { class: 'ffx-option', 'data-option': option.id }, input, media( option, ctx ), optionLabel ) );
 		} else {
-			const button = h( 'button', { type: 'button', class: 'ffx-option', 'data-option': option.id, 'aria-pressed': chosen().includes( option.id ) ? 'true' : 'false' }, media( option, ctx ), optionLabel );
+			const button = h( 'button', { type: 'button', class: 'ffx-option', 'data-option': option.id, 'aria-pressed': chosen().includes( option.id ) ? 'true' : 'false', 'aria-label': unnamed }, media( option, ctx ), optionLabel );
 			button.addEventListener( 'click', () => {
 				ctx.set( field.id, [ option.id ] );
 				list.querySelectorAll( 'button' ).forEach( ( b ) => b.setAttribute( 'aria-pressed', b === button ? 'true' : 'false' ) );
@@ -244,7 +247,7 @@ function choice( field: ChoiceField, ctx: FieldContext, label: string, head: HTM
 			} );
 			list.append( button );
 		}
-	}
+	} );
 	limit();
 	const el = h(
 		'fieldset',
@@ -808,8 +811,11 @@ function slider( field: SliderField, ctx: FieldContext, id: string, describedBy:
 	const show = ( n: number ): string => sliderText( p, n, unit );
 	const output = h( 'output', { class: 'ffx-slider-value', for: id, 'aria-live': 'polite' }, show( value ) );
 	const range = h( 'input', { id, type: 'range', class: 'ffx-range', min: p.min, max: p.max, step: p.step, value, 'aria-describedby': describedBy } );
-	// The chosen part of the track, drawn by the style.
-	const fill = ( n: number ): void => range.style.setProperty( '--ffx-fill', `${ ( ( n - p.min ) / ( p.max - p.min || 1 ) ) * 100 }%` );
+	// The chosen part of the track, drawn by the style, and the value as shown (with unit or text) for screen readers.
+	const fill = ( n: number ): void => {
+		range.style.setProperty( '--ffx-fill', `${ ( ( n - p.min ) / ( p.max - p.min || 1 ) ) * 100 }%` );
+		range.setAttribute( 'aria-valuetext', show( n ) );
+	};
 	fill( value );
 	const wrap = h( 'div', { class: 'ffx-slider' }, output, range );
 	let manual: HTMLInputElement | null = null;
@@ -873,6 +879,8 @@ function rangeSlider( field: SliderField, ctx: FieldContext, id: string, describ
 		}
 		ctx.set( field.id, [ a, b ] );
 		output.textContent = sliderText( p, a, unit ) + RANGE_SEPARATOR + sliderText( p, b, unit );
+		low.setAttribute( 'aria-valuetext', sliderText( p, a, unit ) );
+		high.setAttribute( 'aria-valuetext', sliderText( p, b, unit ) );
 		track.style.insetInlineStart = `${ ( ( a - p.min ) / span ) * 100 }%`;
 		track.style.insetInlineEnd = `${ 100 - ( ( b - p.min ) / span ) * 100 }%`;
 		manual.forEach( ( m, i ) => {

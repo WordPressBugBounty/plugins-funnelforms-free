@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyBranding, applyTheme, changedFromTheme, contrast, contrastProblems, parseColor, readableOn, setStyleToken, splitAlpha, THEME_LOOK_TOKENS, THEME_TOKENS, themeStyle, THEMES, toHex, withAlpha } from '../src/themes';
+import { applyBranding, applyTheme, changedFromTheme, contrast, contrastProblems, parseColor, readableOn, setMainFont, setStyleToken, splitAlpha, THEME_LOOK_TOKENS, THEME_TOKENS, themeStyle, THEMES, toHex, withAlpha } from '../src/themes';
 import { blank } from './blank';
 
 describe( 'themes', () => {
@@ -65,6 +65,13 @@ describe( 'themes', () => {
 		expect( doc.style.theme ).toBe( 'dark' );
 	} );
 
+	it( 'give the whole form the font chosen for it, questions and answers too', () => {
+		const doc = blank();
+		doc.style.tokens = { 'font.family': 'Poppins', 'font.heading': 'serif-modern', 'font.field': 'mono-code', 'font.size': '18' };
+		setMainFont( doc, 'Montserrat' );
+		expect( doc.style.tokens ).toEqual( { 'font.family': 'Montserrat', 'font.size': '18' } );
+	} );
+
 	it( 'set their whole look and leave sizes, alignment and the image alone', () => {
 		const doc = blank();
 		doc.style.tokens = { shadow: 'custom', 'radius.button': '3', 'font.size': '18', 'align.text': 'left', 'background.image': '12' };
@@ -81,6 +88,8 @@ describe( 'themes', () => {
 	it( 'warn about text that is hard to read', () => {
 		expect( contrastProblems( { 'color.text': '#999999' } ).map( ( p ) => p.pair ) ).toEqual( [ 'text' ] );
 		expect( contrastProblems( { 'color.background': 'transparent', 'color.text': 'inherit' } ) ).toEqual( [] );
+		// On a gradient the weaker of both colours counts.
+		expect( contrastProblems( { 'color.background': '#ffffff', 'color.backgroundEnd': '#3a3a3a', 'color.text': '#1d1b26', 'color.muted': '#1d1b26' } ).map( ( p ) => p.pair ) ).toEqual( [ 'text', 'muted' ] );
 		expect( readableOn( '#6a30f5' ) ).toBe( '#ffffff' );
 	} );
 

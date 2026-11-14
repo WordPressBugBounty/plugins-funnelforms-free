@@ -34,6 +34,13 @@ class ActionQueue {
 	public const SAFETY_NET = 300;
 
 	/**
+	 * Prefix of the channel of an action run again by hand (Entries → After sending): the job
+	 * runs the action with the settings the form has now, so a corrected webhook address or
+	 * recipient counts. Action IDs of the document cannot start with a colon.
+	 */
+	public const AGAIN = ':again:';
+
+	/**
 	 * Jobs of this request whose first attempt runs once the answer is out.
 	 *
 	 * @var int[]
@@ -61,6 +68,15 @@ class ActionQueue {
 	 */
 	public static function run( $job_id ): void {
 		ActionRunner::create()->run( (int) $job_id );
+	}
+
+	/**
+	 * The action ID of a job channel: the channel itself, without the prefix of a run by hand.
+	 *
+	 * @param string $channel Job channel.
+	 */
+	public static function action_id( string $channel ): string {
+		return str_starts_with( $channel, self::AGAIN ) ? substr( $channel, strlen( self::AGAIN ) ) : $channel;
 	}
 
 	/**

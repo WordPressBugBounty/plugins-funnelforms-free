@@ -596,6 +596,22 @@ describe( 'bottom bar', () => {
 		range.value = '80';
 		range.dispatchEvent( new Event( 'input', { bubbles: true } ) );
 		expect( range.style.getPropertyValue( '--ffx-fill' ) ).toBe( '80%' );
+		// Screen readers hear the value with its unit, as shown.
+		expect( range.getAttribute( 'aria-valuetext' ) ).toBe( '80 €' );
+	} );
+
+	it( 'names answers that have only an image by their number', () => {
+		const c = config();
+		const field = ( c.document.nodes[ 0 ] as { fields: Field[] } ).fields[ 0 ] as Extract<Field, { type: 'choice' }>;
+		field.options[ 1 ] = { id: 'o2', label: de( '' ), value: 'Auto', media: { kind: 'image', value: 'https://example.org/auto.jpg' } };
+		c.strings.answer_n = 'Antwort %d';
+		const root = document.createElement( 'div' );
+		document.body.append( root );
+		new FormApp( root, c, { url: 'https://example.org/', query: '', title: 'Seite' } );
+		const [ first, second ] = [ ...root.querySelectorAll( '.ffx-option' ) ];
+		expect( first?.hasAttribute( 'aria-label' ) ).toBe( false );
+		expect( second?.getAttribute( 'aria-label' ) ).toBe( 'Antwort 2' );
+		expect( second?.querySelector( 'img' )?.getAttribute( 'alt' ) ).toBe( '' );
 	} );
 } );
 
@@ -2020,6 +2036,32 @@ describe( 'tracking code', () => {
 		expect( win.ffxLead ).toBe( true );
 	} );
 
+	it( 'runs the code of custom code actions the plugin answers with, only where marketing is allowed', async () => {
+		const win = window as unknown as Record<string, unknown>;
+		const send = async ( consent: boolean ): Promise<HTMLElement> => {
+			delete win.ffxLead;
+			window.wp_has_consent = () => consent;
+			const root = mount();
+			await toContact( root );
+			type( $<HTMLInputElement>( root, '.ffx-contact-name input' ), 'Erika' );
+			type( $<HTMLInputElement>( root, '.ffx-contact-email input' ), 'erika@example.org' );
+			$<HTMLInputElement>( root, '.ffx-contact-consent input' ).click();
+			const code = [ "<script>window.ffxLead = 'erika@example.org';</script><img src=\"data:,\" alt=\"\">", 'window.ffxLead += \'!\';' ];
+			reply( '/entries', 201, { ok: true, entry: 9, eventId: 'ffx-1-9', end: { success: { show: true, html: '<p>Danke!</p>', image: null }, redirect: null }, code } );
+			$( root, '.ffx-button-submit' ).click();
+			await vi.advanceTimersByTimeAsync( 4000 );
+			return root;
+		};
+		const root = await send( true );
+		expect( win.ffxLead ).toBe( 'erika@example.org!' );
+		expect( root.querySelector( '.ffx-tracking img' ) ).not.toBeNull();
+		expect( root.textContent ).toContain( 'Danke!' );
+
+		await send( false );
+		expect( win.ffxLead ).toBeUndefined();
+		delete window.wp_has_consent;
+	} );
+
 	it( 'runs the code only where marketing is allowed', () => {
 		const base = config();
 		const step = ( base.document.nodes as Array<{ id: string; tracking?: Record<string, string> }> ).find( ( n ) => n.id === 'n2' ) as { tracking?: Record<string, string> };
@@ -2140,8 +2182,19 @@ describe( 'form statistics', () => {
 		clickOption( root, 'Immobilie' );
 		await vi.advanceTimersByTimeAsync( 1500 );
 		// The answer goes with it as option id, once: going back and choosing again counts nothing more.
-		// The step names the node it came from.
-		expect( events()[ 1 ] ).toEqual( { sid, events: [ { event: 'start', step: '' }, { event: 'answer', step: 'q1', variant: 'o1' }, { event: 'step', step: 'n2', variant: 'n1' } ] } );
+		// The step names the node it came from. The seconds on each step count once, from the first
+		// view of the step; going back is counted on the step the visitor left.
+		expect( events()[ 1 ] ).toEqual( {
+			sid,
+			events: [
+				{ event: 'start', step: '' },
+				{ event: 'answer', step: 'q1', variant: 'o1' },
+				{ event: 'time', step: 'n1', variant: '2' },
+				{ event: 'step', step: 'n2', variant: 'n1' },
+				{ event: 'back', step: 'n2' },
+				{ event: 'time', step: 'n2', variant: '0' },
+			],
+		} );
 		expect( events() ).toHaveLength( 2 );
 	} );
 
@@ -2331,6 +2384,8 @@ describe( 'popups', () => {
 		const popup = document.querySelector( 'dialog.ffx-popup' ) as HTMLDialogElement;
 		expect( popup.querySelector( '.ffx-question' )?.firstChild?.textContent ).toBe( 'Wofür?' );
 		expect( popup.querySelector( '.ffx-popup-close' )?.getAttribute( 'aria-label' ) ).toBe( 'Schließen' );
+		// Named by the first question, without the star and the hidden "required".
+		expect( popup.getAttribute( 'aria-label' ) ).toBe( 'Wofür?' );
 		( popup.querySelector( '.ffx-popup-close' ) as HTMLButtonElement ).click();
 		expect( document.querySelector( '.ffx-popup' ) ).toBeNull();
 		expect( mountAll() ).toHaveLength( 0 );
@@ -2580,6 +2635,16 @@ describe( 'answers', () => {
 		{ id: 'o2', label: de( 'Grün' ), value: 'gruen' },
 		{ id: 'o3', label: de( 'Blau' ), value: 'blau' },
 	];
+
+	it( 'cuts images that fill their answer to the chosen format', () => {
+		const look = { multiple: false, layout: { desktop: 'grid' as const, mobile: 'grid' as const }, hideIcons: false, imageFull: true };
+		expect( $( withQuestion( { options: three, props: look } ), '.ffx-options' ).className ).toBe( 'ffx-options ffx-desktop-grid ffx-mobile-grid ffx-image-full' );
+		for ( const [ ratio, name ] of [ [ '1:1', 'square' ], [ '16:9', 'wide' ], [ 'auto', 'auto' ] ] as const ) {
+			expect( $( withQuestion( { options: three, props: { ...look, imageRatio: ratio } } ), '.ffx-options' ).classList.contains( `ffx-image-${ name }` ) ).toBe( true );
+		}
+		// Without "fill the answer" the format does nothing.
+		expect( $( withQuestion( { options: three, props: { ...look, imageFull: undefined, imageRatio: '1:1' } } ), '.ffx-options' ).className ).not.toContain( 'ffx-image' );
+	} );
 
 	it( 'lays out the answers and keeps the number of choices within the limits', () => {
 		const root = withQuestion( { options: three, props: { multiple: true, layout: { desktop: 'grid', mobile: 'grid' }, hideIcons: false, minChoices: 2, maxChoices: 2, columns: { desktop: 3, mobile: 1 }, iconPosition: 'left', size: 'l', imageFull: true } } );

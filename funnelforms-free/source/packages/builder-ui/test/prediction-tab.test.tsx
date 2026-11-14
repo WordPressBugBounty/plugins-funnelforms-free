@@ -182,7 +182,7 @@ describe( 'the tab of the Predictive AI', () => {
 		expect( api.lastPrediction ).toHaveBeenCalledWith( 7 );
 		const page = container.querySelector( '.ffxb-predict-tab' ) as HTMLElement;
 		expect( page.textContent ).toContain( 'Test your form with 10,000 virtual visitors before real ones come.' );
-		expect( page.querySelector( '.ffxb-pai-quota' )?.textContent ).toContain( '14 of 20 behaviour analyses left this month' );
+		expect( page.querySelector( '.ffxb-pai-quota' )?.textContent ).toContain( '14 of 20 AI analyses left this month' );
 		expect( page.querySelector( '.ffxb-pai-step.is-active' )?.textContent ).toContain( 'Audience' );
 		// All 21 steps in the order of the form, in a list that scrolls.
 		const ready = [ ...page.querySelectorAll( '.ffxb-pai-ready__steps.is-long li' ) ].map( ( li ) => li.textContent );

@@ -195,6 +195,8 @@ export interface ChoiceField extends FieldBase {
 		size?: 's' | 'm' | 'l';
 		/** Images fill the width of their answer. */
 		imageFull?: boolean;
+		/** Format of images that fill their answer: 4:3 by default, or square, wide or as uploaded (auto). */
+		imageRatio?: 'auto' | '1:1' | '16:9';
 		/** See PREFILL_STEP_TYPES (form-core): option ids, values or labels, comma-separated for several. */
 		prefillFromQuery?: string;
 	};
@@ -739,7 +741,19 @@ export type Action = { id: string; on: 'submit' | 'paid'; node?: string; when?: 
 	| { kind: 'conversion'; config: ConversionConfig }
 	| { kind: 'googleAds'; config: GoogleAdsConfig }
 	| { kind: 'aiCall'; config: AiCallConfig }
+	| { kind: 'customCode'; config: CustomCodeConfig }
 );
+
+/**
+ * Custom code after sending (Funnelforms Pro): HTML or JavaScript such as a tracking pixel that the
+ * visitor's browser runs once the entry is stored, as the thank-you page appears or before the
+ * redirect. The plugin fills in the placeholders ({{field:<key>}} and the mail tokens) as plain
+ * text without quotes or tags, sends the code only when the site allows custom code, and the
+ * runtime runs it only where marketing is allowed. Never queued on the server.
+ */
+export interface CustomCodeConfig {
+	code: string;
+}
 
 /**
  * AI Phone Agent (Funnelforms Pro): an agent of Funnelforms → AI Phone Agent calls the lead, only

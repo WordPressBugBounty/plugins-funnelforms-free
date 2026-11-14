@@ -8,7 +8,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import type { FormDocument } from '@funnelforms/form-schema';
 import type { FontFile, GoogleFont, MediaImage, SavedStyle } from '../api';
 import type { Recipe } from '../store';
-import { applySavedStyle, changedFromTheme, contrastProblems, effectiveTokens, setStyleToken, splitAlpha, toHex, withAlpha, type ContrastProblem, type ThemeToken } from '../themes';
+import { applySavedStyle, changedFromTheme, contrastProblems, effectiveTokens, setMainFont, setStyleToken, splitAlpha, toHex, withAlpha, type ContrastProblem, type ThemeToken } from '../themes';
 import { FONT_STACKS } from '../fonts';
 import { BrandingImport } from './BrandingImport';
 import { ColorField, ContrastChip, ImageColorDialog, type ColorTarget } from './ColorPick';
@@ -62,7 +62,7 @@ function fontName( value: string ): string {
 }
 
 /** Fonts of the site: uploaded files and the Google Fonts it can download (with those it has). */
-interface SiteFonts {
+export interface SiteFonts {
 	uploaded: FontFile[];
 	google: GoogleFont[];
 	addUploaded: ( font: FontFile ) => void;
@@ -74,7 +74,7 @@ interface SiteFonts {
  * one. With `sameAs` the first choice is "same as" another font (an empty value, the token is
  * removed).
  */
-function FontPicker( { label, font, onChange, sameAs, fonts }: { label: string; font: string; onChange: ( value: string ) => void; sameAs?: string; fonts: SiteFonts } ) {
+export function FontPicker( { label, font, onChange, sameAs, fonts }: { label: string; font: string; onChange: ( value: string ) => void; sameAs?: string; fonts: SiteFonts } ) {
 	const { api, readOnly } = useEnv();
 	const fileInput = useRef<HTMLInputElement>( null );
 	const [ busy, setBusy ] = useState( false );
@@ -212,7 +212,7 @@ function GoogleFontsDialog( { fonts, current, onClose, onPick }: { fonts: SiteFo
 }
 
 /** Fonts of the site, loaded once for all font pickers. */
-function useSiteFonts(): SiteFonts {
+export function useSiteFonts(): SiteFonts {
 	const { api } = useEnv();
 	const [ uploaded, setUploaded ] = useState<FontFile[]>( [] );
 	const [ google, setGoogle ] = useState<GoogleFont[]>( [] );
@@ -325,7 +325,7 @@ export function DesignInspector( { doc }: { doc: FormDocument } ) {
 				</Notice>
 			) : null }
 			<StepsAndProgress doc={ doc } token={ token } />
-			<FontPicker label={ __( 'Font', 'funnelforms-pro' ) } font={ font } onChange={ ( v ) => token( 'font.family', v ) } fonts={ fonts } />
+			<FontPicker label={ __( 'Font', 'funnelforms-pro' ) } font={ font } onChange={ ( v ) => change( ( d ) => setMainFont( d, v ), 'style:font.family' ) } fonts={ fonts } />
 			<p className="ffxb-hint">{ __( 'Fonts are hosted on your site, so visitors load nothing from other servers. Check that the font\'s license allows use on websites.', 'funnelforms-pro' ) }</p>
 			<Range
 				label={ __( 'Corners', 'funnelforms-pro' ) }

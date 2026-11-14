@@ -29,6 +29,7 @@ use Funnelforms\Infrastructure\Repository\EntryRepository;
 use Funnelforms\Infrastructure\Repository\FileRepository;
 use Funnelforms\Infrastructure\Repository\FormRepository;
 use Funnelforms\Integrations\Akismet;
+use Funnelforms\Frontend\TrackingCode;
 use Funnelforms\Frontend\UiLocale;
 
 defined( 'ABSPATH' ) || exit;
@@ -198,9 +199,14 @@ final class SubmitEntry {
 				'end'     => (string) ( $submission->end ?? '' ),
 			),
 		);
-		$conversions = self::browser_conversions( $doc->browser_actions( $walk['contact'] ), $submission );
+		$browser     = $doc->browser_actions( $walk['contact'] );
+		$conversions = self::browser_conversions( $browser, $submission );
 		if ( array() !== $conversions ) {
 			$out['conversions'] = $conversions;
+		}
+		$code = self::browser_code( $browser, $submission );
+		if ( array() !== $code ) {
+			$out['code'] = $code;
 		}
 		if ( null !== $amounts && null !== $payment ) {
 			// The browser goes on to the payment page; the end follows when the visitor comes back.
@@ -829,7 +835,7 @@ final class SubmitEntry {
 		$eu   = PrivacyMode::eu();
 		$open = PrivacyMode::open();
 		foreach ( $actions as $action ) {
-			if ( isset( $action['when'] ) && is_array( $action['when'] ) && ! $submission->meets( $action['when'] ) ) {
+			if ( 'googleAds' !== $action['kind'] || ( isset( $action['when'] ) && is_array( $action['when'] ) && ! $submission->meets( $action['when'] ) ) ) {
 				continue;
 			}
 			$config = $action['config'];
@@ -846,6 +852,33 @@ final class SubmitEntry {
 				'requireConsent' => $eu || ( ! $open && (bool) $config['requireConsent'] ),
 				'enhanced'       => ! empty( $config['enhanced'] ),
 			);
+		}
+		return $out;
+	}
+
+	/**
+	 * Code of "Custom code" actions (Funnelforms Pro) for the browser to run after the submit, with
+	 * the placeholders filled in as plain text (Templates::SCRIPT). Only when an administrator
+	 * allowed custom code on the site (TrackingCode); the runtime runs it only where marketing is
+	 * allowed. Saving such code needs unfiltered_html (SensitiveChanges).
+	 *
+	 * @param array<int,array<string,mixed>> $actions    Browser actions of the submit.
+	 * @param Submission                     $submission Submission.
+	 * @return string[]
+	 */
+	private static function browser_code( array $actions, Submission $submission ): array {
+		if ( Edition::is_free() || ! TrackingCode::allowed() ) {
+			return array();
+		}
+		$out = array();
+		foreach ( $actions as $action ) {
+			if ( 'customCode' !== $action['kind'] || ( isset( $action['when'] ) && is_array( $action['when'] ) && ! $submission->meets( $action['when'] ) ) ) {
+				continue;
+			}
+			$code = (string) ( $action['config']['code'] ?? '' );
+			if ( '' !== trim( $code ) ) {
+				$out[] = Templates::render( $code, $submission, Templates::SCRIPT );
+			}
 		}
 		return $out;
 	}

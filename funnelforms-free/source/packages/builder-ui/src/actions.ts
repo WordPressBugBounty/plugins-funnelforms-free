@@ -7,7 +7,7 @@ import { consentFields, phoneFields } from './aicall';
 import { newId } from './document';
 
 /** Kinds the builder creates. */
-export const ACTION_KINDS = [ 'email', 'autoresponder', 'webhook', 'crm', 'chat', 'sms', 'whatsapp', 'aiCall', 'conversion', 'googleAds' ] as const;
+export const ACTION_KINDS = [ 'email', 'autoresponder', 'webhook', 'crm', 'chat', 'sms', 'whatsapp', 'aiCall', 'conversion', 'googleAds', 'customCode' ] as const;
 
 export type ActionKind = ( typeof ACTION_KINDS )[ number ];
 
@@ -143,6 +143,8 @@ export function createAction( doc: FormDocument, kind: ActionKind, texts: Partia
 			return { id, on: 'submit', kind, config: { platform: 'meta', connectionRef: '', eventName: '', requireConsent: true } };
 		case 'googleAds':
 			return { id, on: 'submit', kind, config: { sendTo: '', requireConsent: true } };
+		case 'customCode':
+			return { id, on: 'submit', kind, config: { code: '' } };
 	}
 }
 
@@ -230,7 +232,7 @@ export function deliveryWarnings( doc: FormDocument ): Array<'nobody' | 'recipie
 }
 
 /** What is still missing for an action to work; empty when it is complete. */
-export function actionGaps( action: Action, locale: string ): Array<'recipient' | 'url' | 'connection' | 'template' | 'sendTo' | 'agent' | 'consent'> {
+export function actionGaps( action: Action, locale: string ): Array<'recipient' | 'url' | 'connection' | 'template' | 'sendTo' | 'agent' | 'consent' | 'code'> {
 	const value = ( text: Text | undefined ): string => ( text?.[ locale ] ?? Object.values( text ?? {} )[ 0 ] ?? '' ).trim();
 	switch ( action.kind ) {
 		case 'email':
@@ -258,6 +260,8 @@ export function actionGaps( action: Action, locale: string ): Array<'recipient' 
 			];
 		case 'googleAds':
 			return ADS_SEND_TO.test( action.config.sendTo ) ? [] : [ 'sendTo' ];
+		case 'customCode':
+			return '' === action.config.code.trim() ? [ 'code' ] : [];
 		default:
 			return [];
 	}

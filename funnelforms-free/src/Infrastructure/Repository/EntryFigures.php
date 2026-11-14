@@ -120,22 +120,23 @@ final class EntryFigures {
 	 * @param int      $limit    Most entries.
 	 * @param callable $callback Gets meta and data, decoded (arrays).
 	 * @param bool     $data     Read data as well (else it is empty).
+	 * @param bool     $stage    Hand over the lead stage too, as third argument.
 	 * @return int Entries handed over.
 	 */
-	public function each( int $form_id, string $from, string $to, int $limit, callable $callback, bool $data = true ): int {
+	public function each( int $form_id, string $from, string $to, int $limit, callable $callback, bool $data = true, bool $stage = false ): int {
 		global $wpdb;
 		$where = $this->where( $form_id, $from, $to, true );
 		$last  = PHP_INT_MAX;
 		$seen  = 0;
 		while ( $seen < $limit ) {
 			$rows = (array) $wpdb->get_results(
-				$wpdb->prepare( 'SELECT id, meta' . ( $data ? ', data' : '' ) . ' FROM %i WHERE ' . self::WHERE . ' AND id < %d ORDER BY id DESC LIMIT %d', array_merge( array( Schema::table( 'entries' ) ), $where, array( $last, min( self::BATCH, $limit - $seen ) ) ) ),
+				$wpdb->prepare( 'SELECT id, meta' . ( $data ? ', data' : '' ) . ( $stage ? ', lead_status' : '' ) . ' FROM %i WHERE ' . self::WHERE . ' AND id < %d ORDER BY id DESC LIMIT %d', array_merge( array( Schema::table( 'entries' ) ), $where, array( $last, min( self::BATCH, $limit - $seen ) ) ) ),
 				ARRAY_A
 			);
 			foreach ( $rows as $row ) {
 				$meta = json_decode( (string) $row['meta'], true );
 				$more = json_decode( (string) ( $row['data'] ?? '' ), true );
-				$callback( is_array( $meta ) ? $meta : array(), is_array( $more ) ? $more : array() );
+				$callback( is_array( $meta ) ? $meta : array(), is_array( $more ) ? $more : array(), (string) ( $row['lead_status'] ?? '' ) );
 				$last = (int) $row['id'];
 				++$seen;
 			}

@@ -19,8 +19,9 @@ defined( 'ABSPATH' ) || exit;
  *
  * Conditions are taken over as they were meant. Where the SaaS runtime never matched (operators
  * it did not know: not_contains, is_empty, is_not_empty), the path now works; the converter notes
- * it. Conditions on ranges (two-handle sliders, periods of dates) and on the region of an address
- * have no counterpart and return null.
+ * it. A range of postal codes becomes the beginnings all its codes share ("80000 to 89999":
+ * starts with 8). Conditions on ranges of two-handle sliders and of periods of dates and on the
+ * region of an address have no counterpart and return null.
  *
  * Pure PHP without WordPress.
  */
@@ -49,6 +50,12 @@ final class Ff4Conditions {
 		'equals'  => 'eq',
 		'greater' => 'gt',
 	);
+
+	/**
+	 * A range of postal codes becomes at most this many beginnings. Codes of five digits never
+	 * need more than 80 ("00001 to 99998"); longer codes that need more are left out.
+	 */
+	public const MAX_PREFIXES = 100;
 
 	/** Parts of an address. */
 	private const PARTS = array(
@@ -193,10 +200,75 @@ final class Ff4Conditions {
 	 */
 	private static function address( array $condition, string $id, string $type ): ?array {
 		$part = self::PARTS[ $type ] ?? null;
-		if ( null === $part || 'range' === ( $condition['operator'] ?? '' ) ) {
+		if ( null === $part ) {
 			return null;
 		}
+		if ( 'range' === ( $condition['operator'] ?? '' ) ) {
+			return 'zip' === $part ? self::zip_range( $condition, $id ) : null;
+		}
 		return self::text( $condition, $id, $part );
+	}
+
+	/**
+	 * Postal codes from one to another. The SaaS compared the codes as texts, which for codes of
+	 * the same number of digits is their order as numbers; such a range is the codes that start
+	 * with one of a few beginnings. Other ranges (letters, different lengths, or too many
+	 * beginnings) return null.
+	 *
+	 * @param array<string,mixed> $condition Condition.
+	 * @param string              $id        Field id.
+	 * @return array<string,mixed>|null
+	 */
+	private static function zip_range( array $condition, string $id ): ?array {
+		$from = is_scalar( $condition['value'] ?? null ) ? trim( (string) $condition['value'] ) : '';
+		$to   = is_scalar( $condition['maxValue'] ?? null ) ? trim( (string) $condition['maxValue'] ) : '';
+		if ( '' === $from || strlen( $from ) !== strlen( $to ) || strlen( $from ) > 10 || ! ctype_digit( $from ) || ! ctype_digit( $to ) || strcmp( $from, $to ) > 0 ) {
+			return null;
+		}
+		$prefixes = self::prefixes( $from, $to, '' );
+		if ( count( $prefixes ) > self::MAX_PREFIXES ) {
+			return null;
+		}
+		$rules = array();
+		foreach ( $prefixes as $prefix ) {
+			if ( '' === $prefix ) {
+				// Every code: the postal code is filled in.
+				return array(
+					'field' => $id,
+					'op'    => 'filled',
+					'part'  => 'zip',
+				);
+			}
+			$rules[] = array(
+				'field' => $id,
+				'op'    => strlen( $prefix ) === strlen( $from ) ? 'equalsText' : 'startsWith',
+				'value' => $prefix,
+				'part'  => 'zip',
+			);
+		}
+		return 1 === count( $rules ) ? $rules[0] : array( 'any' => $rules );
+	}
+
+	/**
+	 * The fewest beginnings that together are the codes from one to another of the same length.
+	 *
+	 * @param string $from   What is left of the first code.
+	 * @param string $to     What is left of the last code.
+	 * @param string $prefix The digits both share so far.
+	 * @return string[]
+	 */
+	private static function prefixes( string $from, string $to, string $prefix ): array {
+		$rest = strlen( $from );
+		if ( str_repeat( '0', $rest ) === $from && str_repeat( '9', $rest ) === $to ) {
+			return array( $prefix );
+		}
+		$out = array();
+		for ( $digit = (int) $from[0]; $digit <= (int) $to[0]; $digit++ ) {
+			$low  = (int) $from[0] === $digit ? substr( $from, 1 ) : str_repeat( '0', $rest - 1 );
+			$high = (int) $to[0] === $digit ? substr( $to, 1 ) : str_repeat( '9', $rest - 1 );
+			array_push( $out, ...self::prefixes( $low, $high, $prefix . $digit ) );
+		}
+		return $out;
 	}
 
 	/**

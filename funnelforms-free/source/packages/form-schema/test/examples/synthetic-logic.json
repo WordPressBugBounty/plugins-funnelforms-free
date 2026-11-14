@@ -1,0 +1,438 @@
+{
+    "schemaVersion": 1,
+    "id": "frm_1000",
+    "title": "Test form",
+    "locales": {
+        "default": "en_US",
+        "available": [
+            "en_US"
+        ]
+    },
+    "start": "n0_0",
+    "nodes": [
+        {
+            "id": "n0_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q1",
+                    "key": "q1",
+                    "label": {
+                        "en_US": "Question 1"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 1
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q1_o0",
+                            "label": {
+                                "en_US": "Answer 0"
+                            },
+                            "value": "Answer 0"
+                        },
+                        {
+                            "id": "q1_o1",
+                            "label": {
+                                "en_US": "Answer 1"
+                            },
+                            "value": "Answer 1"
+                        },
+                        {
+                            "id": "q1_o2",
+                            "label": {
+                                "en_US": "Answer 2"
+                            },
+                            "value": "Answer 2"
+                        },
+                        {
+                            "id": "q1_o3",
+                            "label": {
+                                "en_US": "Answer 3"
+                            },
+                            "value": "Answer 3"
+                        },
+                        {
+                            "id": "q1_o4",
+                            "label": {
+                                "en_US": "Answer 4"
+                            },
+                            "value": "Answer 4"
+                        }
+                    ],
+                    "props": {
+                        "multiple": false,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 1
+            }
+        },
+        {
+            "id": "n1_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q2",
+                    "key": "q2",
+                    "label": {
+                        "en_US": "Question 2"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 2
+                    },
+                    "type": "dropdown",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q2_o0",
+                            "label": {
+                                "en_US": "Same"
+                            },
+                            "value": "a"
+                        },
+                        {
+                            "id": "q2_o1",
+                            "label": {
+                                "en_US": "Other"
+                            },
+                            "value": "b"
+                        },
+                        {
+                            "id": "q2_o2",
+                            "label": {
+                                "en_US": "Same"
+                            },
+                            "value": "c"
+                        }
+                    ],
+                    "props": {}
+                }
+            ],
+            "legacy": {
+                "questionId": 2
+            }
+        },
+        {
+            "id": "n2_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q3",
+                    "key": "q3",
+                    "label": {
+                        "en_US": "Question 3"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 3
+                    },
+                    "type": "slider",
+                    "required": true,
+                    "props": {
+                        "min": 0,
+                        "max": 100,
+                        "step": 1,
+                        "start": 0,
+                        "unit": {
+                            "text": {
+                                "en_US": ""
+                            },
+                            "position": "after"
+                        },
+                        "thousandsSeparator": true,
+                        "manualInput": {
+                            "enabled": false,
+                            "label": {
+                                "en_US": ""
+                            }
+                        }
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 3
+            }
+        },
+        {
+            "id": "n3_0",
+            "type": "step",
+            "fields": [
+                {
+                    "id": "q4",
+                    "key": "q4",
+                    "label": {
+                        "en_US": "Question 4"
+                    },
+                    "description": {
+                        "en_US": ""
+                    },
+                    "legacy": {
+                        "questionId": 4
+                    },
+                    "type": "choice",
+                    "required": true,
+                    "options": [
+                        {
+                            "id": "q4_o0",
+                            "label": {
+                                "en_US": "A"
+                            },
+                            "value": "A"
+                        },
+                        {
+                            "id": "q4_o1",
+                            "label": {
+                                "en_US": "B"
+                            },
+                            "value": "B"
+                        },
+                        {
+                            "id": "q4_o2",
+                            "label": {
+                                "en_US": "C"
+                            },
+                            "value": "C"
+                        }
+                    ],
+                    "props": {
+                        "multiple": true,
+                        "layout": {
+                            "desktop": "grid",
+                            "mobile": "list"
+                        },
+                        "hideIcons": false
+                    }
+                }
+            ],
+            "legacy": {
+                "questionId": 4
+            }
+        },
+        {
+            "id": "n4_0",
+            "type": "end",
+            "success": null,
+            "redirect": {
+                "url": {
+                    "en_US": "https://a.test"
+                },
+                "newTab": false,
+                "delayMs": 0,
+                "params": []
+            }
+        },
+        {
+            "id": "n4_1",
+            "type": "end",
+            "success": null,
+            "redirect": {
+                "url": {
+                    "en_US": "https://b.test"
+                },
+                "newTab": false,
+                "delayMs": 0,
+                "params": []
+            }
+        },
+        {
+            "id": "n4_2",
+            "type": "end",
+            "success": null,
+            "redirect": {
+                "url": {
+                    "en_US": "https://c.test"
+                },
+                "newTab": false,
+                "delayMs": 0,
+                "params": []
+            }
+        },
+        {
+            "id": "n4_3",
+            "type": "end",
+            "success": null,
+            "redirect": {
+                "url": {
+                    "en_US": "https://d.test"
+                },
+                "newTab": false,
+                "delayMs": 0,
+                "params": []
+            }
+        }
+    ],
+    "edges": [
+        {
+            "id": "e_n0_0_0",
+            "from": "n0_0",
+            "to": "n4_0",
+            "when": {
+                "field": "q1",
+                "op": "selected",
+                "value": "q1_o0"
+            }
+        },
+        {
+            "id": "e_n0_0_1",
+            "from": "n0_0",
+            "to": "n4_1",
+            "when": {
+                "field": "q1",
+                "op": "selected",
+                "value": "q1_o1"
+            }
+        },
+        {
+            "id": "e_n0_0_2",
+            "from": "n0_0",
+            "to": "n4_2",
+            "when": {
+                "any": [
+                    {
+                        "field": "q1",
+                        "op": "selected",
+                        "value": "q1_o3"
+                    },
+                    {
+                        "field": "q1",
+                        "op": "selected",
+                        "value": "q1_o4"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "e_n0_0_3",
+            "from": "n0_0",
+            "to": "n1_0",
+            "default": true
+        },
+        {
+            "id": "e_n1_0_0",
+            "from": "n1_0",
+            "to": "n4_3",
+            "when": {
+                "any": [
+                    {
+                        "field": "q2",
+                        "op": "selected",
+                        "value": "q2_o0"
+                    },
+                    {
+                        "field": "q2",
+                        "op": "selected",
+                        "value": "q2_o2"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "e_n1_0_1",
+            "from": "n1_0",
+            "to": "n2_0",
+            "default": true
+        },
+        {
+            "id": "e_n2_0_0",
+            "from": "n2_0",
+            "to": "n4_2",
+            "when": {
+                "field": "q3",
+                "op": "equalsText",
+                "value": "0"
+            }
+        },
+        {
+            "id": "e_n2_0_1",
+            "from": "n2_0",
+            "to": "n4_1",
+            "when": {
+                "field": "q3",
+                "op": "lt",
+                "value": 10,
+                "number": "int"
+            }
+        },
+        {
+            "id": "e_n2_0_2",
+            "from": "n2_0",
+            "to": "n4_0",
+            "when": {
+                "field": "q3",
+                "op": "gt",
+                "value": 50,
+                "number": "int"
+            }
+        },
+        {
+            "id": "e_n2_0_3",
+            "from": "n2_0",
+            "to": "n3_0",
+            "default": true
+        },
+        {
+            "id": "e_n3_0_0",
+            "from": "n3_0",
+            "to": "n4_1",
+            "when": {
+                "field": "q4",
+                "op": "selectedOnly",
+                "value": "q4_o1"
+            }
+        },
+        {
+            "id": "e_n3_0_1",
+            "from": "n3_0",
+            "to": "n4_0",
+            "default": true
+        }
+    ],
+    "calculations": [],
+    "actions": [],
+    "style": {
+        "preset": "default",
+        "tokens": {}
+    },
+    "settings": {
+        "uiLocale": "en_US",
+        "progressBar": {
+            "show": true
+        },
+        "loadingAnimation": false,
+        "scrollToTop": {
+            "desktop": false,
+            "mobile": true
+        },
+        "rtl": false,
+        "autoHeight": false,
+        "iconFont": false,
+        "savePartialEntries": false
+    },
+    "layout": {
+        "nodes": {}
+    },
+    "meta": {
+        "legacy": {
+            "formId": 1000,
+            "migratorVersion": 1,
+            "notes": []
+        }
+    }
+}

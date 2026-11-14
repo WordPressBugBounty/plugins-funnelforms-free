@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { localeTag } from '@funnelforms/form-core';
 import { setEdition, type EditionCatalog } from './edition';
 import { setPrivacy } from './privacy';
 import { setCode, type CodeSetting } from './code';
@@ -97,7 +98,7 @@ function start(): void {
 		// Inside the frame of the statistics page (StatsPage::free_form()), like the import screens.
 		createRoot( element ).render(
 			<div className="ffxb ffxb--embedded">
-				<FormStatsScreen api={ api } formId={ config.formId } published={ true === config.published } canvasUrl={ config.canvasUrl } locale={ config.userLocale } />
+				<FormStatsScreen api={ api } formId={ config.formId } published={ true === config.published } canvasUrl={ config.canvasUrl } locale={ localeTag( config.userLocale ) } />
 			</div>
 		);
 		return;

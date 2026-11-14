@@ -44,6 +44,10 @@ final class Ff4Converter {
 	/** Field types of Funnelforms 4 that become a contact step. */
 	private const CONTACT = 'submit';
 
+	/** Width of a card on the canvas of the builder and the room cards keep between them (builder.css). */
+	private const CARD_WIDTH = 240;
+	private const CARD_GAP   = 40;
+
 	/** Contact form of Funnelforms 4 before its fields were saved (SubmitFieldPreview.tsx). */
 	private const DEFAULT_CONTACT_FIELDS = array(
 		array(
@@ -415,6 +419,7 @@ final class Ff4Converter {
 			}
 			$edges[] = $edge;
 		};
+		$in_parts = array();
 		foreach ( $converted as $node_id => $id ) {
 			$node = $by_id[ $id ];
 			if ( 'contact' === $node['type'] ) {
@@ -427,7 +432,7 @@ final class Ff4Converter {
 			$field    = $node['fields'][0];
 			$ff4_type = (string) ( $this->fields[ (string) ( $logic_nodes[ $node_id ]['field_id'] ?? '' ) ]['type'] ?? '' );
 			$default  = null;
-			foreach ( $edges_from[ $node_id ] ?? array() as $edge ) {
+			foreach ( self::by_answer( $edges_from[ $node_id ] ?? array() ) as $edge ) {
 				$condition = $edge['condition'] ?? null;
 				if ( is_string( $condition ) ) {
 					$condition = json_decode( $condition, true );
@@ -449,12 +454,24 @@ final class Ff4Converter {
 					$this->notes[] = 'ff4_condition_now_works:' . DocumentBuilder::plain( $this->label( $field ) );
 				}
 				$add_edge( $id, $to, $when );
+				if ( 'address' === $field['type'] && ! empty( $field['props']['combined'] ) && self::asks_part( $when ) ) {
+					$in_parts[ $id ] = $this->label( $field );
+				}
 			}
 			if ( null !== $default ) {
 				$to = $resolve( (string) ( $default['target_node_id'] ?? '' ) );
 				if ( null !== $to ) {
 					$add_edge( $id, $to, null );
 				}
+			}
+		}
+
+		// A path that asks for the postal code, the city or the country needs the address in its
+		// parts: one line for the whole address has none, so such a path would never be taken.
+		foreach ( $nodes as $i => $n ) {
+			if ( isset( $in_parts[ $n['id'] ] ) ) {
+				$nodes[ $i ]['fields'][0]['props']['combined'] = false;
+				$this->notes[]                                 = 'ff4_address_in_parts:' . DocumentBuilder::plain( $in_parts[ $n['id'] ] );
 			}
 		}
 
@@ -537,7 +554,7 @@ final class Ff4Converter {
 			'actions'       => $this->actions( $snapshot, $nodes, $actions ),
 			'style'         => $design['style'],
 			'settings'      => $doc_settings,
-			'layout'        => array( 'nodes' => $layout ),
+			'layout'        => array( 'nodes' => self::spread( $layout, $nodes, $edges ) ),
 			'meta'          => array(
 				'import' => array(
 					'source'   => 'ff4',
@@ -1833,6 +1850,121 @@ final class Ff4Converter {
 	 */
 	private static function rows( $rows ): array {
 		return is_array( $rows ) ? array_values( array_filter( $rows, 'is_array' ) ) : array();
+	}
+
+	/**
+	 * Positions of the cards, moved apart where they would lie on one another. Funnelforms 4 drew
+	 * its cards wider and much lower (a thin line per answer); a card here shows a row per answer
+	 * and per rule, so cards that stood below one another there would overlap. From top to
+	 * bottom, each card moves down until it is clear of the cards placed before it. A canvas
+	 * without overlaps stays as it was drawn.
+	 *
+	 * @param array<string,array{x:int,y:int}> $layout Positions by node id.
+	 * @param array<int,array<string,mixed>>   $nodes  Nodes of the document.
+	 * @param array<int,array<string,mixed>>   $edges  Edges of the document.
+	 * @return array<string,array{x:int,y:int}>
+	 */
+	private static function spread( array $layout, array $nodes, array $edges ): array {
+		$heights = array();
+		foreach ( $nodes as $node ) {
+			$heights[ $node['id'] ] = self::card_height( $node, $edges );
+		}
+		$ids = array_keys( $layout );
+		usort( $ids, static fn( string $a, string $b ): int => array( $layout[ $a ]['y'], $layout[ $a ]['x'] ) <=> array( $layout[ $b ]['y'], $layout[ $b ]['x'] ) );
+		$placed = array();
+		foreach ( $ids as $id ) {
+			$x = $layout[ $id ]['x'];
+			$y = $layout[ $id ]['y'];
+			do {
+				$moved = false;
+				foreach ( $placed as $other ) {
+					$top    = $layout[ $other ]['y'];
+					$bottom = $top + ( $heights[ $other ] ?? 0 ) + self::CARD_GAP;
+					if ( abs( $x - $layout[ $other ]['x'] ) < self::CARD_WIDTH + self::CARD_GAP / 2 && $y < $bottom && $y + ( $heights[ $id ] ?? 0 ) + self::CARD_GAP > $top ) {
+						$y     = $bottom;
+						$moved = true;
+					}
+				}
+			} while ( $moved );
+			$layout[ $id ]['y'] = $y;
+			$placed[]           = $id;
+		}
+		return $layout;
+	}
+
+	/**
+	 * About how high the builder draws the card of a node: its head and a row per output (rule,
+	 * answer, "Otherwise") or per contact field. Rather too high than too low.
+	 *
+	 * @param array<string,mixed>            $node  Node of the document.
+	 * @param array<int,array<string,mixed>> $edges Edges of the document.
+	 */
+	private static function card_height( array $node, array $edges ): int {
+		if ( 'end' === $node['type'] ) {
+			return 120;
+		}
+		if ( 'contact' === $node['type'] ) {
+			return 150 + 50 * count( $node['fields'] ?? array() );
+		}
+		$field   = $node['fields'][0] ?? array();
+		$options = is_array( $field['options'] ?? null ) ? count( $field['options'] ) : 0;
+		$rows    = 1 + $options;
+		foreach ( $edges as $edge ) {
+			$when = $edge['when'] ?? null;
+			// The path of one answer is the row of that answer; every other condition is a row of its own.
+			if ( $edge['from'] === $node['id'] && is_array( $when ) && ! ( 0 !== $options && 'selected' === ( $when['op'] ?? '' ) ) ) {
+				++$rows;
+			}
+		}
+		return 130 + 36 * $rows;
+	}
+
+	/**
+	 * Whether a condition asks for a part of an address (postal code, city, country).
+	 *
+	 * @param array<string,mixed> $when Condition of the document.
+	 */
+	private static function asks_part( array $when ): bool {
+		foreach ( $when['all'] ?? $when['any'] ?? array() as $inner ) {
+			if ( is_array( $inner ) && self::asks_part( $inner ) ) {
+				return true;
+			}
+		}
+		return isset( $when['part'] ) && 'address' !== $when['part'];
+	}
+
+	/**
+	 * The paths of a node, those from the answers of a choice in the order of the answers. The SaaS
+	 * loaded the paths in no fixed order, and one answer takes one path whatever the order; so in
+	 * the builder the paths stand as the card of the step lists its answers. Paths with other
+	 * conditions keep the order they came in.
+	 *
+	 * @param array<int,array<string,mixed>> $edges Edges from one node.
+	 * @return array<int,array<string,mixed>>
+	 */
+	private static function by_answer( array $edges ): array {
+		$keys = array();
+		foreach ( $edges as $i => $edge ) {
+			$condition = $edge['condition'] ?? null;
+			if ( is_string( $condition ) ) {
+				$condition = json_decode( $condition, true );
+			}
+			if ( empty( $condition ) ) {
+				// Without a condition: after the answers, as before.
+				$keys[] = array( PHP_INT_MAX, $i );
+				continue;
+			}
+			if ( ! is_array( $condition ) || isset( $condition['operator'] ) || ! is_numeric( $condition['optionIndex'] ?? null ) ) {
+				return $edges;
+			}
+			$keys[] = array( (int) $condition['optionIndex'], $i );
+		}
+		usort( $keys, static fn( array $a, array $b ): int => $a <=> $b );
+		$out = array();
+		foreach ( $keys as $key ) {
+			$out[] = $edges[ $key[1] ];
+		}
+		return $out;
 	}
 
 	/**

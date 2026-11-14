@@ -443,6 +443,7 @@ export class FormApp {
 		}
 		this.current = id;
 		this.visit.enter( id );
+		this.stats.enter( id, node.type !== 'end' );
 		this.revealed = null;
 		this.formError.hidden = true;
 		this.resumeBox.hidden = true;
@@ -860,6 +861,7 @@ export class FormApp {
 		while ( this.history.length && this.movesOnAlone( previous ) ) {
 			previous = this.history.pop() as string;
 		}
+		this.stats.back();
 		this.push( { event: 'af2PrevSlide' } );
 		// Transitions that move sideways come in from the other side.
 		this.card.classList.add( 'ffx-back' );
@@ -907,7 +909,7 @@ export class FormApp {
 			await this.partial;
 			// A sandboxed preview has no cookies (reading them throws there).
 			const tracking = this.config.preview ? null : trackingInfo( window.location.search, document.cookie );
-			const result = await this.api.submit<{ ok: true; entry: number; eventId: string; end: EndResponse; payment?: PaymentStart; conversions?: AdsConversion[] }>( {
+			const result = await this.api.submit<{ ok: true; entry: number; eventId: string; end: EndResponse; payment?: PaymentStart; conversions?: AdsConversion[]; code?: string[] }>( {
 				...( this.draft ? { draft: this.draft } : {} ),
 				...( this.resumeKey ? { progress: this.resumeKey } : {} ),
 				answers: this.pathAnswers(),
@@ -922,6 +924,7 @@ export class FormApp {
 			} );
 			const data = result.data;
 			if ( data.ok ) {
+				this.stats.sent();
 				// The same ID as the plugin's server-side conversions, so tags can deduplicate. An entry
 				// the plugin put into the spam folder has none and is no lead.
 				if ( data.eventId ) {
@@ -931,6 +934,11 @@ export class FormApp {
 				this.root.dispatchEvent( new CustomEvent( 'ffx:sent', { bubbles: true } ) );
 				if ( tracking ) {
 					sendAdsConversions( data.conversions, data.eventId, this.contactValues( node ), tracking.consent.marketing );
+					// Custom code actions, with the placeholders the plugin filled in; before the
+					// payment page or the thank-you page, like the after-submit code of the step.
+					for ( const code of data.code ?? [] ) {
+						runCode( this.trackingBox, code );
+					}
 				}
 				if ( data.payment ) {
 					this.toPayment( data.payment );

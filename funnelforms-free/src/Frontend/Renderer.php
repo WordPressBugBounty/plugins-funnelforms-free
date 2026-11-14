@@ -665,6 +665,8 @@ final class Renderer {
 			'invalid_time'            => __( 'Please enter a valid time.', 'funnelforms-free' ),
 			/* translators: 1: chosen rating, 2: highest rating. */
 			'rating_value'            => __( '%1$s of %2$s', 'funnelforms-free' ),
+			/* translators: %d: number of an answer that has an image but no text, for screen readers. */
+			'answer_n'                => __( 'Answer %d', 'funnelforms-free' ),
 			'clear_signature'         => __( 'Clear', 'funnelforms-free' ),
 			'type_signature'          => __( 'Or type your name', 'funnelforms-free' ),
 			'upload_signature'        => __( 'Or upload a picture of your signature', 'funnelforms-free' ),

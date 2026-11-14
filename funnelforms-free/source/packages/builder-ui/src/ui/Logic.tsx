@@ -6,7 +6,6 @@
 import React, { useState } from 'react';
 import type { Condition, Edge, FormDocument, FormNode } from '@funnelforms/form-schema';
 import {
-	answerRoutes,
 	calcRule,
 	fieldsBefore,
 	fromGroup,
@@ -18,6 +17,7 @@ import {
 	starterRule,
 	toGroup,
 	withOp,
+	type Between,
 	type ConditionField,
 	type Group,
 	type Leaf,
@@ -25,12 +25,14 @@ import {
 	type RuleKind,
 	type RuleOp,
 } from '../conditions';
-import { addEnd, connect, findNode, nodeName, removeEdge, reorderEdge, setCondition, text } from '../document';
+import { coverage } from '../coverage';
+import { addEnd, connect, findNode, nodeName, removeEdge, setCondition, text } from '../document';
+import { addRulePath, answerField, applyShownOrder, canAddRule, canMoveRule, moveRule, orderDiffers, outputsOf, settlePath, type RuleOutput } from '../ports';
 import { isQuizEdge } from '../quiz';
 import type { Recipe } from '../store';
 import { useBuilder, useEnv } from './context';
-import { describeCondition, fieldIndex, fieldTitle, opName, partName } from './describe';
-import { HintList, useHints } from './Hints';
+import { describeCondition, fieldIndex, fieldTitle, opName, partName, ruleText } from './describe';
+import { HintList, restText, useHints } from './Hints';
 import { covered } from '../logic';
 import { __, sprintf } from './i18n';
 import { Button, IconButton, icons, Notice, Section } from './ui';
@@ -138,7 +140,7 @@ export function ConditionEditor( { value, lead, onChange, ...props }: EditorProp
 
 function GroupEditor( { group, depth, lead, onChange, onRemove, ...props }: EditorProps & { group: Group; depth: number; lead: string; onChange: ( group: Group, key?: string ) => void; onRemove?: () => void } ) {
 	const { readOnly } = useEnv();
-	const set = ( i: number, item: Leaf | Group, key?: string ): void => onChange( { ...group, items: group.items.map( ( x, j ) => ( j === i ? item : x ) ) }, key );
+	const set = ( i: number, item: Leaf | Between | Group, key?: string ): void => onChange( { ...group, items: group.items.map( ( x, j ) => ( j === i ? item : x ) ) }, key );
 	const remove = ( i: number ): void => onChange( { ...group, items: group.items.filter( ( _x, j ) => j !== i ) } );
 	const add = ( item: Leaf | Group | null ): void => {
 		if ( item ) {
@@ -200,7 +202,7 @@ function GroupEditor( { group, depth, lead, onChange, onRemove, ...props }: Edit
 
 const CALC_OPS: Array<'gte' | 'gt' | 'lte' | 'lt' | 'eq' | 'neq'> = [ 'gte', 'gt', 'lte', 'lt', 'eq', 'neq' ];
 
-function LeafEditor( { doc, fields, calcs, leaf, onChange, onRemove }: EditorProps & { leaf: Leaf; onChange: ( leaf: Leaf, key?: string ) => void; onRemove: () => void } ) {
+function LeafEditor( { doc, fields, calcs, leaf, onChange, onRemove }: EditorProps & { leaf: Leaf | Between; onChange: ( leaf: Leaf | Between, key?: string ) => void; onRemove: () => void } ) {
 	const { ctx, readOnly } = useEnv();
 	if ( 'experiment' in leaf ) {
 		const experiment = doc.experiments?.find( ( x ) => x.id === leaf.experiment );
@@ -295,20 +297,28 @@ function LeafEditor( { doc, fields, calcs, leaf, onChange, onRemove }: EditorPro
 type CalcRuleOp = ( typeof CALC_OPS )[ number ];
 
 /** Comparison and value of a rule on an answer. */
-function RuleInputs( { rule, field, onChange }: { rule: Rule; field: ConditionField | undefined; onChange: ( rule: Rule, key?: string ) => void } ) {
+function RuleInputs( { rule, field, onChange }: { rule: Rule | Between; field: ConditionField | undefined; onChange: ( rule: Rule | Between, key?: string ) => void } ) {
 	const { ctx, readOnly } = useEnv();
 	const value = 'value' in rule ? rule.value : undefined;
 	const kind: RuleKind = field?.kind ?? ( 'string' === typeof value ? 'text' : 'number' );
 	const op = ruleOp( rule );
 	const ops = opsFor( kind, field?.field );
-	const set = ( change: Partial<Record<'value' | 'days' | 'part', unknown>>, key?: string ): void => {
+	const set = ( change: Partial<Record<'value' | 'days' | 'part' | 'min' | 'max', unknown>>, key?: string ): void => {
 		// Unset settings are left out, as the schema has no empty values for them.
 		const next = Object.fromEntries( Object.entries( { ...rule, ...change } ).filter( ( [ , v ] ) => undefined !== v ) );
-		onChange( next as Rule, key );
+		onChange( next as Rule | Between, key );
 	};
 	let input: React.ReactNode = null;
 	if ( 'filled' === rule.op || 'empty' === rule.op ) {
 		input = null;
+	} else if ( 'between' === rule.op ) {
+		input = (
+			<>
+				<input className="ffxb-input ffxb-rule__bound" type="number" aria-label={ __( 'Minimum', 'funnelforms-pro' ) } value={ String( rule.min ) } disabled={ readOnly } onChange={ ( e ) => set( { min: Number( e.target.value ) || 0 }, 'min' ) } />
+				<span className="ffxb-rule__and">{ __( 'and', 'funnelforms-pro' ) }</span>
+				<input className="ffxb-input ffxb-rule__bound" type="number" aria-label={ __( 'Maximum', 'funnelforms-pro' ) } value={ String( rule.max ) } disabled={ readOnly } onChange={ ( e ) => set( { max: Number( e.target.value ) || 0 }, 'max' ) } />
+			</>
+		);
 	} else if ( ( 'selected' === rule.op || 'selectedOnly' === rule.op ) && field && 'options' in field.field ) {
 		input = (
 			<select className="ffxb-input" aria-label={ __( 'Answer', 'funnelforms-pro' ) } value={ String( value ) } disabled={ readOnly } onChange={ ( e ) => set( { value: e.target.value } ) }>
@@ -454,10 +464,23 @@ function FreeCondition( { candidates, value, onChange, subject = 'path' }: { can
 
 /* ------------------------------------------------------------------ one path */
 
-/** The rules, the target and the order of a path with a condition. */
-export function PathEditor( { doc, edge, position, count, deletable = true }: { doc: FormDocument; edge: Edge; position: number; count: number; deletable?: boolean } ) {
+/**
+ * The rules, the target and the order of a path with a condition. `order` shows the buttons that
+ * move a rule among the rules of its step (not where its row has them).
+ */
+/** Sets the condition of a path and keeps its place among the paths true to what is shown (ports.ts, settlePath). */
+function setPath( doc: FormDocument, edgeId: string, when: Condition ): void {
+	setCondition( doc, edgeId, when );
+	settlePath( doc, edgeId );
+}
+
+export function PathEditor( { doc, edge, order = true, deletable = true }: { doc: FormDocument; edge: Edge; order?: boolean; deletable?: boolean } ) {
 	const { readOnly } = useEnv();
 	const change = useChange();
+	const from = findNode( doc, edge.from );
+	const outputs = order && from ? outputsOf( doc, from ) : null;
+	const up = !! outputs && canMoveRule( outputs, edge.id, -1 );
+	const down = !! outputs && canMoveRule( outputs, edge.id, 1 );
 	return (
 		<div className="ffxb-path-editor">
 			<div className="ffxb-path-editor__target">
@@ -465,7 +488,7 @@ export function PathEditor( { doc, edge, position, count, deletable = true }: { 
 				<TargetSelect doc={ doc } from={ edge.from } value={ edge.to } label={ __( 'Go to', 'funnelforms-pro' ) } onChange={ ( to ) => change( ( d ) => void ( ( d.edges.find( ( e ) => e.id === edge.id ) ?? { to } ).to = to ) ) } />
 			</div>
 			{ 'free' === process.env.FUNNELFORMS_EDITION ? (
-				<FreeCondition candidates={ fieldsBefore( doc, edge.from ) } value={ edge.when } onChange={ ( when ) => change( ( d ) => setCondition( d, edge.id, when ) ) } />
+				<FreeCondition candidates={ fieldsBefore( doc, edge.from ) } value={ edge.when } onChange={ ( when ) => change( ( d ) => setPath( d, edge.id, when ) ) } />
 			) : (
 				<ConditionEditor
 					doc={ doc }
@@ -476,7 +499,7 @@ export function PathEditor( { doc, edge, position, count, deletable = true }: { 
 					lead={ __( 'when', 'funnelforms-pro' ) }
 					onChange={ ( when, key ) => {
 						if ( when ) {
-							change( ( d ) => setCondition( d, edge.id, when ), key ? `when:${ edge.id }:${ key }` : undefined );
+							change( ( d ) => setPath( d, edge.id, when ), key ? `when:${ edge.id }:${ key }` : undefined );
 						} else if ( deletable ) {
 							// Without rules the path would always be taken: it goes, as with "Delete rule".
 							change( ( d ) => removeEdge( d, edge.id ) );
@@ -487,12 +510,12 @@ export function PathEditor( { doc, edge, position, count, deletable = true }: { 
 				/>
 			) }
 			<div className="ffxb-row-actions">
-				{ count > 1 ? (
+				{ up || down ? (
 					<>
-						<Button size="sm" disabled={ readOnly || position <= 0 } onClick={ () => change( ( d ) => reorderEdge( d, edge.id, -1 ) ) }>
+						<Button size="sm" disabled={ readOnly || ! up } onClick={ () => change( ( d ) => moveRule( d, edge.id, -1 ) ) }>
 							{ __( 'Check earlier', 'funnelforms-pro' ) }
 						</Button>
-						<Button size="sm" disabled={ readOnly || position >= count - 1 } onClick={ () => change( ( d ) => reorderEdge( d, edge.id, 1 ) ) }>
+						<Button size="sm" disabled={ readOnly || ! down } onClick={ () => change( ( d ) => moveRule( d, edge.id, 1 ) ) }>
 							{ __( 'Check later', 'funnelforms-pro' ) }
 						</Button>
 					</>
@@ -510,8 +533,9 @@ export function PathEditor( { doc, edge, position, count, deletable = true }: { 
 /* ------------------------------------------------------------------ a node's way on */
 
 /**
- * Where visitors go after a step or contact step: by answer (choice fields), by rules checked
- * from the top, and otherwise. Rules open in place.
+ * Where visitors go after a step or contact step, in the order the form checks it: rules
+ * checked first, the answers of a choice, rules checked after them, and otherwise. Rules open in
+ * place; the arrows move them.
  */
 export function NodeLogic( { doc, node, title }: { doc: FormDocument; node: Extract<FormNode, { type: 'step' | 'contact' }>; title?: string } ) {
 	const { ctx, readOnly } = useEnv();
@@ -520,32 +544,34 @@ export function NodeLogic( { doc, node, title }: { doc: FormDocument; node: Extr
 	const choices = 'step' === node.type ? node.fields.filter( ( f ) => 'options' in f && f.options.length > 0 ) : [];
 	const [ by, setBy ] = useState<string>( '' );
 	const [ open, setOpen ] = useState<string | null>( null );
-	const choice = choices.find( ( f ) => f.id === by ) ?? choices[ 0 ];
-	const routes = choice ? answerRoutes( doc, node.id, choice.id ) : [];
-	const routed = new Set( routes.flatMap( ( r ) => ( r.edge ? [ r.edge.id ] : [] ) ) );
+	// As on the canvas: the field whose answers already have paths, unless another is chosen.
+	const first = answerField( doc, node )?.id;
+	const choice = choices.find( ( f ) => f.id === by ) ?? choices.find( ( f ) => f.id === first ) ?? choices[ 0 ];
+	const outputs = outputsOf( doc, node, choice?.id );
+	const routes = outputs.answers;
 	const conditional = doc.edges.filter( ( e ) => e.from === node.id && ! e.default );
-	const rules = conditional.filter( ( e ) => ! routed.has( e.id ) );
-	const fallback = doc.edges.find( ( e ) => e.from === node.id && e.default );
+	const fallback = outputs.otherwise;
 	const quiz = conditional.some( ( e ) => isQuizEdge( doc, e ) );
 	const complete = ! fallback && conditional.length > 0 && covered( doc, node, conditional );
+	const cover = conditional.length ? coverage( doc, node ) : null;
+	const rest = cover && ! cover.complete ? restText( cover.rest, ctx.locale ) : '';
 	const fields = fieldIndex( doc );
+	const before = outputs.rules.filter( ( r ) => r.first );
+	const after = outputs.rules.filter( ( r ) => ! r.first );
+	const answered = routes.some( ( r ) => r.edge );
 
 	const addRule = (): void => {
-		const when = firstLeaf( doc, fieldsBefore( doc, node.id ), node.id );
-		const target = fallback?.to ?? doc.nodes.find( ( n ) => 'end' === n.type )?.id ?? doc.nodes.find( ( n ) => n.id !== node.id )?.id;
-		if ( ! when || ! target ) {
-			return;
-		}
 		let id: string | null = null;
 		change( ( d ) => {
-			id = connect( d, node.id, target, when );
+			id = addRulePath( d, node.id );
 		} );
 		setOpen( id );
 	};
 
-	const addButton = (
+	// Nothing to ask for yet (a first step without a question): no rule to add.
+	const addButton = ! canAddRule( doc, node.id ) ? null : (
 		<Button size="sm" variant="ghost" icon={ icons.plus } disabled={ readOnly } onClick={ addRule }>
-			{ rules.length || choice ? __( 'Add a rule', 'funnelforms-pro' ) : 'contact' === node.type ? __( 'Another end on certain answers', 'funnelforms-pro' ) : __( 'Add a rule (if … then …)', 'funnelforms-pro' ) }
+			{ outputs.rules.length || choice ? __( 'Add a rule', 'funnelforms-pro' ) : 'contact' === node.type ? __( 'Another end on certain answers', 'funnelforms-pro' ) : __( 'Add a rule (if … then …)', 'funnelforms-pro' ) }
 		</Button>
 	);
 
@@ -559,9 +585,60 @@ export function NodeLogic( { doc, node, title }: { doc: FormDocument; node: Extr
 		);
 	}
 
+	const ruleList = ( rules: RuleOutput[], lead: string | null ): React.ReactNode =>
+		rules.length ? (
+			<>
+				{ lead ? <p className="ffxb-logic-lead">{ lead }</p> : null }
+				<ol className="ffxb-logic-rules">
+					{ rules.map( ( r ) => {
+						const e = r.edge;
+						const target = findNode( doc, e.to );
+						const expanded = open === e.id;
+						const up = canMoveRule( outputs, e.id, -1 );
+						const down = canMoveRule( outputs, e.id, 1 );
+						return (
+							<li key={ e.id } className={ 'ffxb-logic-rule' + ( expanded ? ' is-open' : '' ) + ( hints.some( ( h ) => h.edge === e.id ) ? ' has-hint' : '' ) }>
+								<div className="ffxb-logic-rule__row">
+									<button type="button" className="ffxb-logic-rule__head" aria-expanded={ expanded } onClick={ () => setOpen( expanded ? null : e.id ) }>
+										<span className="ffxb-logic-rule__when">
+											<span className={ `ffxb-logic-rule__sign is-${ r.tone }` }>{ r.symbol || __( 'If', 'funnelforms-pro' ) }</span>
+											<span className="ffxb-logic-rule__text">{ ruleText( r, doc, ctx.locale, fields, true ) }</span>
+										</span>
+										<span className="ffxb-logic-rule__to">→ { target ? nodeName( target, ctx.locale ) || __( 'Without a title', 'funnelforms-pro' ) : '?' }</span>
+									</button>
+									{ up || down ? (
+										<span className="ffxb-logic-rule__move">
+											<IconButton label={ __( 'Check earlier', 'funnelforms-pro' ) } icon={ icons.up } disabled={ readOnly || ! up } onClick={ () => change( ( d ) => moveRule( d, e.id, -1, choice?.id ) ) } />
+											<IconButton label={ __( 'Check later', 'funnelforms-pro' ) } icon={ icons.down } disabled={ readOnly || ! down } onClick={ () => change( ( d ) => moveRule( d, e.id, 1, choice?.id ) ) } />
+										</span>
+									) : null }
+								</div>
+								{ expanded ? <PathEditor doc={ doc } edge={ e } order={ false } /> : null }
+								{ expanded ? <HintList doc={ doc } hints={ hints.filter( ( h ) => h.edge === e.id ) } compact /> : null }
+							</li>
+						);
+					} ) }
+				</ol>
+			</>
+		) : null;
+
 	return (
 		<Section title={ title ?? __( 'Next step', 'funnelforms-pro' ) }>
 			<HintList doc={ doc } hints={ hints } compact />
+			{ orderDiffers( doc, node, choice?.id ) ? (
+				<Notice
+					tone="warning"
+					title={ __( 'Checked in another order', 'funnelforms-pro' ) }
+					action={
+						<Button size="sm" disabled={ readOnly } onClick={ () => change( ( d ) => applyShownOrder( d, node.id, choice?.id ) ) }>
+							{ __( 'Use the order shown', 'funnelforms-pro' ) }
+						</Button>
+					}
+				>
+					{ __( 'The form checks the paths of this step in another order than this list shows them (from an import). Where several apply, another path can win than you expect.', 'funnelforms-pro' ) }
+				</Notice>
+			) : null }
+			{ ruleList( before, answered || after.length ? __( 'Checked first', 'funnelforms-pro' ) : null ) }
 			{ choice ? (
 				<div className="ffxb-answer-routes">
 					<div className="ffxb-answer-routes__head">
@@ -585,50 +662,48 @@ export function NodeLogic( { doc, node, title }: { doc: FormDocument; node: Extr
 						) }
 					</div>
 					<ul className="ffxb-answer-routes__list">
-						{ routes.map( ( r ) => (
-							<li key={ r.option.id }>
-								<span className="ffxb-answer-routes__answer" title={ text( r.option.label, ctx.locale ) }>
-									{ text( r.option.label, ctx.locale ).replace( /<[^>]*>/g, '' ) || r.option.value }
-								</span>
-								<span aria-hidden="true" className="ffxb-answer-routes__arrow">
-									→
-								</span>
-								<TargetSelect
-									doc={ doc }
-									from={ node.id }
-									value={ r.edge?.to ?? '' }
-									label={ sprintf( __( 'Next step for "%s"', 'funnelforms-pro' ), text( r.option.label, ctx.locale ).replace( /<[^>]*>/g, '' ) || r.option.value ) }
-									none={ fallback ? __( 'Like all others', 'funnelforms-pro' ) : __( 'Choose…', 'funnelforms-pro' ) }
-									onChange={ ( to ) => change( ( d ) => setAnswerRoute( d, node.id, choice.id, r.option.id, to || null ) ) }
-								/>
-							</li>
-						) ) }
-					</ul>
-					{ 'choice' === choice.type && choice.props.multiple ? <p className="ffxb-hint">{ __( 'With several answers chosen, the first answer in this list with its own step decides.', 'funnelforms-pro' ) }</p> : null }
-				</div>
-			) : null }
-			{ rules.length ? (
-				<ol className="ffxb-logic-rules">
-					{ rules.map( ( e ) => {
-						const target = findNode( doc, e.to );
-						const expanded = open === e.id;
-						const position = conditional.indexOf( e );
+					{ routes.map( ( r, i ) => {
+						const answer = text( r.option.label, ctx.locale ).replace( /<[^>]*>/g, '' ) || r.option.value;
+						// A path for several answers is edited at the first of them.
+						const edge = r.edge && routes.findIndex( ( x ) => x.edge?.id === r.edge?.id ) === i ? r.edge : undefined;
+						const expanded = !! edge && open === edge.id;
 						return (
-							<li key={ e.id } className={ 'ffxb-logic-rule' + ( expanded ? ' is-open' : '' ) + ( hints.some( ( h ) => h.edge === e.id ) ? ' has-hint' : '' ) }>
-								<button type="button" className="ffxb-logic-rule__head" aria-expanded={ expanded } onClick={ () => setOpen( expanded ? null : e.id ) }>
-									<span className="ffxb-logic-rule__when">
-										<span className="ffxb-logic-rule__if">{ __( 'If', 'funnelforms-pro' ) }</span> { e.when ? describeCondition( e.when, doc, ctx.locale, fields ) : __( 'Always', 'funnelforms-pro' ) }
+							<li key={ r.option.id } className={ expanded ? 'is-open' : undefined }>
+								<div className="ffxb-answer-routes__row">
+									<span className="ffxb-answer-routes__answer" title={ text( r.option.label, ctx.locale ) }>
+										{ answer }
 									</span>
-									<span className="ffxb-logic-rule__to">→ { target ? nodeName( target, ctx.locale ) || __( 'Without a title', 'funnelforms-pro' ) : '?' }</span>
-								</button>
-								{ expanded ? <PathEditor doc={ doc } edge={ e } position={ position } count={ conditional.length } /> : null }
-								{ expanded ? <HintList doc={ doc } hints={ hints.filter( ( h ) => h.edge === e.id ) } compact /> : null }
+									<span aria-hidden="true" className="ffxb-answer-routes__arrow">
+										→
+									</span>
+									<TargetSelect
+										doc={ doc }
+										from={ node.id }
+										value={ r.edge?.to ?? '' }
+										label={ sprintf( __( 'Next step for "%s"', 'funnelforms-pro' ), answer ) }
+										none={ fallback ? __( 'Like all others', 'funnelforms-pro' ) : __( 'Choose…', 'funnelforms-pro' ) }
+										onChange={ ( to ) => change( ( d ) => setAnswerRoute( d, node.id, choice.id, r.option.id, to || null ) ) }
+									/>
+									{ 'free' === process.env.FUNNELFORMS_EDITION ? null : edge ? (
+										<IconButton label={ sprintf( /* translators: %s: an answer */ __( 'Conditions for “%s”', 'funnelforms-pro' ), answer ) } icon={ icons.filter } disabled={ readOnly } onClick={ () => setOpen( expanded ? null : edge.id ) } />
+									) : (
+										<span className="ffxb-answer-routes__none" />
+									) }
+								</div>
+								{ expanded && edge ? (
+									<div className="ffxb-logic-rule is-open">
+										<PathEditor doc={ doc } edge={ edge } order={ false } />
+									</div>
+								) : null }
 							</li>
 						);
 					} ) }
-				</ol>
+				</ul>
+				{ 'choice' === choice.type && choice.props.multiple ? <p className="ffxb-hint">{ __( 'With several answers chosen, the first answer in this list with its own step decides.', 'funnelforms-pro' ) }</p> : null }
+				</div>
 			) : null }
-			{ rules.length || choice ? addButton : null }
+			{ ruleList( after, __( 'Checked after the answers', 'funnelforms-pro' ) ) }
+			{ outputs.rules.length || choice ? addButton : null }
 			<div className="ffxb-otherwise">
 				<span>{ conditional.length ? __( 'Otherwise go to', 'funnelforms-pro' ) : __( 'Go to', 'funnelforms-pro' ) }</span>
 				<TargetSelect
@@ -649,7 +724,8 @@ export function NodeLogic( { doc, node, title }: { doc: FormDocument; node: Extr
 				/>
 			</div>
 			{ complete ? <p className="ffxb-hint">{ __( 'Every answer has its own next step.', 'funnelforms-pro' ) }</p> : null }
-			{ rules.length || choice ? null : addButton }
+			{ fallback && rest ? <p className="ffxb-hint">{ sprintf( /* translators: %s: the answers that take the path without condition, e.g. "Other, 20 – 30" */ __( 'Applies to: %s', 'funnelforms-pro' ), rest ) }</p> : null }
+			{ outputs.rules.length || choice ? null : addButton }
 			<p className="ffxb-hint">{ __( 'Rules are checked from the top; the first that applies decides. You can also draw paths on the canvas.', 'funnelforms-pro' ) }</p>
 		</Section>
 	);
@@ -668,8 +744,6 @@ export function EdgeInspector( { doc, edgeId }: { doc: FormDocument; edgeId: str
 	}
 	const from = findNode( doc, edge.from );
 	const to = findNode( doc, edge.to );
-	const siblings = doc.edges.filter( ( e ) => e.from === edge.from && ! e.default );
-	const position = siblings.findIndex( ( e ) => e.id === edge.id );
 	const route = (
 		<p className="ffxb-route">
 			<span>{ from ? nodeName( from, ctx.locale ) || __( 'Without a title', 'funnelforms-pro' ) : '?' }</span>
@@ -708,7 +782,7 @@ export function EdgeInspector( { doc, edgeId }: { doc: FormDocument; edgeId: str
 				<HintList doc={ doc } hints={ hints } compact />
 				{ edge.when ? (
 					<>
-						<PathEditor doc={ doc } edge={ edge } position={ position } count={ siblings.length } deletable={ false } />
+						<PathEditor doc={ doc } edge={ edge } deletable={ false } />
 						<Button size="sm" variant="ghost" disabled={ readOnly } onClick={ () => change( ( d ) => setCondition( d, edge.id, null ) ) }>
 							{ __( 'Make it the path without condition', 'funnelforms-pro' ) }
 						</Button>
@@ -723,7 +797,7 @@ export function EdgeInspector( { doc, edgeId }: { doc: FormDocument; edgeId: str
 							onClick={ () => {
 								const rule = firstRule();
 								if ( rule ) {
-									change( ( d ) => setCondition( d, edge.id, rule ) );
+									change( ( d ) => setPath( d, edge.id, rule ) );
 								}
 							} }
 						>

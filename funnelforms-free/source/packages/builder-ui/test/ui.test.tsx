@@ -1,4 +1,6 @@
 import React, { act } from 'react';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError, type BookingConfig, type FormDetail, type FormsApi, type FormSummary, type IconLibrary, type NewWhatsAppTemplate, type SiteDesign, type WhatsAppTemplate } from '../src/api';
@@ -8,6 +10,7 @@ import { FormsList } from '../src/ui/FormsList';
 import { parseExtensions } from '../src/ui/UploadProps';
 import { placement } from '../src/ui/Tour';
 import { addField, addStep, defaultPlacement } from '../src/document';
+import { connectOutput } from '../src/ports';
 import { setPrivacy } from '../src/privacy';
 import { setCode } from '../src/code';
 import { setIntegrationsUrl } from '../src/actions';
@@ -16,7 +19,7 @@ import { formProtection, setSpam } from '../src/spam';
 import { today } from '../src/experiments';
 import { periodDays } from '../src/stats';
 import { blank } from './blank';
-import { validateDocument, type ChoiceField, type ContactField, type ContentField, type FormDocument, type FormNode } from '@funnelforms/form-schema';
+import { validateDocument, type Action, type ChoiceField, type ContactField, type ContentField, type FormDocument, type FormNode } from '@funnelforms/form-schema';
 
 ( globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean } ).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -715,6 +718,15 @@ describe( 'builder', () => {
 		await tile( 'Position of icons and images', 'left' );
 		await toggle( 'Images fill the answer' );
 		expect( field().props ).toMatchObject( { multiple: true, minChoices: 2, maxChoices: 3, columns: { desktop: 3 }, size: 'l', iconPosition: 'left', imageFull: true } );
+		await tile( 'Format of the images', '1:1' );
+		expect( field().props.imageRatio ).toBe( '1:1' );
+		await tile( 'Format of the images', '4:3' );
+		expect( field().props.imageRatio ).toBeUndefined();
+		await tile( 'Format of the images', 'auto' );
+		await toggle( 'Images fill the answer' );
+		expect( field().props.imageFull ).toBeUndefined();
+		expect( field().props.imageRatio ).toBeUndefined();
+		await toggle( 'Images fill the answer' );
 		await tile( 'Tiles per row on large screens', '' );
 		await tile( 'Height of the answers', 'm' );
 		expect( field().props.columns ).toBeUndefined();
@@ -726,10 +738,16 @@ describe( 'builder', () => {
 		await act( async () => button( 'Add 3 answers' ).click() );
 		expect( field().options.map( ( o ) => o.label ) ).toEqual( [ { de_DE: 'Rot' }, { de_DE: 'Grün' }, { de_DE: 'Blau' } ] );
 
-		await act( async () => button( 'Choose an image for answer 1' ).click() );
+		// One button for icon or image; without the icon set the dialog opens on the image.
+		await act( async () => button( 'Choose an icon or image for answer 1' ).click() );
+		const media = [ ...container.querySelectorAll( 'dialog' ) ].find( ( d ) => 'Icon or image of answer 1' === d.getAttribute( 'aria-label' ) ) as HTMLDialogElement;
+		expect( media.textContent ).toContain( 'A photo or graphic from the media library' );
+		await act( async () => button( 'Choose from the media library' ).click() );
 		await settle();
+		expect( pickImage ).toHaveBeenCalledTimes( 1 );
 		expect( field().options[ 0 ]?.media ).toEqual( { kind: 'image', value: 'https://example.org/rot.jpg' } );
-		expect( ( container.querySelector( '.ffxb-option-image img' ) as HTMLImageElement ).src ).toBe( 'https://example.org/rot.jpg' );
+		expect( ( container.querySelector( '.ffxb-icon-choice.has-image img' ) as HTMLImageElement ).src ).toBe( 'https://example.org/rot.jpg' );
+		await act( async () => button( 'Change the image of answer 1' ).click() );
 		await act( async () => button( 'Remove the image of answer 1' ).click() );
 		expect( field().options[ 0 ]?.media ).toBeUndefined();
 	} );
@@ -784,6 +802,37 @@ describe( 'builder', () => {
 		await act( async () => ( container.querySelector( 'dialog[aria-label="Icon in the field"] [aria-label="mail"]' ) as HTMLButtonElement ).click() );
 		expect( ( contact().fields.find( ( f ) => f.id === email.id ) as ContactField ).props.icon ).toBe( 'lucide:mail' );
 		expect( container.querySelector( '.ffxb-icon-field' )?.textContent ).toContain( 'mail' );
+	} );
+
+	it( 'offers an icon or an own image in one dialog, each replacing the other', async () => {
+		const library = { version: '1.58.0', icons: { house: [ [ 'path', { d: 'M3 10 12 3l9 7' } ] ] }, tags: { house: 'home' } } as unknown as IconLibrary;
+		const pickImage = vi.fn( async () => ( { id: 9, url: 'https://example.org/haus.jpg', alt: '' } ) );
+		const api = fakeApi( { icons: vi.fn( async () => library ), pickImage } );
+		const store = createBuilderStore( api, 7, { autosaveMs: 60000 } );
+		await act( async () => root.render( <Builder api={ api } formId={ 7 } onBack={ () => undefined } store={ store } /> ) );
+		await settle();
+		await act( async () => button( 'Choice' ).click() );
+		const media = (): unknown => {
+			const node = store.getState().doc?.nodes.find( ( n ) => n.id === store.getState().selection.node );
+			return node && 'step' === node.type ? ( node.fields[ 0 ] as ChoiceField ).options[ 0 ]?.media : undefined;
+		};
+		const dialog = (): HTMLDialogElement => [ ...container.querySelectorAll( 'dialog' ) ].find( ( d ) => 'Icon or image of answer 1' === d.getAttribute( 'aria-label' ) ) as HTMLDialogElement;
+
+		await act( async () => button( 'Choose an icon or image for answer 1' ).click() );
+		await settle();
+		expect( [ ...dialog().querySelectorAll( '[role="tab"]' ) ].map( ( t ) => [ t.textContent, t.getAttribute( 'aria-selected' ) ] ) ).toEqual( [ [ 'Icon', 'true' ], [ 'Own image', 'false' ] ] );
+		await act( async () => ( dialog().querySelector( '[aria-label="house"]' ) as HTMLButtonElement ).click() );
+		expect( media() ).toEqual( { kind: 'lucide', value: 'house' } );
+
+		await act( async () => button( 'Change the icon of answer 1' ).click() );
+		await act( async () => ( [ ...dialog().querySelectorAll( '[role="tab"]' ) ][ 1 ] as HTMLButtonElement ).click() );
+		await act( async () => button( 'Choose from the media library' ).click() );
+		await settle();
+		expect( media() ).toEqual( { kind: 'image', value: 'https://example.org/haus.jpg' } );
+		// An answer with an image opens on its image.
+		await act( async () => button( 'Change the image of answer 1' ).click() );
+		expect( dialog().querySelector( '[role="tab"][aria-selected="true"]' )?.textContent ).toBe( 'Own image' );
+		expect( ( dialog().querySelector( '.ffxb-media-choice__preview' ) as HTMLImageElement ).src ).toBe( 'https://example.org/haus.jpg' );
 	} );
 
 	it( 'lists the questions, warns about a shared variable name and sorts answers', async () => {
@@ -1015,7 +1064,16 @@ describe( 'builder', () => {
 
 			expect( container.textContent ).toContain( 'This site does not run custom code yet.' );
 			expect( container.querySelector<HTMLAnchorElement>( 'a[href$="#ffx-tracking"]' )?.textContent ).toBe( 'Allow in the settings' );
+			// In Pro, code after sending is an action; the step shows its own only while it has one (forms from 3.x).
+			expect( () => labelled( 'After sending (thank-you page)' ) ).toThrow();
+			expect( container.textContent ).toContain( 'For code after sending, add the action "Custom code" under Actions.' );
 			await fill( 'When the step appears', "fbq('track', 'Lead');" );
+			await act( async () =>
+				store.getState().change( ( d ) => {
+					const n = d.nodes.find( ( x ) => x.id === contact().id ) as Extract<FormNode, { type: 'contact' }>;
+					n.tracking = { ...n.tracking, afterSubmit: 'gtag();' };
+				} )
+			);
 			await fill( 'After sending (thank-you page)', "gtag('event', 'conversion');" );
 			expect( contact().tracking ).toEqual( { onShow: "fbq('track', 'Lead');", afterSubmit: "gtag('event', 'conversion');" } );
 			expect( validateDocument( store.getState().doc as FormDocument ).errors ).toEqual( [] );
@@ -1035,9 +1093,55 @@ describe( 'builder', () => {
 		await settle();
 		const contact = store.getState().doc?.nodes.find( ( n ) => 'contact' === n.type ) as FormNode;
 		await act( async () => store.getState().select( { node: contact.id } ) );
-		expect( labelled<HTMLTextAreaElement>( 'After sending (thank-you page)' ).disabled ).toBe( true );
+		expect( labelled<HTMLTextAreaElement>( 'When the step appears' ).disabled ).toBe( true );
 		expect( container.textContent ).toContain( 'Tracking code, scripts and custom CSS need the right to use unfiltered HTML.' );
 		expect( container.textContent ).not.toContain( 'This site does not run custom code yet.' );
+	} );
+
+	it( 'adds custom code after sending as an action, with placeholders at the cursor', async () => {
+		const api = fakeApi();
+		const store = createBuilderStore( api, 7, { autosaveMs: 60000 } );
+		setCode( { allowed: false, settingsUrl: null } );
+		try {
+			await act( async () => root.render( <Builder api={ api } formId={ 7 } onBack={ () => undefined } store={ store } /> ) );
+			await settle();
+			await afterSending();
+			await fill( 'Add an action', 'customCode' );
+			const action = (): Extract<Action, { kind: 'customCode' }> => store.getState().doc?.actions[ 0 ] as Extract<Action, { kind: 'customCode' }>;
+			expect( action() ).toMatchObject( { on: 'submit', kind: 'customCode', config: { code: '' } } );
+			expect( container.textContent ).toContain( 'Enter the code that runs after sending.' );
+			expect( container.textContent ).toContain( 'This site does not run custom code yet. An administrator can allow it under Funnelforms → Settings.' );
+
+			await fill( 'Code', "<script>fbq('track', 'Lead', { content_name: '' });</script>" );
+			const box = labelled<HTMLTextAreaElement>( 'Code' );
+			await act( async () => {
+				box.focus();
+				box.setSelectionRange( 46, 46 );
+				box.blur();
+			} );
+			const email = store.getState().doc?.nodes.flatMap( ( n ) => ( 'contact' === n.type ? n.fields : [] ) ).find( ( f ) => 'email' === f.type );
+			await fill( 'Placeholders', `{{field:${ email?.key }}}` );
+			expect( action().config.code ).toBe( `<script>fbq('track', 'Lead', { content_name: '{{field:${ email?.key }}}' });</script>` );
+			expect( container.querySelector( '.ffxb-action__target' )?.textContent ).toBe( "<script>fbq('track', 'Lead', { content_name: '{…" );
+			expect( container.textContent ).not.toContain( 'Enter the code that runs after sending.' );
+			expect( validateDocument( store.getState().doc as FormDocument ).errors ).toEqual( [] );
+			// Only when the entry is sent, never after the payment.
+			expect( () => labelled( 'When' ) ).toThrow();
+		} finally {
+			setCode( undefined );
+		}
+	} );
+
+	it( 'shows custom code actions read-only without the right to use unfiltered HTML', async () => {
+		const api = fakeApi();
+		const store = createBuilderStore( api, 7, { autosaveMs: 60000 } );
+		await act( async () => root.render( <Builder api={ api } formId={ 7 } onBack={ () => undefined } store={ store } rights={ { entries: true, code: false, settings: false } } /> ) );
+		await settle();
+		await afterSending();
+		await fill( 'Add an action', 'customCode' );
+		expect( labelled<HTMLTextAreaElement>( 'Code' ).disabled ).toBe( true );
+		expect( () => labelled( 'Placeholders' ) ).toThrow();
+		expect( container.textContent ).toContain( 'Tracking code, scripts and custom CSS need the right to use unfiltered HTML.' );
 	} );
 
 	it( 'adds a loading animation as its own step and sets it up', async () => {
@@ -1875,6 +1979,98 @@ describe( 'logic', () => {
 		// L switches between the question and its logic.
 		await act( async () => window.dispatchEvent( new KeyboardEvent( 'keydown', { key: 'l' } ) ) );
 		expect( store.getState().panel ).toBe( 'content' );
+	} );
+
+	it( 'lists rules in the order they are checked, moves them with the arrows and edits "between"', async () => {
+		const doc = JSON.parse( readFileSync( join( __dirname, '../../form-schema/test/examples/synthetic-logic.json' ), 'utf8' ) ) as FormDocument;
+		const api = fakeApi( { get: vi.fn( async () => ( { ...summary, document: doc, lockTtl: 150 } ) ) } );
+		const store = createBuilderStore( api, 7, { autosaveMs: 60000 } );
+		await act( async () => root.render( <Builder api={ api } formId={ 7 } onBack={ () => undefined } store={ store } /> ) );
+		await settle();
+		const inspector = () => container.querySelector( '.ffxb-inspector' ) as HTMLElement;
+		const order = ( id: string ) => ( store.getState().doc?.edges ?? [] ).filter( ( e ) => e.from === id ).map( ( e ) => e.id );
+		const when = ( id: string ) => store.getState().doc?.edges.find( ( e ) => e.id === id )?.when;
+		const leads = () => [ ...inspector().querySelectorAll( '.ffxb-logic-lead' ) ].map( ( l ) => l.textContent );
+		const rules = () => [ ...inspector().querySelectorAll( '.ffxb-logic-rule__when' ) ].map( ( r ) => r.textContent );
+		const arrows = ( label: string ) => [ ...inspector().querySelectorAll<HTMLButtonElement>( `button[aria-label="${ label }"]` ) ];
+
+		// The slider: its rules with their signs, as on its card, and what is left for "Otherwise".
+		await act( async () => store.getState().select( { node: 'n2_0' } ) );
+		await act( async () => tab( 'Logic' ).click() );
+		expect( rules() ).toEqual( [ 'Ifis exactly "0"', '<10', '>50' ] );
+		expect( leads() ).toEqual( [] );
+		expect( inspector().textContent ).toContain( 'Applies to: 10 – 50' );
+		expect( arrows( 'Check earlier' ).map( ( b ) => b.disabled ) ).toEqual( [ true, false, false ] );
+		expect( arrows( 'Check later' ).map( ( b ) => b.disabled ) ).toEqual( [ false, false, true ] );
+		await act( async () => arrows( 'Check later' )[ 0 ]?.click() );
+		expect( order( 'n2_0' ) ).toEqual( [ 'e_n2_0_1', 'e_n2_0_0', 'e_n2_0_2', 'e_n2_0_3' ] );
+
+		// "Between" in the panel: two numbers, stored as "at least" and "at most".
+		await act( async () => inspector().querySelectorAll<HTMLButtonElement>( '.ffxb-logic-rule__head' )[ 2 ]?.click() );
+		await select( inspector().querySelector( '.ffxb-logic-rule.is-open [aria-label="Comparison"]' ), 'between' );
+		expect( when( 'e_n2_0_2' ) ).toEqual( { all: [ { field: 'q3', op: 'gte', value: 50 }, { field: 'q3', op: 'lte', value: 100 } ] } );
+		const max = inspector().querySelector<HTMLInputElement>( '.ffxb-logic-rule.is-open [aria-label="Maximum"]' ) as HTMLInputElement;
+		await act( async () => {
+			Object.getOwnPropertyDescriptor( HTMLInputElement.prototype, 'value' )?.set?.call( max, '80' );
+			max.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+		} );
+		expect( when( 'e_n2_0_2' ) ).toEqual( { all: [ { field: 'q3', op: 'gte', value: 50 }, { field: 'q3', op: 'lte', value: 80 } ] } );
+		expect( rules()[ 2 ] ).toBe( '↔50 – 80' );
+		expect( inspector().textContent ).toContain( 'Applies to: 10 – 49, 81 – 100' );
+		expect( inspector().querySelector( '.ffxb-logic-rule.is-open .ffxb-rule' )?.textContent ).toContain( 'and' );
+
+		// A choice: a rule from the panel asks for the question before it and is checked first.
+		await act( async () => store.getState().select( { node: 'n1_0' } ) );
+		expect( inspector().textContent ).toContain( 'Applies to: Other' );
+		await act( async () => button( 'Add a rule' ).click() );
+		const [ rule ] = order( 'n1_0' );
+		expect( when( rule ?? '' ) ).toEqual( { field: 'q1', op: 'selected', value: 'q1_o0' } );
+		expect( leads() ).toEqual( [ 'Checked first' ] );
+		expect( inspector().querySelector( '.ffxb-logic-rule.is-open .ffxb-rule' ) ).not.toBeNull();
+		// Behind the answers and back before them.
+		await act( async () => arrows( 'Check later' )[ 0 ]?.click() );
+		expect( order( 'n1_0' ) ).toEqual( [ 'e_n1_0_0', rule, 'e_n1_0_1' ] );
+		expect( leads() ).toEqual( [ 'Checked after the answers' ] );
+		await act( async () => arrows( 'Check earlier' )[ 0 ]?.click() );
+		expect( order( 'n1_0' ) ).toEqual( [ rule, 'e_n1_0_0', 'e_n1_0_1' ] );
+	} );
+
+	it( 'adds conditions to the path of an answer, which makes it a rule checked first', async () => {
+		const doc = JSON.parse( readFileSync( join( __dirname, '../../form-schema/test/examples/synthetic-logic.json' ), 'utf8' ) ) as FormDocument;
+		// A rule between the paths of two answers, as an import can bring it.
+		doc.edges.splice( 1, 0, { id: 'mid', from: 'n0_0', to: 'n4_3', when: { field: 'q1', op: 'filled' } } );
+		const api = fakeApi( { get: vi.fn( async () => ( { ...summary, document: doc, lockTtl: 150 } ) ) } );
+		const store = createBuilderStore( api, 7, { autosaveMs: 60000 } );
+		await act( async () => root.render( <Builder api={ api } formId={ 7 } onBack={ () => undefined } store={ store } /> ) );
+		await settle();
+		const inspector = () => container.querySelector( '.ffxb-inspector' ) as HTMLElement;
+		const order = ( id: string ) => ( store.getState().doc?.edges ?? [] ).filter( ( e ) => e.from === id ).map( ( e ) => e.id );
+		await act( async () => store.getState().select( { node: 'n0_0' } ) );
+		await act( async () => tab( 'Logic' ).click() );
+
+		// The list cannot show that order: it says so and offers its own.
+		expect( inspector().textContent ).toContain( 'Checked in another order' );
+		await act( async () => button( 'Use the order shown' ).click() );
+		expect( order( 'n0_0' ) ).toEqual( [ 'e_n0_0_0', 'e_n0_0_1', 'e_n0_0_2', 'mid', 'e_n0_0_3' ] );
+		expect( inspector().textContent ).not.toContain( 'Checked in another order' );
+
+		// Answers without a path have no conditions to open; a path for two answers opens at the first of them.
+		expect( [ ...inspector().querySelectorAll( '.ffxb-answer-routes__list li' ) ].map( ( li ) => li.querySelectorAll( 'button[aria-label^="Conditions for"]' ).length ) ).toEqual( [ 1, 1, 0, 1, 0 ] );
+		await act( async () => button( 'Conditions for “Answer 1”' ).click() );
+		const open = () => inspector().querySelector( '.ffxb-logic-rule.is-open' ) as HTMLElement;
+		expect( inspector().querySelector( '.ffxb-answer-routes__list li.is-open' )?.textContent ).toContain( 'Answer 1' );
+		expect( open().querySelector<HTMLSelectElement>( '[aria-label="Answer"]' )?.value ).toBe( 'q1_o1' );
+		// With a second condition it is a rule of its own, checked before the answers; "Answer 1" follows "Otherwise".
+		await act( async () => button( 'Add rule' ).click() );
+		expect( order( 'n0_0' ) ).toEqual( [ 'e_n0_0_1', 'e_n0_0_0', 'e_n0_0_2', 'mid', 'e_n0_0_3' ] );
+		expect( [ ...inspector().querySelectorAll( '.ffxb-logic-lead' ) ].map( ( l ) => l.textContent ) ).toEqual( [ 'Checked first', 'Checked after the answers' ] );
+		expect( inspector().querySelector( '.ffxb-answer-routes__list li.is-open' ) ).toBeNull();
+		expect( open().closest( '.ffxb-logic-rules' ) ).not.toBeNull();
+		expect( [ ...inspector().querySelectorAll<HTMLSelectElement>( '.ffxb-answer-routes select' ) ].find( ( x ) => 'Next step for "Answer 1"' === x.getAttribute( 'aria-label' ) )?.value ).toBe( '' );
+		// Without it, it is the path of the answer again, at the place of the answer.
+		await act( async () => open().querySelectorAll<HTMLButtonElement>( 'button[aria-label="Remove rule"]' )[ 1 ]?.click() );
+		expect( order( 'n0_0' ) ).toEqual( [ 'e_n0_0_0', 'e_n0_0_1', 'e_n0_0_2', 'mid', 'e_n0_0_3' ] );
+		expect( inspector().querySelector( '.ffxb-answer-routes__list li.is-open' )?.textContent ).toContain( 'Answer 1' );
 	} );
 
 	it( 'shows a field only on an answer above it, and says what deleting that answer did', async () => {
@@ -3369,6 +3565,25 @@ describe( 'design from the website and in the preview', () => {
 		await send( { type: 'ffx-design', action: 'key', key: 'undo' } );
 		expect( store.getState().doc?.style.tokens[ 'color.button' ] ).toBeUndefined();
 
+		// Questions have their font beside their colour; the font of the form is the font of all of it.
+		const fontOf = ( label: string ): HTMLSelectElement => {
+			const tag = [ ...( container.querySelector( '.ffxb-live-design' ) as HTMLElement ).querySelectorAll( 'label' ) ].find( ( l ) => l.textContent === label ) as HTMLLabelElement;
+			return document.getElementById( tag.htmlFor ) as HTMLSelectElement;
+		};
+		const pickFont = async ( select: HTMLSelectElement, value: string ): Promise<void> => {
+			await act( async () => {
+				Object.getOwnPropertyDescriptor( HTMLSelectElement.prototype, 'value' )?.set?.call( select, value );
+				select.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+			} );
+		};
+		await send( { type: 'ffx-design', action: 'pick', target: 'question', rect: { x: 40, y: 100, width: 300, height: 40 } } );
+		await pickFont( fontOf( 'Font of questions and headings' ), 'serif' );
+		expect( store.getState().doc?.style.tokens[ 'font.heading' ] ).toBe( 'serif' );
+		await send( { type: 'ffx-design', action: 'pick', target: 'form', rect: { x: 0, y: 0, width: 600, height: 400 } } );
+		await pickFont( fontOf( 'Font' ), 'Poppins' );
+		expect( store.getState().doc?.style.tokens[ 'font.family' ] ).toBe( 'Poppins' );
+		expect( store.getState().doc?.style.tokens[ 'font.heading' ] ).toBeUndefined();
+
 		// The keyboard: the list of parts, Escape closes.
 		const parts = container.querySelector( 'select[aria-label="Part of the form to design"]' ) as HTMLSelectElement;
 		await act( async () => {
@@ -3556,5 +3771,153 @@ describe( 'values of Funnelforms 3 that were only migrated', () => {
 		await toggle( 'Visitors can type the number' );
 		await fill( 'Label of the input', 'Wohnfläche' );
 		expect( props().manualInput ).toEqual( { enabled: true, label: { de_DE: 'Wohnfläche' } } );
+	} );
+} );
+
+describe( 'outputs on the canvas', () => {
+	const logic = (): FormDocument => JSON.parse( readFileSync( join( __dirname, '../../form-schema/test/examples/synthetic-logic.json' ), 'utf8' ) ) as FormDocument;
+	const card = ( id: string ): HTMLElement => container.querySelector( `.ffxb-node[data-node="${ id }"]` ) as HTMLElement;
+	/** The rows of a card in words; a number rule changed in place as its sign and its numbers. */
+	const rows = ( id: string ): string[] =>
+		[ ...card( id ).querySelectorAll( '.ffxb-output, .ffxb-output-note--more, .ffxb-output-add' ) ].map( ( r ) => {
+			const op = r.querySelector<HTMLSelectElement>( '.ffxb-output__op' );
+			return op ? [ op.selectedOptions[ 0 ]?.textContent, ...[ ...r.querySelectorAll<HTMLInputElement>( '.ffxb-output__value' ) ].map( ( i ) => i.value ) ].join( ' ' ) : r.textContent ?? '';
+		} );
+	const paths = ( store: ReturnType<typeof createBuilderStore>, from: string ) => store.getState().doc?.edges.filter( ( e ) => e.from === from ) ?? [];
+	const set = async ( el: HTMLInputElement | HTMLSelectElement | null, value: string ): Promise<void> => {
+		if ( ! el ) {
+			throw new Error( 'No control' );
+		}
+		await act( async () => {
+			Object.getOwnPropertyDescriptor( el instanceof HTMLSelectElement ? HTMLSelectElement.prototype : HTMLInputElement.prototype, 'value' )?.set?.call( el, value );
+			el.dispatchEvent( new Event( el instanceof HTMLSelectElement ? 'change' : 'input', { bubbles: true } ) );
+		} );
+	};
+
+	async function open( doc: FormDocument ) {
+		const api = fakeApi( { get: vi.fn( async () => ( { ...summary, document: doc, lockTtl: 150 } ) ) } );
+		const store = createBuilderStore( api, 7, { autosaveMs: 60000 } );
+		await act( async () => root.render( <Builder api={ api } formId={ 7 } onBack={ () => undefined } store={ store } /> ) );
+		await settle();
+		return store;
+	}
+
+	it( 'shows a dot per answer, rules on the slider and "Otherwise", and selects a path from its output', async () => {
+		const store = await open( logic() );
+		expect( rows( 'n0_0' ) ).toEqual( [ 'Answer 0', 'Answer 1', 'Answer 2', 'Answer 3', 'Answer 4', 'OtherwiseQuestion 2' ] );
+		expect( [ ...card( 'n0_0' ).querySelectorAll( '.ffxb-output--answer' ) ].map( ( r ) => r.classList.contains( 'is-free' ) ) ).toEqual( [ false, false, true, false, false ] );
+		expect( card( 'n0_0' ).querySelector( '.ffxb-output--answer.is-free' )?.getAttribute( 'title' ) ).toBe( 'Follows “Otherwise”. Drag from here to give this answer its own path.' );
+		expect( card( 'n0_0' ).querySelectorAll( '.react-flow__handle.source' ).length ).toBe( 6 );
+		// Slider: each rule an output in the order they are checked; its numbers are changed in place. The card says the question, the rule leaves it out.
+		expect( rows( 'n2_0' ) ).toEqual( [ 'Ifis exactly "0"', '< 10', '> 50', '+ Add a rule', 'OtherwiseQuestion 4' ] );
+		// Multiple choice with "exactly this answer": the answers follow "Otherwise", the rule is its own output.
+		expect( card( 'n3_0' ).querySelectorAll( '.ffxb-output--answer.is-free' ).length ).toBe( 3 );
+		expect( rows( 'n3_0' )[ 0 ] ).toBe( '=B' );
+		expect( card( 'n3_0' ).querySelector( '.ffxb-output--rule' )?.getAttribute( 'title' ) ).toContain( 'is the only answer' );
+		// Ends have no outputs.
+		expect( card( 'n4_0' ).querySelector( '.ffxb-node__outputs' ) ).toBeNull();
+
+		await act( async () => ( card( 'n0_0' ).querySelector( '.ffxb-output--answer .ffxb-output__label' ) as HTMLButtonElement ).click() );
+		expect( store.getState().selection ).toEqual( { edge: 'e_n0_0_0' } );
+		await act( async () => ( card( 'n0_0' ).querySelector( '.ffxb-output--otherwise .ffxb-output__label' ) as HTMLButtonElement ).click() );
+		expect( store.getState().selection ).toEqual( { edge: 'e_n0_0_3' } );
+	} );
+
+	it( 'lights the row, the line and the card a path leads to under the pointer', async () => {
+		await open( logic() );
+		const row = card( 'n0_0' ).querySelector( '.ffxb-output--answer' ) as HTMLElement;
+		expect( row.dataset.path ).toBe( 'e_n0_0_0' );
+		await act( async () => row.dispatchEvent( new MouseEvent( 'mouseover', { bubbles: true } ) ) );
+		expect( row.className ).toContain( 'is-hot' );
+		expect( card( 'n4_0' ).className ).toContain( 'is-aimed' );
+		expect( card( 'n4_1' ).className ).not.toContain( 'is-aimed' );
+		expect( container.querySelector( '.react-flow' )?.className ).toContain( 'has-hot' );
+		await act( async () => row.dispatchEvent( new MouseEvent( 'mouseout', { bubbles: true } ) ) );
+		expect( card( 'n4_0' ).className ).not.toContain( 'is-aimed' );
+		expect( container.querySelector( '.react-flow' )?.className ).not.toContain( 'has-hot' );
+	} );
+
+	it( 'folds answers without a path of their own from six answers on and adds slider rules from the card', async () => {
+		const doc = logic();
+		const step = doc.nodes[ 0 ];
+		if ( step?.type !== 'step' || step.fields[ 0 ]?.type !== 'choice' ) {
+			throw new Error( 'step' );
+		}
+		step.fields[ 0 ].options.push( { id: 'q1_o5', label: { en_US: 'Answer 5' }, value: 'Answer 5' }, { id: 'q1_o6', label: { en_US: 'Answer 6' }, value: 'Answer 6' } );
+		// The slider without its rules.
+		doc.edges = doc.edges.filter( ( e ) => 'n2_0' !== e.from || e.default );
+		const store = await open( doc );
+		expect( rows( 'n0_0' ) ).toEqual( [ 'Answer 0', 'Answer 1', 'Answer 3', 'Answer 4', '3 more like “Otherwise”Show all', 'OtherwiseQuestion 2' ] );
+		await act( async () => button( 'Show all' ).click() );
+		expect( rows( 'n0_0' ) ).toHaveLength( 9 );
+		await act( async () => button( 'Show fewer' ).click() );
+		expect( rows( 'n0_0' ) ).toHaveLength( 6 );
+
+		// The first rule of a slider starts in its middle and is changed on the card: the step stays selected.
+		expect( rows( 'n2_0' ) ).toEqual( [ '+ Add a rule', 'Go toQuestion 4' ] );
+		await act( async () => button( '+ Add a rule' ).click() );
+		const added = paths( store, 'n2_0' ).find( ( e ) => ! e.default );
+		expect( added ).toMatchObject( { to: 'n3_0', when: { field: 'q3', op: 'gte', value: 50 } } );
+		expect( store.getState().selection ).toEqual( { node: 'n2_0' } );
+		expect( rows( 'n2_0' ) ).toEqual( [ '≥ 50', '+ Add a rule', 'OtherwiseQuestion 4' ] );
+
+		// Its number and its comparison, typed on the card.
+		await set( card( 'n2_0' ).querySelector<HTMLInputElement>( '.ffxb-output__value' ), '30' );
+		expect( paths( store, 'n2_0' )[ 0 ]?.when ).toEqual( { field: 'q3', op: 'gte', value: 30 } );
+		await set( card( 'n2_0' ).querySelector<HTMLSelectElement>( '.ffxb-output__op' ), 'between' );
+		expect( paths( store, 'n2_0' ).find( ( e ) => ! e.default )?.when ).toEqual( { all: [ { field: 'q3', op: 'gte', value: 30 }, { field: 'q3', op: 'lte', value: 100 } ] } );
+		expect( rows( 'n2_0' )[ 0 ] ).toBe( '↔ 30 100' );
+		await set( card( 'n2_0' ).querySelector<HTMLInputElement>( '.ffxb-output__value[aria-label="Maximum"]' ), '60' );
+		expect( rows( 'n2_0' )[ 0 ] ).toBe( '↔ 30 60' );
+		// What is typed halfway changes nothing.
+		const max = card( 'n2_0' ).querySelector<HTMLInputElement>( '.ffxb-output__value[aria-label="Maximum"]' );
+		await set( max, '' );
+		expect( paths( store, 'n2_0' ).find( ( e ) => ! e.default )?.when ).toEqual( { all: [ { field: 'q3', op: 'gte', value: 30 }, { field: 'q3', op: 'lte', value: 60 } ] } );
+		await act( async () => max?.dispatchEvent( new FocusEvent( 'focusout', { bubbles: true } ) ) );
+		expect( max?.value ).toBe( '60' );
+
+		// The next rules take the numbers no rule has yet: below, then above.
+		await act( async () => button( '+ Add a rule' ).click() );
+		await act( async () => button( '+ Add a rule' ).click() );
+		expect( rows( 'n2_0' ) ).toEqual( [ '↔ 30 60', '≤ 29', '≥ 61', '+ Add a rule', 'OtherwiseQuestion 4' ] );
+		// Every number has a path now.
+		expect( card( 'n2_0' ).querySelector( '.ffxb-output--otherwise' )?.getAttribute( 'title' ) ).not.toContain( 'Applies to' );
+
+		// The cross of a row takes its rule away; "Otherwise" says which numbers it is for.
+		await act( async () => button( 'Delete the rule “≤ 29”' ).click() );
+		expect( rows( 'n2_0' ) ).toEqual( [ '↔ 30 60', '≥ 61', '+ Add a rule', 'OtherwiseQuestion 4' ] );
+		expect( card( 'n2_0' ).querySelector( '.ffxb-output--otherwise' )?.getAttribute( 'title' ) ).toContain( 'Applies to: 0 – 29' );
+		await act( async () => ( card( 'n0_0' ).querySelector( '.ffxb-output--answer .ffxb-output__clear' ) as HTMLButtonElement ).click() );
+		expect( paths( store, 'n0_0' ).some( ( e ) => 'e_n0_0_0' === e.id ) ).toBe( false );
+		expect( rows( 'n0_0' ) ).toEqual( [ 'Answer 1', 'Answer 3', 'Answer 4', '4 more like “Otherwise”Show all', 'OtherwiseQuestion 2' ] );
+	} );
+
+	it( 'offers a rule on the selected card of a choice and opens it in the panel', async () => {
+		const store = await open( logic() );
+		expect( rows( 'n1_0' ) ).not.toContain( '+ Add a rule' );
+		await act( async () => store.getState().select( { node: 'n1_0' } ) );
+		expect( rows( 'n1_0' ) ).toContain( '+ Add a rule' );
+		await act( async () => button( '+ Add a rule' ).click() );
+		// What the answers of the step cannot say: the question before it. Checked before the answers.
+		const [ first ] = paths( store, 'n1_0' );
+		expect( first ).toMatchObject( { to: 'n2_0', when: { field: 'q1', op: 'selected', value: 'q1_o0' } } );
+		expect( store.getState().selection ).toEqual( { edge: first?.id } );
+		expect( rows( 'n1_0' ) ).toEqual( [ 'IfQuestion 1: Answer 0 is selected', 'Same', 'Other', 'Same', 'OtherwiseQuestion 3' ] );
+		expect( card( 'n1_0' ).querySelectorAll( '.ffxb-output' )[ 1 ]?.className ).toContain( 'is-group-start' );
+	} );
+
+	it( 'says which answers have no path when "Otherwise" is missing, and when nothing leads on', async () => {
+		const doc = logic();
+		doc.edges = doc.edges.filter( ( e ) => ! ( 'n0_0' === e.from && e.default ) && 'n3_0' !== e.from );
+		const store = await open( doc );
+		const otherwise = ( id: string ): HTMLElement => card( id ).querySelector( '.ffxb-output--otherwise' ) as HTMLElement;
+		expect( otherwise( 'n0_0' ).className ).toContain( 'is-open' );
+		expect( otherwise( 'n0_0' ).textContent ).toBe( 'Otherwiseno path for: Answer 2' );
+		expect( otherwise( 'n3_0' ).className ).toContain( 'is-stuck' );
+		expect( otherwise( 'n3_0' ).textContent ).toBe( 'Go toNowhere (visitors get stuck)' );
+		// With a path for every answer of a question that must be answered, "Otherwise" is not needed.
+		await act( async () => store.getState().change( ( d ) => void connectOutput( d, 'n0_0', 'a:q1_o2', 'n4_3' ) ) );
+		expect( otherwise( 'n0_0' ).className ).toContain( 'is-none' );
+		expect( otherwise( 'n0_0' ).textContent ).toBe( 'OtherwiseNot needed' );
 	} );
 } );
