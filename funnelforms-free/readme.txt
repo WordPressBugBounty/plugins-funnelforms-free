@@ -4,7 +4,7 @@ Tags: contact form, multi step form, form builder, lead generation, conversation
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 5.0.9
+Stable tag: 5.0.10
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -221,6 +221,12 @@ If you set up a mail server under Funnelforms > Settings > E-mail, the mails of 
 The scripts in assets/builder and assets/runtime are built and minified from TypeScript. The sources, with the build scripts, are in the folder source/ of this plugin. To build them: `pnpm install` and `pnpm -r build` in that folder (Node.js 20 or newer).
 
 == Changelog ==
+
+= 5.0.10 =
+* Security: the heading above the steps and other texts of a form can no longer carry scripts onto the website (stored XSS reported by Wordfence, needed the right to edit forms without the right to post unfiltered HTML). The heading is shown as plain text.
+* Editor: the outputs of a step always stand in the order the form checks them. A rule that a form made with 5.0.8 or earlier checks between the paths of two answers now shows there, on the card and in the sidebar ("Checked between the answers"); nothing in the form changes and visitors go where they went before. The note "Checked in another order" is gone.
+* Editor: rules on the card read clearly, a path drawn onto a card ends at its dot, and long questions and answers in rules no longer widen the sidebar.
+* Moving from Funnelforms 3: a button "Fix" solves what keeps a form on Funnelforms 3 and moves it (also for all forms at once). The page says for every form why it stays and what to do, and names where two fields share an ID. Two contact forms with the same fields and Font Awesome icons move cleanly. The page Migration is simpler, the details are folded away.
 
 = 5.0.9 =
 * Statistics: hover or click a chart to read the values of a day (also with the arrow keys), the legend switches series on and off. The funnel shows the drop-off before the first answer, and each step shows the time spent on it, back clicks and where visitors left.

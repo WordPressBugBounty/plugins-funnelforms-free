@@ -608,7 +608,7 @@
     "meta": {
         "legacy": {
             "formId": 802,
-            "migratorVersion": 1,
+            "migratorVersion": 2,
             "notes": []
         }
     }

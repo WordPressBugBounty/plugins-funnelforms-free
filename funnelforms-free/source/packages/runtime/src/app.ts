@@ -133,7 +133,8 @@ export class FormApp {
 		}
 
 		const settings = this.doc.settings;
-		const heading = this.text( settings.heading );
+		// The heading is text: shown with textContent, never as HTML (the plugin cleans it too).
+		const heading = textOf( this.text( settings.heading ) );
 		const locales = this.doc.locales.available;
 		if ( settings.languageSwitch && locales.length > 1 && ! this.config.preview ) {
 			this.langBox = languageSwitch( locales, this.config.locale, this.t( 'language' ) );
@@ -182,7 +183,7 @@ export class FormApp {
 				'div',
 				{ class: 'ffx-shell' },
 				this.langBox,
-				heading ? trusted( 'h2', heading, { class: 'ffx-heading' } ) : null,
+				heading ? h( 'h2', { class: 'ffx-heading' }, heading ) : null,
 				this.countdown?.el ?? null,
 				this.card,
 				this.formError,

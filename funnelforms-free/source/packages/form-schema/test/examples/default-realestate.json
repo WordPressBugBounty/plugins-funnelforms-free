@@ -2519,7 +2519,7 @@
     "meta": {
         "legacy": {
             "formId": 910,
-            "migratorVersion": 1,
+            "migratorVersion": 2,
             "notes": []
         }
     }

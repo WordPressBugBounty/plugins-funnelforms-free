@@ -431,7 +431,7 @@
     "meta": {
         "legacy": {
             "formId": 1000,
-            "migratorVersion": 1,
+            "migratorVersion": 2,
             "notes": []
         }
     }

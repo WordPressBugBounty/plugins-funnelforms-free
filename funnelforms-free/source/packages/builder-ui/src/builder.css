@@ -3335,61 +3335,132 @@ button.ffxb-output__label:focus-visible {
 	color: var(--ffxb-brand);
 }
 
-/* A number rule changed on the card: comparison, number (two for "between"), unit. */
-.ffxb-output__number {
+/*
+ * A number rule changed on the card: comparison, number (two for "between"), unit. The selectors
+ * carry .ffxb-node so they weigh more than the input rules of WordPress and of the admin frame
+ * (.wp-core-ui select, .ffx-app input[type=number]), which would make the fields tall and padded
+ * and hide the sign of the comparison. When the numbers need more room, they go to a second line.
+ */
+.ffxb-node .ffxb-output__number {
 	display: flex;
 	flex: 1 1 auto;
+	flex-wrap: wrap;
 	align-items: center;
-	gap: 5px;
+	gap: 4px;
 	min-width: 0;
 }
 
-.ffxb-output__op {
+/* The numbers and their unit stay together; they move below the comparison as a whole. */
+.ffxb-node .ffxb-output__values {
+	display: inline-flex;
+	flex: 0 1 auto;
+	align-items: center;
+	gap: 4px;
+	min-width: 0;
+	max-width: 100%;
+}
+
+.ffxb-node .ffxb-output__op {
+	position: relative;
+	display: inline-flex;
 	flex: none;
+	align-items: center;
+	justify-content: center;
+	gap: 2px;
 	box-sizing: border-box;
-	width: 30px;
-	height: 22px;
-	padding: 0;
-	border: 0;
+	min-width: 34px;
+	height: 24px;
+	padding: 0 5px 0 7px;
 	border-radius: 6px;
 	background: #e8f0fe;
 	color: #1d5bd8;
-	font: 700 13px var(--ffxb-font);
+	font: 700 13px/1 var(--ffxb-font);
+	cursor: pointer;
+}
+
+/* A small arrow says the comparison can be changed. */
+.ffxb-node .ffxb-output__op::after {
+	content: '';
+	width: 0;
+	height: 0;
+	border-top: 4px solid currentColor;
+	border-right: 3px solid transparent;
+	border-left: 3px solid transparent;
+	opacity: 0.6;
+}
+
+.ffxb-node .ffxb-output__sign {
+	min-width: 1ch;
 	text-align: center;
-	text-align-last: center;
+}
+
+/* The list lies over the sign, invisible; it opens with a click or the keyboard. */
+.ffxb-node .ffxb-output__op select.ffxb-output__ops {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	max-width: none;
+	height: 100%;
+	min-height: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--ffxb-text);
+	font: 400 13px var(--ffxb-font);
+	opacity: 0;
 	cursor: pointer;
 	appearance: none;
 }
 
-.ffxb-output__value {
+.ffxb-node .ffxb-output__op:has(select:focus-visible) {
+	outline: 2px solid var(--ffxb-brand);
+	outline-offset: 1px;
+}
+
+.ffxb-node .ffxb-output__op.is-disabled {
+	cursor: default;
+	opacity: 0.7;
+}
+
+.ffxb-node .ffxb-output__op.is-disabled::after {
+	display: none;
+}
+
+.ffxb-node .ffxb-output input.ffxb-output__value {
+	flex: none;
 	box-sizing: border-box;
 	min-width: 0;
+	max-width: 100%;
 	height: 24px;
-	padding: 0 5px;
+	min-height: 0;
+	margin: 0;
+	padding: 0 6px;
 	border: 1px solid #e0dcec;
 	border-radius: 6px;
 	background: var(--ffxb-surface);
+	box-shadow: none;
 	color: var(--ffxb-text);
-	font: 600 12.5px var(--ffxb-font);
+	font: 600 12.5px/22px var(--ffxb-font);
+	font-variant-numeric: tabular-nums;
 	text-align: right;
 	appearance: textfield;
 }
 
-.ffxb-output__value::-webkit-outer-spin-button,
-.ffxb-output__value::-webkit-inner-spin-button {
+.ffxb-node .ffxb-output input.ffxb-output__value::-webkit-outer-spin-button,
+.ffxb-node .ffxb-output input.ffxb-output__value::-webkit-inner-spin-button {
 	margin: 0;
 	appearance: none;
 }
 
-.ffxb-output__op:focus-visible,
-.ffxb-output__value:focus {
+.ffxb-node .ffxb-output input.ffxb-output__value:focus {
 	border-color: var(--ffxb-brand);
 	outline: 2px solid var(--ffxb-brand-soft);
 	outline-offset: 0;
+	box-shadow: none;
 }
 
-.ffxb-output__op:disabled,
-.ffxb-output__value:disabled {
+.ffxb-node .ffxb-output input.ffxb-output__value:disabled {
 	cursor: default;
 	opacity: 0.7;
 }
@@ -5528,6 +5599,8 @@ button.ffxb-output__label:focus-visible {
 	font-size: 12.5px;
 }
 
+/* Every list of the builder shows its arrow once, at the right, in the panel and in dialogs alike. */
+.ffxb select.ffxb-input,
 .ffxb .ffxb-panel select.ffxb-input {
 	padding-right: 30px;
 	background-image: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27%236b6780%27%20stroke-width%3D%272%27%3E%3Cpath%20d%3D%27m6%209%206%206%206-6%27%2F%3E%3C%2Fsvg%3E");
@@ -7818,6 +7891,27 @@ button.ffxb-output__label:focus-visible {
 	gap: 6px;
 }
 
+/*
+ * A long question or answer in a list must not widen the panel: the lists shrink to the room there
+ * and end in "…" (the whole text is their tooltip). Without minmax(0, 1fr) a grid would take the
+ * width of its longest list.
+ */
+.ffxb-path-editor,
+.ffxb-path-editor__target,
+.ffxb-cond-group,
+.ffxb-cond-group .ffxb-rule {
+	grid-template-columns: minmax(0, 1fr);
+	min-width: 0;
+}
+
+.ffxb select.ffxb-input {
+	max-width: 100%;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 .ffxb-cond-group--inner {
 	padding: 8px;
 	border: 1px dashed var(--ffxb-brand-line);
@@ -7886,7 +7980,12 @@ button.ffxb-output__label:focus-visible {
 
 .ffxb-rule__line .ffxb-rule__subject {
 	flex: 1 1 160px;
-	font-weight: 600;
+	font-weight: 500;
+}
+
+/* Comparison and value: the value gets the larger share and goes to its own line when it is short of room. */
+.ffxb-rule__line .ffxb-rule__value {
+	flex: 2 1 150px;
 }
 
 .ffxb-rule__line .ffxb-rule__days {

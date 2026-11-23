@@ -51,14 +51,26 @@ final class MigrationTexts {
 			'needs_review'               => array(
 				__( 'The comparison found differences', 'funnelforms-free' ),
 				__( 'Funnelforms played every path and calculation of this form in Funnelforms 3 and in Funnelforms 5 and found differences. Often they are in Funnelforms 3 itself, for example an answer that leads nowhere. So that your visitors see exactly what they know, the form stays on Funnelforms 3 until you had a look.', 'funnelforms-free' ),
-				__( 'Read what was found and compare both versions side by side. Then open the form in the form builder, fix what is needed and publish it: from then on the published version counts and the form moves to Funnelforms 5.', 'funnelforms-free' ),
+				__( 'Read what was found and try both versions side by side. If the new one is right, click "Take over and move": from then on the Funnelforms 5 version counts. Otherwise change it in the form builder and publish it.', 'funnelforms-free' ),
 				$open,
 				$builder,
 			),
+			'check_failed'               => array(
+				__( 'The copy has an error', 'funnelforms-free' ),
+				__( 'The check found an error in the copy of this form, listed below with the parts it concerns. So that your visitors never see a broken form, it stays on Funnelforms 3 until the copy is right.', 'funnelforms-free' ),
+				__( 'Click "Fix": Funnelforms copies the form again with this version, which solves the known causes (such as two contact forms with the same field IDs), checks it and moves it. If an error is left, change the named parts in Funnelforms 3 and fix again.', 'funnelforms-free' ),
+				__( 'See the details', 'funnelforms-free' ),
+				$form_id > 0 ? MigrationPage::url(
+					array(
+						'tab'  => 'forms',
+						'form' => $form_id,
+					)
+				) : MigrationPage::url( array( 'tab' => 'forms' ) ),
+			),
 			'not_verified'               => array(
 				__( 'The form has not been checked yet', 'funnelforms-free' ),
-				__( 'The copy of this form has not been compared with Funnelforms 3 yet, or the comparison could not finish. Until it has, the form stays on Funnelforms 3.', 'funnelforms-free' ),
-				__( 'Import the form again on its page under Migration → Forms. That copies and checks it once more.', 'funnelforms-free' ),
+				__( 'The copy of this form has not been compared with Funnelforms 3 yet. Until it has, the form stays on Funnelforms 3.', 'funnelforms-free' ),
+				__( 'Click "Fix": Funnelforms copies and checks the form now and moves it when everything matches.', 'funnelforms-free' ),
 				__( 'See the details', 'funnelforms-free' ),
 				$form_id > 0 ? MigrationPage::url(
 					array(
@@ -77,14 +89,14 @@ final class MigrationTexts {
 			'no_document'                => array(
 				__( 'The form could not be read', 'funnelforms-free' ),
 				__( 'Funnelforms 3 stored this form in a way that could not be read, so there is no copy yet. The form keeps running on Funnelforms 3, unchanged.', 'funnelforms-free' ),
-				__( 'Open the form in Funnelforms 3, save it once and import it again here. If it still fails, send us a support request; the diagnosis tells us what we need.', 'funnelforms-free' ),
+				__( 'Click "Fix" to copy it again. If it still fails, open the form in Funnelforms 3, save it once and fix again, or send us a support request; the diagnosis tells us what we need.', 'funnelforms-free' ),
 				'',
 				'',
 			),
 			'no_backup'                  => array(
 				__( 'No restore point yet', 'funnelforms-free' ),
 				__( 'Forms move to Funnelforms 5 only once a restore point of your Funnelforms 3 data exists, so you can always go back.', 'funnelforms-free' ),
-				( MigrationPage::way_back() ? __( 'Create a restore point. It takes a few seconds.', 'funnelforms-free' ) : __( 'The restore point could not be saved. Please ask in the support forum.', 'funnelforms-free' ) ),
+				( MigrationPage::way_back() ? __( 'Click "Fix": Funnelforms saves a restore point in the background and moves the form as soon as it is written.', 'funnelforms-free' ) : __( 'The restore point could not be saved. Please ask in the support forum.', 'funnelforms-free' ) ),
 				( MigrationPage::way_back() ? __( 'Go to the way back', 'funnelforms-free' ) : __( 'Support forum', 'funnelforms-free' ) ),
 				( MigrationPage::way_back() ? MigrationPage::url( array( 'tab' => 'wayback' ) ) : Ui::support_url() ),
 			),
@@ -98,28 +110,28 @@ final class MigrationTexts {
 			'tracking_code_not_allowed', 'script_in_content' => array(
 				__( 'The form contains tracking code or scripts', 'funnelforms-free' ),
 				__( 'Code in a form runs on your website. Funnelforms 5 runs it only once an administrator has allowed code in forms.', 'funnelforms-free' ),
-				__( 'If you trust the code, allow tracking code under Settings → General. Otherwise remove it in the form builder.', 'funnelforms-free' ),
+				__( 'Funnelforms 3 ran this code. Click "Fix" to allow the code of your forms again (only administrators who may add code can do this), or remove the code in the form builder.', 'funnelforms-free' ),
 				__( 'Open the settings', 'funnelforms-free' ),
 				SettingsPage::url(),
 			),
 			'input_mask'                 => array(
 				__( 'A field with an input mask Funnelforms 5 does not know', 'funnelforms-free' ),
 				__( 'A field of this form makes visitors type in a fixed pattern (an input mask). Funnelforms 5 knows the common masks of digits, letters and fixed characters, but not this one.', 'funnelforms-free' ),
-				__( 'Keep the form on Funnelforms 3 for now, or change or remove the input mask in the form builder and check the field there.', 'funnelforms-free' ),
+				__( 'Click "Fix": the field then takes any input, without the fixed pattern. Or change the input mask in the form builder.', 'funnelforms-free' ),
 				$open,
 				$builder,
 			),
 			'captcha_not_configured'     => array(
 				__( 'The spam protection has no keys', 'funnelforms-free' ),
 				__( 'The form asks visitors to pass a captcha (such as reCAPTCHA), but Funnelforms 5 has no keys for it. Without them nobody could send the form.', 'funnelforms-free' ),
-				__( 'Choose Cloudflare Turnstile or hCaptcha with its keys under Settings → Entries and spam, then remove the old captcha field in the form builder. Every form also keeps its hidden spam checks.', 'funnelforms-free' ),
+				__( 'Click "Fix": the form then uses the spam protection of your site (Settings → Entries and spam), or its hidden spam checks when none is chosen.', 'funnelforms-free' ),
 				__( 'Open the settings', 'funnelforms-free' ),
 				SettingsPage::url( 'entries' ),
 			),
 			'sms_not_configured'         => array(
 				__( 'The text messages have no connection', 'funnelforms-free' ),
 				__( 'A phone field of this form asks visitors to confirm their number with a code by text message, but no SMS connection of Twilio or Bird is chosen for it. Funnelforms 3 sent these codes through MessageBird, which Funnelforms 5 no longer supports; until then the form keeps running on Funnelforms 3.', 'funnelforms-free' ),
-				__( 'Open the form in the form builder, select the phone field and choose or add a Twilio or Bird connection under "Confirm by text message".', 'funnelforms-free' ),
+				__( 'Click "Fix" to keep the phone field without the code by text message. Or choose a Twilio or Bird connection for the field in the form builder under "Confirm by text message".', 'funnelforms-free' ),
 				$open,
 				$builder,
 			),
@@ -213,8 +225,14 @@ final class MigrationTexts {
 			'missing_calculation'          => __( 'The form uses a calculation that was deleted in Funnelforms 3.', 'funnelforms-free' ),
 			'booking_without_event_type'   => __( 'A booking question has no appointment type.', 'funnelforms-free' ),
 			'interface_shifts_nodes_in_3x' => __( 'The Funnelforms 3 editor had moved steps of this form; the order was taken as Funnelforms 3 shows it.', 'funnelforms-free' ),
+			'form_has_no_steps'            => __( 'The form has no steps in Funnelforms 3.', 'funnelforms-free' ),
+			'start_is_not_a_question'      => __( 'The form does not start with a question or contact form in Funnelforms 3.', 'funnelforms-free' ),
 			default                        => '',
 		};
+		if ( '' !== $text ) {
+			return $text;
+		}
+		$text = self::reference( $detail );
 		if ( '' !== $text ) {
 			return $text;
 		}
@@ -223,7 +241,113 @@ final class MigrationTexts {
 			'calculations' => __( 'A calculation gives a different result than in Funnelforms 3.', 'funnelforms-free' ),
 			'nodes'        => str_contains( $detail, 'sends no mail' ) ? __( 'A contact form sends no e-mail.', 'funnelforms-free' ) : __( 'A question or contact form was not taken over completely.', 'funnelforms-free' ),
 			'references'   => __( 'The copy has a part that points nowhere.', 'funnelforms-free' ),
+			'conversion'   => __( 'The form could not be copied.', 'funnelforms-free' ),
 			default        => __( 'Something in the Funnelforms 3 form needs a look.', 'funnelforms-free' ),
+		};
+	}
+
+	/**
+	 * A finding of the reference check in words, with the ID it concerns; empty when not one of them.
+	 *
+	 * @param string $detail Technical detail (DocumentChecker::check()).
+	 */
+	private static function reference( string $detail ): string {
+		if ( 1 === preg_match( '/^duplicate field id (\S+)/', $detail, $m ) ) {
+			/* translators: %s: ID of a field, e.g. email. */
+			return sprintf( __( 'Two fields have the same ID "%s".', 'funnelforms-free' ), self::plain_id( $m[1] ) );
+		}
+		if ( 1 === preg_match( '/^duplicate (node|edge|action|calculation) id (\S+)/', $detail, $m ) ) {
+			/* translators: %s: technical ID. */
+			return sprintf( __( 'Two parts of the copy have the same ID "%s".', 'funnelforms-free' ), $m[2] );
+		}
+		if ( 1 === preg_match( '/^start node (\S*) does not exist/', $detail ) ) {
+			return __( 'The first step of the form is missing.', 'funnelforms-free' );
+		}
+		if ( str_contains( $detail, 'connects unknown nodes' ) ) {
+			return __( 'A path leads to a step that does not exist.', 'funnelforms-free' );
+		}
+		return '';
+	}
+
+	/**
+	 * The ID of a field as it was entered in Funnelforms 3 (c_email → email, q12 → question 12).
+	 *
+	 * @param string $id Field ID of the copy.
+	 */
+	private static function plain_id( string $id ): string {
+		if ( 1 === preg_match( '/^q(\d+)/', $id, $m ) ) {
+			/* translators: %d: ID of a question in Funnelforms 3. */
+			return sprintf( __( 'question %d', 'funnelforms-free' ), (int) $m[1] );
+		}
+		return str_starts_with( $id, 'c_' ) ? substr( $id, 2 ) : $id;
+	}
+
+	/**
+	 * Where the parts named in the findings are, for a copy that failed its check: for two fields
+	 * with the same ID the field and its contact form or question, so the person can find them.
+	 *
+	 * @param array<string,mixed>|null $document Copy (the form's current document), when there is one.
+	 * @param array<string,mixed>      $checks   Checks of the form.
+	 * @return list<string>
+	 */
+	public static function located( ?array $document, array $checks ): array {
+		$out = array();
+		if ( null === $document ) {
+			return $out;
+		}
+		foreach ( (array) ( $checks['references']['details'] ?? array() ) as $detail ) {
+			if ( 1 !== preg_match( '/^duplicate field id (\S+)/', (string) $detail, $m ) ) {
+				continue;
+			}
+			$places = array();
+			foreach ( (array) ( $document['nodes'] ?? array() ) as $node ) {
+				foreach ( (array) ( $node['fields'] ?? array() ) as $field ) {
+					if ( ( $field['id'] ?? '' ) !== $m[1] ) {
+						continue;
+					}
+					$label = self::local_text( $field['label'] ?? '' );
+					$where = 'contact' === ( $node['type'] ?? '' ) ? self::local_text( $node['title'] ?? '' ) : '';
+					$label = '' !== $label ? $label : (string) ( $field['key'] ?? $m[1] );
+					/* translators: 1: label of a field, 2: title of a contact form. */
+					$places[] = '' !== $where ? sprintf( __( '"%1$s" in the contact form "%2$s"', 'funnelforms-free' ), $label, $where ) : sprintf( '"%s"', $label );
+				}
+			}
+			if ( count( $places ) > 1 ) {
+				/* translators: 1: ID of a field, 2: list of fields. */
+				$out[] = sprintf( __( 'ID "%1$s" is used by %2$s.', 'funnelforms-free' ), self::plain_id( $m[1] ), implode( ', ', array_unique( $places ) ) );
+			}
+		}
+		return array_values( array_unique( $out ) );
+	}
+
+	/**
+	 * A text of the document in the first language it has.
+	 *
+	 * @param mixed $text Localized text (locale => text) or a string.
+	 */
+	private static function local_text( $text ): string {
+		if ( is_array( $text ) ) {
+			$text = (string) ( array_values( array_filter( $text, 'is_string' ) )[0] ?? '' );
+		}
+		return trim( wp_strip_all_tags( (string) $text ) );
+	}
+
+	/**
+	 * What the "Fix" button did, in words.
+	 *
+	 * @param string $code MigrationFix::run() done code.
+	 */
+	public static function fixed( string $code ): string {
+		return match ( $code ) {
+			'reimported'              => __( 'copied and checked again', 'funnelforms-free' ),
+			'captcha_site_protection' => __( 'the captcha now uses the spam protection of your site', 'funnelforms-free' ),
+			'sms_confirmation_off'    => __( 'the phone field no longer asks for a code by text message', 'funnelforms-free' ),
+			'input_mask_removed'      => __( 'the input mask Funnelforms 5 does not know was left out', 'funnelforms-free' ),
+			'accepted'                => __( 'the Funnelforms 5 version was taken over', 'funnelforms-free' ),
+			'code_allowed'            => __( 'the code of forms is allowed again', 'funnelforms-free' ),
+			'backup_started'          => __( 'a restore point is being saved', 'funnelforms-free' ),
+			'moved'                   => __( 'moved to Funnelforms 5', 'funnelforms-free' ),
+			default                   => $code,
 		};
 	}
 
@@ -265,7 +389,7 @@ final class MigrationTexts {
 	 */
 	public static function findings( array $checks ): array {
 		$out = array();
-		foreach ( array_keys( self::checks() ) as $name ) {
+		foreach ( array_merge( array( 'conversion' ), array_keys( self::checks() ) ) as $name ) {
 			foreach ( (array) ( $checks[ $name ]['details'] ?? array() ) as $detail ) {
 				$out[] = self::finding( $name, (string) $detail );
 			}
@@ -285,6 +409,11 @@ final class MigrationTexts {
 			return $findings[0] ?? self::blocker( 'needs_review' )['title'];
 		}
 		$blockers = (array) ( $form['blockers'] ?? array() );
+		if ( 'check_failed' === ( $blockers[0] ?? '' ) ) {
+			// The error itself says more than "the copy has an error".
+			$findings = self::findings( (array) ( $form['checks'] ?? array() ) );
+			return $findings[0] ?? self::blocker( 'check_failed' )['title'];
+		}
 		return array() === $blockers ? '' : self::blocker( (string) $blockers[0], (int) ( $form['id'] ?? 0 ) )['title'];
 	}
 

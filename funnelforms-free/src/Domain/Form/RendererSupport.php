@@ -28,8 +28,8 @@ final class RendererSupport {
 	public const CRM_PROVIDERS = array( 'activecampaign', 'brevo', 'cleverreach', 'dealsnprojects', 'fincrm', 'getresponse', 'googlesheets', 'hellohq', 'hubspot', 'klicktipp', 'mailchimp', 'pipedrive' );
 
 	/**
-	 * Whether content steps or contact HTML blocks carry scripts or inline event handlers. 3.x ran
-	 * them; the new renderer only when the site allows the code of its forms (Frontend\TrackingCode).
+	 * Whether content steps or contact HTML blocks carry code (runs_code()). 3.x ran it; the new
+	 * renderer only when the site allows the code of its forms (Frontend\TrackingCode).
 	 *
 	 * @param array<string,mixed> $document Form document.
 	 */
@@ -40,13 +40,32 @@ final class RendererSupport {
 					continue;
 				}
 				foreach ( (array) ( $field['props']['html'] ?? array() ) as $text ) {
-					if ( is_string( $text ) && preg_match( '/<script\b|\son[a-z]+\s*=/i', $text ) ) {
+					if ( is_string( $text ) && self::runs_code( $text ) ) {
 						return true;
 					}
 				}
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Whether HTML can run code or act for the page in a visitor's browser: scripts, event handlers
+	 * (also after a slash or quote, as in <svg/onload=…>), script addresses (also written with
+	 * entities or tabs, as in java&#x09;script:, or as the whole value of an address), frames with their own document (srcdoc), and the
+	 * elements wp_kses never lets through that load, send or restyle the page (object, embed, base,
+	 * meta, link, style, form, svg, math). Only users with unfiltered_html may add such HTML
+	 * (SensitiveChanges); everyone else's is cleaned with wp_kses before it reaches a browser.
+	 *
+	 * @param string $html HTML.
+	 */
+	public static function runs_code( string $html ): bool {
+		if ( 1 === preg_match( '#<\s*/?\s*(script|object|embed|applet|base|meta|link|style|form|frame|frameset|svg|math)\b|[\s/"\'](on[a-z]+|srcdoc|formaction)\s*=#i', $html ) ) {
+			return true;
+		}
+		// Browsers ignore tabs and line breaks in addresses and decode entities in attributes.
+		$decoded = (string) preg_replace( '/[\x00-\x20]+/', '', html_entity_decode( $html, ENT_QUOTES | ENT_HTML5, 'UTF-8' ) );
+		return 1 === preg_match( '#^(javascript|vbscript|livescript):|=["\']?(javascript|vbscript|livescript|data(?!:image/)):#i', $decoded );
 	}
 
 	/**

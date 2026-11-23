@@ -23,6 +23,7 @@ import {
 	applyNodeChanges,
 	useReactFlow,
 	type Connection,
+	type ConnectionLineComponentProps,
 	type Edge as FlowEdge,
 	type EdgeProps,
 	type InternalNode,
@@ -94,7 +95,8 @@ type NodeData = {
 type OutputRow = {
 	kind: 'answer' | 'rule';
 	/** Rules checked before the answers, the answers, rules checked after them. */
-	group: 'first' | 'answer' | 'after';
+	/** The part of the outputs the row belongs to (ports.ts, parts): a line between parts. */
+	group: number;
 	handle: string;
 	label: string;
 	title: string;
@@ -184,7 +186,7 @@ const NodeView = memo( function NodeView( { data, selected }: NodeProps<CanvasNo
 					</span>
 				) : null }
 			</div>
-			<div className="ffxb-node__title">{ name || <em>{ __( 'Without a title', 'funnelforms-pro' ) }</em> }</div>
+			<div className="ffxb-node__title" title={ name || undefined }>{ name || <em>{ __( 'Without a title', 'funnelforms-pro' ) }</em> }</div>
 			{ fields.length > 1 || 'contact' === node.type ? (
 				<ul className="ffxb-node__fields">
 					{ fields.map( ( f ) => (
@@ -213,7 +215,7 @@ const NodeView = memo( function NodeView( { data, selected }: NodeProps<CanvasNo
 										URL
 									</span>
 								) : null }
-								<span className="ffxb-node__field-label">{ text( f.label, locale ) || ( 'contact' === node.type ? contactFieldName( f.type ) : '' ) }</span>
+								<span className="ffxb-node__field-label" title={ text( f.label, locale ) || undefined }>{ text( f.label, locale ) || ( 'contact' === node.type ? contactFieldName( f.type ) : '' ) }</span>
 							</button>
 						</li>
 					) ) }
@@ -252,6 +254,26 @@ const NodeView = memo( function NodeView( { data, selected }: NodeProps<CanvasNo
 	);
 } );
 
+/**
+ * The line while a path is drawn. Over a card it ends at the dot at the head of the card, where the
+ * path will end, not at the middle of the card (the "drop" handle covers the whole card).
+ */
+function ConnectionLine( { fromX, fromY, fromPosition, toX, toY, toPosition, toNode, toHandle, connectionLineStyle }: ConnectionLineComponentProps<CanvasNode> ) {
+	let x = toX;
+	let y = toY;
+	let position = toPosition;
+	if ( toNode && toHandle && TARGET !== toHandle.id ) {
+		const head = toNode.internals.handleBounds?.target?.find( ( h ) => h.id === TARGET );
+		if ( head ) {
+			x = toNode.internals.positionAbsolute.x + head.x + head.width / 2;
+			y = toNode.internals.positionAbsolute.y + head.y + head.height / 2;
+			position = Position.Left;
+		}
+	}
+	const [ path ] = getBezierPath( { sourceX: fromX, sourceY: fromY, sourcePosition: fromPosition, targetX: x, targetY: y, targetPosition: position } );
+	return <path className="react-flow__connection-path" d={ path } fill="none" style={ connectionLineStyle } />;
+}
+
 /** The path the pointer is on, on a card or on the canvas: its row, its line and the card it leads to light up together. */
 type Hot = { edge: string | null; to: string | null };
 const COLD: Hot = { edge: null, to: null };
@@ -272,7 +294,8 @@ function NumberBox( { value, label, step, disabled, onCommit }: { value: number;
 			step={ step ?? 'any' }
 			value={ shown }
 			disabled={ disabled }
-			style={ { width: `${ Math.min( 9, Math.max( 2, shown.length ) ) + 3 }ch` } }
+			style={ { width: `calc(${ Math.min( 9, Math.max( 2, shown.length ) ) }ch + 14px)` } }
+			title={ shown }
 			onClick={ ( e ) => e.stopPropagation() }
 			onKeyDown={ ( e ) => e.stopPropagation() }
 			onBlur={ () => setDraft( null ) }
@@ -301,22 +324,28 @@ function NumberRuleInput( { number, disabled, onChange }: { number: NonNullable<
 	const ops = NUMBER_OPS.includes( rule.op ) ? NUMBER_OPS : [ rule.op, ...NUMBER_OPS ];
 	return (
 		<span className="ffxb-output__number">
-			<select
-				className={ `ffxb-output__op nodrag nopan` }
-				aria-label={ __( 'Comparison', 'funnelforms-pro' ) }
-				title={ opName( rule.op ) }
-				value={ rule.op }
-				disabled={ disabled }
-				onClick={ ( e ) => e.stopPropagation() }
-				onKeyDown={ ( e ) => e.stopPropagation() }
-				onChange={ ( e ) => setOp( e.target.value as NumberRule[ 'op' ] ) }
-			>
-				{ ops.map( ( op ) => (
-					<option key={ op } value={ op } title={ opName( op ) }>
-						{ SIGNS[ op ] }
-					</option>
-				) ) }
-			</select>
+			{ /* The sign shows at all times; the list over it names each comparison in words. */ }
+			<span className={ 'ffxb-output__op' + ( disabled ? ' is-disabled' : '' ) } title={ opName( rule.op ) }>
+				<span className="ffxb-output__sign" aria-hidden="true">
+					{ SIGNS[ rule.op ] }
+				</span>
+				<select
+					className="ffxb-output__ops nodrag nopan"
+					aria-label={ __( 'Comparison', 'funnelforms-pro' ) }
+					value={ rule.op }
+					disabled={ disabled }
+					onClick={ ( e ) => e.stopPropagation() }
+					onKeyDown={ ( e ) => e.stopPropagation() }
+					onChange={ ( e ) => setOp( e.target.value as NumberRule[ 'op' ] ) }
+				>
+					{ ops.map( ( op ) => (
+						<option key={ op } value={ op }>
+							{ SIGNS[ op ] + '  ' + opName( op ) }
+						</option>
+					) ) }
+				</select>
+			</span>
+			<span className="ffxb-output__values">
 			{ number.unit && number.unitBefore ? <span className="ffxb-output__unit">{ number.unit }</span> : null }
 			{ 'between' === rule.op ? (
 				<>
@@ -330,6 +359,7 @@ function NumberRuleInput( { number, disabled, onChange }: { number: NonNullable<
 				<NumberBox value={ rule.value } label={ __( 'Value', 'funnelforms-pro' ) } step={ number.step } disabled={ disabled } onCommit={ ( n ) => onChange( { ...rule, value: n }, 'value' ) } />
 			) }
 			{ number.unit && ! number.unitBefore ? <span className="ffxb-output__unit">{ number.unit }</span> : null }
+			</span>
 		</span>
 	);
 }
@@ -611,13 +641,13 @@ function outputsView( doc: FormDocument, node: FormNode, outputs: Outputs | unde
 	const answers: OutputRow[] = outputs.answers.map( ( a ): OutputRow => {
 		const answer = text( a.option.label, locale ).replace( /<[^>]*>/g, ' ' ).replace( /\s+/g, ' ' ).trim() || a.option.value;
 		return a.edge
-			? { kind: 'answer', group: 'answer', handle: a.handle, label: answer, edge: a.edge.id, to: a.edge.to, warn: warned.has( a.edge.id ), title: sprintf( /* translators: %1$s: answer, %2$s: step */ __( 'Answer “%1$s” leads to %2$s', 'funnelforms-pro' ), answer, name( a.edge.to ) ) }
-			: { kind: 'answer', group: 'answer', handle: a.handle, label: answer, title: __( 'Follows “Otherwise”. Drag from here to give this answer its own path.', 'funnelforms-pro' ) };
+			? { kind: 'answer', group: 0, handle: a.handle, label: answer, edge: a.edge.id, to: a.edge.to, warn: warned.has( a.edge.id ), title: sprintf( /* translators: %1$s: answer, %2$s: step */ __( 'Answer “%1$s” leads to %2$s', 'funnelforms-pro' ), answer, name( a.edge.to ) ) }
+			: { kind: 'answer', group: 0, handle: a.handle, label: answer, title: __( 'Follows “Otherwise”. Drag from here to give this answer its own path.', 'funnelforms-pro' ) };
 	} );
 	const rule = ( r: RuleOutput ): OutputRow => {
 		const row: OutputRow = {
 			kind: 'rule',
-			group: r.first ? 'first' : 'after',
+			group: 0,
 			handle: r.handle,
 			label: ruleText( r, doc, locale, fields ),
 			edge: r.edge.id,
@@ -640,8 +670,11 @@ function outputsView( doc: FormDocument, node: FormNode, outputs: Outputs | unde
 		}
 		return row;
 	};
-	// In the order the form checks them: rules before the answers, the answers, rules after them.
-	const rows = [ ...outputs.rules.filter( ( r ) => r.first ).map( rule ), ...answers, ...outputs.rules.filter( ( r ) => ! r.first ).map( rule ) ];
+	// In the order the form checks them: rules before the answers, the answers, rules after them, or as stored.
+	const byHandle = new Map( answers.map( ( a ) => [ a.handle, a ] ) );
+	const rows = outputs.parts.flatMap( ( p, group ): OutputRow[] =>
+		'rules' === p.kind ? p.rules.map( ( r ) => ( { ...rule( r ), group } ) ) : p.answers.flatMap( ( a ) => { const row = byHandle.get( a.handle ); return row ? [ { ...row, group } ] : []; } )
+	);
 	const fallback = outputs.otherwise;
 	const stuck = mine.some( ( h ) => 'deadEnd' === h.code || 'contactNoEnd' === h.code );
 	const open = mine.some( ( h ) => 'noOtherwise' === h.code );
@@ -1029,6 +1062,7 @@ function Flow() {
 				onEdgeMouseEnter={ ( _e, edge ) => hotStore.setState( { edge: edge.data?.edge ?? edge.id, to: edge.target } ) }
 				onEdgeMouseLeave={ () => hotStore.setState( COLD ) }
 				connectionRadius={ 28 }
+				connectionLineComponent={ ConnectionLine }
 				onPaneClick={ () => select( {} ) }
 				onDragOver={ ( e ) => {
 					if ( e.dataTransfer.types.includes( DRAG_TYPE ) ) {

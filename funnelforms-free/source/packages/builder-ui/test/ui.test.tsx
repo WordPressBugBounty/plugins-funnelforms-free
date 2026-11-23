@@ -2035,7 +2035,7 @@ describe( 'logic', () => {
 		expect( order( 'n1_0' ) ).toEqual( [ rule, 'e_n1_0_0', 'e_n1_0_1' ] );
 	} );
 
-	it( 'adds conditions to the path of an answer, which makes it a rule checked first', async () => {
+	it( 'shows a rule between the answers where it is checked, and adds conditions to the path of an answer, which makes it a rule checked first', async () => {
 		const doc = JSON.parse( readFileSync( join( __dirname, '../../form-schema/test/examples/synthetic-logic.json' ), 'utf8' ) ) as FormDocument;
 		// A rule between the paths of two answers, as an import can bring it.
 		doc.edges.splice( 1, 0, { id: 'mid', from: 'n0_0', to: 'n4_3', when: { field: 'q1', op: 'filled' } } );
@@ -2048,11 +2048,16 @@ describe( 'logic', () => {
 		await act( async () => store.getState().select( { node: 'n0_0' } ) );
 		await act( async () => tab( 'Logic' ).click() );
 
-		// The list cannot show that order: it says so and offers its own.
-		expect( inspector().textContent ).toContain( 'Checked in another order' );
-		await act( async () => button( 'Use the order shown' ).click() );
+		// The list shows the rule where the form checks it, between the answers; nothing is moved.
+		const leads = () => [ ...inspector().querySelectorAll( '.ffxb-logic-lead' ) ].map( ( l ) => l.textContent );
+		expect( leads() ).toEqual( [ 'Checked between the answers' ] );
+		expect( [ ...inspector().querySelectorAll( '.ffxb-answer-routes__list' ) ].map( ( l ) => l.querySelectorAll( 'li' ).length ) ).toEqual( [ 1, 4 ] );
+		expect( order( 'n0_0' ) ).toEqual( [ 'e_n0_0_0', 'mid', 'e_n0_0_1', 'e_n0_0_2', 'e_n0_0_3' ] );
+		// The arrows move it past the path next to it, until it stands behind the answers.
+		await act( async () => button( 'Check later' ).click() );
+		await act( async () => button( 'Check later' ).click() );
 		expect( order( 'n0_0' ) ).toEqual( [ 'e_n0_0_0', 'e_n0_0_1', 'e_n0_0_2', 'mid', 'e_n0_0_3' ] );
-		expect( inspector().textContent ).not.toContain( 'Checked in another order' );
+		expect( leads() ).toEqual( [ 'Checked after the answers' ] );
 
 		// Answers without a path have no conditions to open; a path for two answers opens at the first of them.
 		expect( [ ...inspector().querySelectorAll( '.ffxb-answer-routes__list li' ) ].map( ( li ) => li.querySelectorAll( 'button[aria-label^="Conditions for"]' ).length ) ).toEqual( [ 1, 1, 0, 1, 0 ] );
@@ -2063,7 +2068,7 @@ describe( 'logic', () => {
 		// With a second condition it is a rule of its own, checked before the answers; "Answer 1" follows "Otherwise".
 		await act( async () => button( 'Add rule' ).click() );
 		expect( order( 'n0_0' ) ).toEqual( [ 'e_n0_0_1', 'e_n0_0_0', 'e_n0_0_2', 'mid', 'e_n0_0_3' ] );
-		expect( [ ...inspector().querySelectorAll( '.ffxb-logic-lead' ) ].map( ( l ) => l.textContent ) ).toEqual( [ 'Checked first', 'Checked after the answers' ] );
+		expect( leads() ).toEqual( [ 'Checked first', 'Checked after the answers' ] );
 		expect( inspector().querySelector( '.ffxb-answer-routes__list li.is-open' ) ).toBeNull();
 		expect( open().closest( '.ffxb-logic-rules' ) ).not.toBeNull();
 		expect( [ ...inspector().querySelectorAll<HTMLSelectElement>( '.ffxb-answer-routes select' ) ].find( ( x ) => 'Next step for "Answer 1"' === x.getAttribute( 'aria-label' ) )?.value ).toBe( '' );
@@ -3780,8 +3785,9 @@ describe( 'outputs on the canvas', () => {
 	/** The rows of a card in words; a number rule changed in place as its sign and its numbers. */
 	const rows = ( id: string ): string[] =>
 		[ ...card( id ).querySelectorAll( '.ffxb-output, .ffxb-output-note--more, .ffxb-output-add' ) ].map( ( r ) => {
-			const op = r.querySelector<HTMLSelectElement>( '.ffxb-output__op' );
-			return op ? [ op.selectedOptions[ 0 ]?.textContent, ...[ ...r.querySelectorAll<HTMLInputElement>( '.ffxb-output__value' ) ].map( ( i ) => i.value ) ].join( ' ' ) : r.textContent ?? '';
+			// The sign shown on the row (the list over it names the comparison in words).
+			const op = r.querySelector<HTMLElement>( '.ffxb-output__sign' );
+			return op ? [ op.textContent, ...[ ...r.querySelectorAll<HTMLInputElement>( '.ffxb-output__value' ) ].map( ( i ) => i.value ) ].join( ' ' ) : r.textContent ?? '';
 		} );
 	const paths = ( store: ReturnType<typeof createBuilderStore>, from: string ) => store.getState().doc?.edges.filter( ( e ) => e.from === from ) ?? [];
 	const set = async ( el: HTMLInputElement | HTMLSelectElement | null, value: string ): Promise<void> => {
@@ -3864,7 +3870,7 @@ describe( 'outputs on the canvas', () => {
 		// Its number and its comparison, typed on the card.
 		await set( card( 'n2_0' ).querySelector<HTMLInputElement>( '.ffxb-output__value' ), '30' );
 		expect( paths( store, 'n2_0' )[ 0 ]?.when ).toEqual( { field: 'q3', op: 'gte', value: 30 } );
-		await set( card( 'n2_0' ).querySelector<HTMLSelectElement>( '.ffxb-output__op' ), 'between' );
+		await set( card( 'n2_0' ).querySelector<HTMLSelectElement>( '.ffxb-output__ops' ), 'between' );
 		expect( paths( store, 'n2_0' ).find( ( e ) => ! e.default )?.when ).toEqual( { all: [ { field: 'q3', op: 'gte', value: 30 }, { field: 'q3', op: 'lte', value: 100 } ] } );
 		expect( rows( 'n2_0' )[ 0 ] ).toBe( '↔ 30 100' );
 		await set( card( 'n2_0' ).querySelector<HTMLInputElement>( '.ffxb-output__value[aria-label="Maximum"]' ), '60' );

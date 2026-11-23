@@ -44,6 +44,7 @@ final class MigrationRunner {
 		add_action( 'funnelforms_backup_done', array( self::class, 'after_backup' ), 10, 2 );
 		MigrationLog::register();
 		AutoRenderer::register();
+		MigrationFix::register();
 	}
 
 	/**

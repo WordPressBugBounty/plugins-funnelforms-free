@@ -31,8 +31,10 @@ final class FormConverter {
 
 	/**
 	 * Bumped whenever the conversion changes; stored per migrated item.
+	 * 2: contact field ids unique across the form (several contact forms with the same 3.x ids),
+	 * the icon font on whenever the form shows Font Awesome icons (3.x always loaded it).
 	 */
-	public const VERSION = 1;
+	public const VERSION = 2;
 
 	private const CRM_PROVIDERS = array( 'dealsnprojects', 'activecampaign', 'mailchimp', 'getresponse', 'pipedrive', 'hubspot', 'fincrm', 'hellohq', 'klicktipp' );
 
@@ -102,6 +104,13 @@ final class FormConverter {
 	private array $refs = array();
 
 	/**
+	 * Field ids already given in the document being converted (questions and contact fields).
+	 *
+	 * @var array<string,true>
+	 */
+	private array $field_ids = array();
+
+	/**
 	 * Template converter.
 	 *
 	 * @var TemplateConverter
@@ -135,6 +144,7 @@ final class FormConverter {
 		$this->notes       = array();
 		$this->errors      = array();
 		$this->connections = array();
+		$this->field_ids   = array();
 		$this->refs        = array(
 			'questions'     => array(),
 			'contact_forms' => array(),
@@ -185,11 +195,12 @@ final class FormConverter {
 		$edges        = array();
 		$actions      = array();
 		$contact_keys = array();
+		$contact_ids  = array();
 
 		foreach ( $items as $node_id => $item ) {
 			if ( 'question' === $item['kind'] ) {
 				$base     = FieldIds::question( $item['post_id'] );
-				$field_id = isset( $used_field_ids[ $base ] ) ? $base . '_' . $node_id : $base;
+				$field_id = $this->unique_field_id( isset( $used_field_ids[ $base ] ) ? $base . '_' . $node_id : $base, $node_id );
 
 				$used_field_ids[ $base ] = true;
 
@@ -212,6 +223,7 @@ final class FormConverter {
 				$built                    = $this->contact_node( $node_id, $item['post_id'], $item['content'] );
 				$nodes[ $node_id ]        = $built['node'];
 				$contact_keys[ $node_id ] = $built['keys'];
+				$contact_ids[ $node_id ]  = $built['ids'];
 			}
 		}
 
@@ -251,7 +263,7 @@ final class FormConverter {
 		// 4. Mail actions per contact node and calculations.
 		foreach ( $items as $node_id => $item ) {
 			if ( 'contact' === $item['kind'] && isset( $nodes[ $node_id ] ) ) {
-				foreach ( $this->mail_actions( $node_id, $item['content'], $contact_keys[ $node_id ] ) as $action ) {
+				foreach ( $this->mail_actions( $node_id, $item['content'], $contact_keys[ $node_id ], $contact_ids[ $node_id ] ) as $action ) {
 					$actions[] = $action;
 				}
 			}
@@ -259,6 +271,10 @@ final class FormConverter {
 
 		$calculations = $this->calculations();
 		$this->notes  = array_values( array_unique( $this->notes ) );
+		$settings     = $this->settings( $form );
+		// 3.x loaded Font Awesome on every page with a form; "showFontAwesome" only changed the
+		// arrows of the buttons. So the icons of answers and contact fields need the font either way.
+		$settings['iconFont'] = $settings['iconFont'] || self::shows_font_icons( $nodes );
 
 		$document = array(
 			'schemaVersion' => 1,
@@ -274,7 +290,7 @@ final class FormConverter {
 			'calculations'  => $calculations,
 			'actions'       => $actions,
 			'style'         => $this->style( $form ),
-			'settings'      => $this->settings( $form ),
+			'settings'      => $settings,
 			'layout'        => $this->layout( $form ),
 			'meta'          => array(
 				'legacy' => array(
@@ -286,6 +302,51 @@ final class FormConverter {
 		);
 
 		return $this->result( $document );
+	}
+
+	/**
+	 * Whether a step or contact field shows a Font Awesome icon (answers, slider, contact fields).
+	 *
+	 * @param array<string,array<string,mixed>> $nodes Nodes of the document.
+	 */
+	private static function shows_font_icons( array $nodes ): bool {
+		foreach ( $nodes as $node ) {
+			foreach ( (array) ( $node['fields'] ?? array() ) as $field ) {
+				// Empty props are objects.
+				$props = (array) ( $field['props'] ?? array() );
+				if ( 'icon' === ( $props['media']['kind'] ?? null ) ) {
+					return true;
+				}
+				foreach ( (array) ( $field['options'] ?? array() ) as $option ) {
+					if ( 'icon' === ( $option['media']['kind'] ?? null ) ) {
+						return true;
+					}
+				}
+				$icon = $props['icon'] ?? null;
+				if ( 'contact' === ( $node['type'] ?? '' ) && is_string( $icon ) && '' !== trim( $icon ) && ! str_starts_with( $icon, 'lucide:' ) ) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * A field id not used yet in the document: the wanted one, else with the node, else numbered.
+	 *
+	 * @param string $wanted  Id the field would get.
+	 * @param string $node_id Node of the field.
+	 */
+	private function unique_field_id( string $wanted, string $node_id ): string {
+		$id = $wanted;
+		if ( isset( $this->field_ids[ $id ] ) ) {
+			$id = $wanted . '_' . $node_id;
+		}
+		for ( $n = 2; isset( $this->field_ids[ $id ] ); $n++ ) {
+			$id = $wanted . '_' . $node_id . '_' . $n;
+		}
+		$this->field_ids[ $id ] = true;
+		return $id;
 	}
 
 	/**
@@ -1120,7 +1181,8 @@ final class FormConverter {
 			$img    = LegacyValue::str( $answer['img'] ?? '' );
 			if ( '' !== $img ) {
 				$option['media'] = array(
-					'kind'  => str_starts_with( $img, 'http' ) ? 'image' : 'icon',
+					// As 3.x (af2_process_answers): an address with "http" anywhere is a picture.
+					'kind'  => str_contains( $img, 'http' ) ? 'image' : 'icon',
 					'value' => $img,
 				);
 			}
@@ -1143,7 +1205,7 @@ final class FormConverter {
 	 * @param string       $node_id Node id.
 	 * @param int          $post_id Contact form post ID.
 	 * @param array<mixed> $cf      Contact form content.
-	 * @return array{node:array<string,mixed>, keys:array<string,string>}
+	 * @return array{node:array<string,mixed>, keys:array<string,string>, ids:array<string,string>}
 	 */
 	private function contact_node( string $node_id, int $post_id, array $cf ): array {
 		$types  = array(
@@ -1159,6 +1221,7 @@ final class FormConverter {
 		);
 		$fields = array();
 		$keys   = array();
+		$ids    = array();
 		$seen   = array();
 
 		foreach ( is_array( $cf['questions'] ?? null ) ? $cf['questions'] : array() as $q ) {
@@ -1172,10 +1235,17 @@ final class FormConverter {
 			}
 			$legacy_id = LegacyValue::str( $q['id'] ?? '' );
 			$id        = FieldIds::contact( $legacy_id );
+			// Two fields of one contact form with the same 3.x id: the second gets its position.
 			if ( isset( $seen[ $id ] ) ) {
 				$id .= '_' . count( $fields );
 			}
 			$seen[ $id ] = true;
+			// Several contact forms in one funnel often share ids such as "email": the first keeps
+			// c_email, the others get their node (c_email_n2_0), so every field has its own id.
+			$id = $this->unique_field_id( $id, $node_id );
+			if ( '' !== $legacy_id && ! isset( $ids[ $legacy_id ] ) ) {
+				$ids[ $legacy_id ] = $id;
+			}
 			if ( 'html' !== $types[ $typ ] && '' !== $legacy_id ) {
 				$keys[ $legacy_id ] = '' !== $legacy_id ? $legacy_id : $id;
 			}
@@ -1285,6 +1355,7 @@ final class FormConverter {
 		return array(
 			'node' => $node,
 			'keys' => $keys,
+			'ids'  => $ids,
 		);
 	}
 
@@ -1294,9 +1365,10 @@ final class FormConverter {
 	 * @param string               $node_id    Contact node id.
 	 * @param array<mixed>         $cf         Contact form content.
 	 * @param array<string,string> $field_keys 3.x contact field id => key.
+	 * @param array<string,string> $field_ids  3.x contact field id => field id in this contact node.
 	 * @return array<int,array<string,mixed>>
 	 */
-	private function mail_actions( string $node_id, array $cf, array $field_keys ): array {
+	private function mail_actions( string $node_id, array $cf, array $field_keys, array $field_ids = array() ): array {
 		$transport = array( 'type' => 'wp_mail' );
 		$smtp      = array(
 			'host'     => LegacyValue::str( $cf['smtp_host'] ?? '' ),
@@ -1366,7 +1438,7 @@ final class FormConverter {
 				'body'           => $this->text( $this->templates->mail( LegacyValue::str( $cf['autoresponder_nachricht'] ?? '' ), $field_keys, false ) ),
 				'nl2br'          => $nl2br,
 				'transport'      => $transport,
-				'recipientField' => FieldIds::contact( $recipient ),
+				'recipientField' => $field_ids[ $recipient ] ?? FieldIds::contact( $recipient ),
 			);
 			$attach = LegacyValue::str( $cf['attachment_url'] ?? '' );
 			if ( '' !== $attach ) {

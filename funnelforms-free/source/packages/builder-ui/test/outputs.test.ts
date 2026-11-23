@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { next } from '@funnelforms/form-core';
 import type { Condition, Edge, FormDocument, FormNode } from '@funnelforms/form-schema';
 import { answerOptions, answerRoutes, conditionFieldList, fieldsBefore, freshRule, fromGroup, opsFor, ruleOp, setAnswerRoute, toGroup, withOp } from '../src/conditions';
-import { addRulePath, answerHandle, applyShownOrder, canAddRule, canMoveRule, clearOutput, connectOutput, moveRule, numberRuleFor, orderDiffers, OTHERWISE, outputsOf, ruleHandle, ruleShape, setNumberRule, settlePath } from '../src/ports';
+import { addRulePath, answerHandle, canAddRule, canMoveRule, clearOutput, connectOutput, moveRule, numberRuleFor, orderDiffers, OTHERWISE, outputsOf, ruleHandle, ruleShape, setNumberRule, settlePath } from '../src/ports';
 import { describeCondition, ruleText } from '../src/ui/describe';
 import { logicHints } from '../src/logic';
 
@@ -331,22 +331,33 @@ describe( 'the order of rules and answers', () => {
 		expect( from( behind, 'n0_0' ) ).toEqual( [ 'e_n0_0_0', 'e_n0_0_1', 'e_n0_0_2', 'r', 'e_n0_0_3' ] );
 	} );
 
-	it( 'notices an imported order the list cannot show and applies the order shown', () => {
+	it( 'shows the paths in the order stored where rules stand between the answers (5.0.8 or an import), and moves nothing', () => {
 		const doc = example( 'synthetic-logic.json' );
 		const node = ( d: FormDocument, id: string ) => d.nodes.find( ( n ) => n.id === id ) as FormNode;
+		const shown = ( d: FormDocument, id: string ) =>
+			outputs( d, id ).parts.map( ( p ) => ( 'rules' === p.kind ? p.rules.map( ( r ) => 'r:' + r.edge.id ) : p.answers.map( ( a ) => a.handle ) ) );
 		expect( doc.nodes.map( ( n ) => orderDiffers( doc, n ) ) ).toEqual( doc.nodes.map( () => false ) );
-		// A rule between the paths of two answers: shown behind the answers, checked before the second.
+		// Usual order: rules checked first, the answers, the other rules.
+		expect( shown( doc, 'n2_0' ) ).toEqual( [ [ 'r:e_n2_0_0', 'r:e_n2_0_1', 'r:e_n2_0_2' ] ] );
+		// A rule between the paths of two answers (the sidebar of 5.0.8 put it there): the card shows it there.
 		const between = produce( doc, ( d ) => void d.edges.splice( 1, 0, { id: 'r', from: 'n0_0', to: 'n4_3', when: { field: 'q1', op: 'filled' } } ) );
 		expect( orderDiffers( between, node( between, 'n0_0' ) ) ).toBe( true );
+		expect( shown( between, 'n0_0' ) ).toEqual( [ [ 'a:q1_o0' ], [ 'r:r' ], [ 'a:q1_o1', 'a:q1_o3', 'a:q1_o4', 'a:q1_o2' ] ] );
 		expect( next( between, 'n0_0', { q1: [ 'q1_o1' ] } ) ).toBe( 'n4_3' );
-		const applied = produce( between, ( d ) => applyShownOrder( d, 'n0_0' ) );
-		expect( from( applied, 'n0_0' ) ).toEqual( [ 'e_n0_0_0', 'e_n0_0_1', 'e_n0_0_2', 'r', 'e_n0_0_3' ] );
-		expect( orderDiffers( applied, node( applied, 'n0_0' ) ) ).toBe( false );
-		expect( next( applied, 'n0_0', { q1: [ 'q1_o1' ] } ) ).toBe( 'n4_1' );
-		// The other paths of the form keep their places.
-		expect( applied.edges.filter( ( e ) => 'n0_0' !== e.from ) ).toEqual( doc.edges.filter( ( e ) => 'n0_0' !== e.from ) );
+		// Moving it goes past the path next to it, as stored; then the usual order again.
+		const up = produce( between, ( d ) => moveRule( d, 'r', -1 ) );
+		expect( from( up, 'n0_0' ) ).toEqual( [ 'r', 'e_n0_0_0', 'e_n0_0_1', 'e_n0_0_2', 'e_n0_0_3' ] );
+		expect( orderDiffers( up, node( up, 'n0_0' ) ) ).toBe( false );
+		expect( canMoveRule( outputs( between, 'n0_0' ), 'r', -1 ) ).toBe( true );
+		expect( canMoveRule( outputs( between, 'n0_0' ), 'r', 1 ) ).toBe( true );
+		// A changed condition keeps the rule where it is checked.
+		const changed = produce( between, ( d ) => {
+			( d.edges.find( ( e ) => 'r' === e.id ) as Edge ).when = { field: 'q1', op: 'empty' };
+			settlePath( d, 'r', true );
+		} );
+		expect( from( changed, 'n0_0' ) ).toEqual( from( between, 'n0_0' ) );
 
-		// One answer each: the order of the paths per answer decides nothing.
+		// One answer each: the order of the paths per answer decides nothing, the answers stay in their order.
 		const swapped = produce( doc, ( d ) => {
 			const [ a, b ] = d.edges;
 			if ( a && b ) {
@@ -355,16 +366,14 @@ describe( 'the order of rules and answers', () => {
 			}
 		} );
 		expect( orderDiffers( swapped, node( swapped, 'n0_0' ) ) ).toBe( false );
-		// Several answers at once: the first path decides, so the order of the answers must be the order of their paths.
+		// Several answers at once: the first path decides, so the answers stand in the order of their paths.
 		const many = produce( doc, ( d ) => {
 			d.edges = d.edges.filter( ( e ) => 'n3_0' !== e.from || e.default );
 			d.edges.push( { id: 'c', from: 'n3_0', to: 'n4_2', when: { field: 'q4', op: 'selected', value: 'q4_o2' } }, { id: 'a', from: 'n3_0', to: 'n4_3', when: { field: 'q4', op: 'selected', value: 'q4_o0' } } );
 		} );
 		expect( orderDiffers( many, node( many, 'n3_0' ) ) ).toBe( true );
+		expect( shown( many, 'n3_0' ) ).toEqual( [ [ 'a:q4_o2', 'a:q4_o0', 'a:q4_o1' ] ] );
 		expect( next( many, 'n3_0', { q4: [ 'q4_o0', 'q4_o2' ] } ) ).toBe( 'n4_2' );
-		const sorted = produce( many, ( d ) => applyShownOrder( d, 'n3_0' ) );
-		expect( orderDiffers( sorted, node( sorted, 'n3_0' ) ) ).toBe( false );
-		expect( next( sorted, 'n3_0', { q4: [ 'q4_o0', 'q4_o2' ] } ) ).toBe( 'n4_3' );
 		// Paths drawn here take the place of their answer by themselves.
 		const drawn = produce( doc, ( d ) => {
 			d.edges = d.edges.filter( ( e ) => 'n3_0' !== e.from || e.default );

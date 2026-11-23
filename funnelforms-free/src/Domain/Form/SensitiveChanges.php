@@ -20,7 +20,10 @@ defined( 'ABSPATH' ) || exit;
  *    included.
  *  - code: tracking code, "Custom code" actions and scripts in content steps or HTML blocks run in
  *    visitors' browsers, and the form's own CSS can read and send what visitors type, so adding or
- *    changing them needs WordPress's unfiltered_html, as in posts. Removing them does not.
+ *    changing them needs WordPress's unfiltered_html, as in posts. Removing them does not. The same
+ *    holds for code in any other text of the steps, ends and settings (labels, descriptions, the
+ *    heading above every step, thank-you pages, …): PublicDocument cleans those texts before they
+ *    reach a browser, and this check keeps a missed one from becoming a way around unfiltered_html.
  * A form that was never published compares against nothing, so all of its actions and code
  * count as changes.
  */
@@ -120,38 +123,40 @@ final class SensitiveChanges {
 				foreach ( (array) ( $field['tracking'] ?? array() ) as $when => $code ) {
 					$out[ $field_id . '|tracking|' . $when ] = (string) $code;
 				}
-				if ( ! in_array( $field['type'] ?? '', array( 'content', 'html' ), true ) ) {
-					continue;
-				}
-				foreach ( (array) ( $field['props']['html'] ?? array() ) as $locale => $text ) {
-					if ( is_string( $text ) && RendererSupport::has_scripts( self::single( $text ) ) ) {
-						$out[ $field_id . '|html|' . $locale ] = $text;
-					}
-				}
 			}
 		}
+		// Scripts in content steps and HTML blocks, and code in every other text a page shows.
+		self::texts( $out, 'nodes', $doc['nodes'] ?? array() );
+		self::texts( $out, 'settings', $doc['settings'] ?? array() );
 		return array_filter( $out, static fn( string $code ): bool => '' !== trim( $code ) );
 	}
 
 	/**
-	 * A document with one content field, to ask RendererSupport about one text.
+	 * Collects the texts below a value that can run code (RendererSupport::runs_code()), keyed by
+	 * where they are: by id where an item of a list has one, so moving steps or fields is no change.
+	 * Tracking code is collected on its own; what 3.x kept (legacy) never reaches a page.
 	 *
-	 * @param string $html HTML.
-	 * @return array<string,mixed>
+	 * @param array<string,string> $out   Code by location.
+	 * @param string               $where Location.
+	 * @param mixed                $value Value.
 	 */
-	private static function single( string $html ): array {
-		return array(
-			'nodes' => array(
-				array(
-					'fields' => array(
-						array(
-							'type'  => 'content',
-							'props' => array( 'html' => array( $html ) ),
-						),
-					),
-				),
-			),
-		);
+	private static function texts( array &$out, string $where, $value ): void {
+		if ( is_string( $value ) ) {
+			if ( RendererSupport::runs_code( $value ) ) {
+				$out[ $where ] = $value;
+			}
+			return;
+		}
+		if ( ! is_array( $value ) ) {
+			return;
+		}
+		foreach ( $value as $key => $child ) {
+			if ( 'tracking' === $key || 'legacy' === $key ) {
+				continue;
+			}
+			$id = is_array( $child ) && isset( $child['id'] ) && is_string( $child['id'] ) ? 'id:' . $child['id'] : (string) $key;
+			self::texts( $out, $where . '|' . $id, $child );
+		}
 	}
 
 	/**

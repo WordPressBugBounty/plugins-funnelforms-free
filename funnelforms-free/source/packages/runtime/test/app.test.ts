@@ -422,6 +422,33 @@ describe( 'FormApp', () => {
 		expect( other.querySelector( '.ffx-heading' ) ).toBeNull();
 	} );
 
+	it( 'shows the heading as text, never as HTML (stored XSS through settings.heading)', () => {
+		// The payload of the report (Wordfence, Funnelforms Free <= 5.0.7) and a heading with markup.
+		const payload = '<img src=x alt="WFPROOFc3dfdf2a" onerror="window.__ffxHeading=1">Ihr Angebot';
+		const alert = vi.fn();
+		vi.stubGlobal( 'alert', alert );
+		const base = config();
+		base.document.settings.heading = de( payload );
+		const root = document.createElement( 'div' );
+		document.body.append( root );
+		new FormApp( root, base, { url: 'https://example.org/seite/', query: '', title: 'Seite' } );
+		const heading = root.querySelector( '.ffx-shell > h2.ffx-heading' );
+		expect( heading?.textContent ).toBe( 'Ihr Angebot' );
+		expect( heading?.children.length ).toBe( 0 );
+		expect( root.querySelector( 'img' ) ).toBeNull();
+		expect( ( window as unknown as { __ffxHeading?: number } ).__ffxHeading ).toBeUndefined();
+		expect( alert ).not.toHaveBeenCalled();
+
+		const marked = config();
+		marked.document.settings.heading = de( 'Tom &amp; <b>Jerry</b>' );
+		const other = document.createElement( 'div' );
+		document.body.append( other );
+		new FormApp( other, marked, { url: 'https://example.org/seite/', query: '', title: 'Seite' } );
+		expect( other.querySelector( '.ffx-heading' )?.textContent ).toBe( 'Tom & Jerry' );
+		expect( other.querySelector( '.ffx-heading b' ) ).toBeNull();
+		vi.unstubAllGlobals();
+	} );
+
 	it( 'shows the errors the plugin returns', async () => {
 		const root = mount();
 		await toContact( root );

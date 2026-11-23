@@ -333,6 +333,10 @@ final class Renderer {
 	 * @return array<string,mixed>
 	 */
 	private static function with_site_keys( array $shown, array $document ): array {
+		// Forms imported before 5.0.11 may show Font Awesome icons with the icon font off.
+		if ( self::icon_font( $document ) && is_array( $shown['settings'] ?? null ) ) {
+			$shown['settings']['iconFont'] = true;
+		}
 		$keys = array();
 		foreach ( $document['nodes'] as $node ) {
 			foreach ( 'contact' === $node['type'] ? $node['fields'] : array() as $field ) {
@@ -361,12 +365,13 @@ final class Renderer {
 	}
 
 	/**
-	 * Whether a form shows icons of Font Awesome (a 3.x form with the icon font switched on).
+	 * Whether a form shows icons of Font Awesome: a 3.x form with the icon font switched on, or one
+	 * whose answers or contact fields use Font Awesome icons (3.x loaded the font for every form).
 	 *
 	 * @param array<string,mixed> $document Form document.
 	 */
 	public static function icon_font( array $document ): bool {
-		return ! empty( $document['settings']['iconFont'] );
+		return ! empty( $document['settings']['iconFont'] ) || Icons::font_awesome( $document );
 	}
 
 	/**

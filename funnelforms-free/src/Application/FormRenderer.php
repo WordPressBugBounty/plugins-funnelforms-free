@@ -17,7 +17,6 @@ use Funnelforms\Compat\Safety\Rollback;
 use Funnelforms\Domain\Form\PhoneNumbers;
 use Funnelforms\Domain\Form\RendererSupport;
 use Funnelforms\Edition\Edition;
-use Funnelforms\Frontend\GoogleMaps;
 use Funnelforms\Frontend\Renderer;
 use Funnelforms\Frontend\TrackingCode;
 use Funnelforms\Http\Captcha;
@@ -56,8 +55,13 @@ final class FormRenderer {
 		if ( null !== $form['legacy_post_id'] && ! $this->forms->edited( $form ) ) {
 			$item = $this->store->item( LegacyRepository::FORM, (int) $form['legacy_post_id'] );
 			if ( null === $item || FormVerifier::VERIFIED !== $item['status'] ) {
-				// Differences found by the check get their own code, so they can be explained apart.
-				$out[] = null !== $item && FormVerifier::NEEDS_REVIEW === $item['status'] ? 'needs_review' : 'not_verified';
+				// Differences found by the check and a failed check get their own codes, so they can be
+				// explained apart from a form that was not checked at all.
+				$out[] = match ( null === $item ? '' : (string) $item['status'] ) {
+					FormVerifier::NEEDS_REVIEW => 'needs_review',
+					FormVerifier::FAILED       => 'check_failed',
+					default                    => 'not_verified',
+				};
 			}
 		}
 		if ( null !== $form['legacy_post_id'] && LegacyBackup::required() && null === LegacyBackup::latest() ) {
@@ -96,18 +100,13 @@ final class FormRenderer {
 
 	/**
 	 * What is still missing in a form that does not keep it from the new renderer; empty when
-	 * nothing is. Without a Google Maps key an address field works without suggestions and map
-	 * (3.x had one key built in for every site, the new renderer uses the site's own).
+	 * nothing is. A missing Google Maps key is no longer named (5.0.11): address fields simply show
+	 * their inputs without suggestions and map until a key is saved under Settings → General.
 	 *
 	 * @param array<string,mixed> $form Form row.
 	 * @return string[]
 	 */
-	public function hints( array $form ): array {
-		$document = null === $form['current_revision_id'] ? null : $this->forms->document( (int) $form['current_revision_id'] );
-		$maps     = Edition::pro( GoogleMaps::class );
-		if ( null !== $document && null !== $maps && $maps::needed( $document ) && '' === $maps::key() ) {
-			return array( 'google_maps_key_missing' );
-		}
+	public function hints( array $form ): array { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- kept for further hints.
 		return array();
 	}
 

@@ -880,8 +880,21 @@ body.ffx-screen #wpbody-content > .error {
 	transition: border-color 0.15s var(--ffb-ease), box-shadow 0.15s var(--ffb-ease);
 }
 
+/*
+ * The arrow of a list, once, at the right. The rule above sets the whole background (and with it
+ * background-repeat) while the arrow of WordPress (.wp-core-ui select) could stay, which tiled it
+ * over the field. Rules of the builder with more weight keep their own arrows; a list with several
+ * lines open has none.
+ */
 .ffx-app select {
 	padding-right: 32px;
+	background-image: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27%236b6780%27%20stroke-width%3D%272%27%3E%3Cpath%20d%3D%27m6%209%206%206%206-6%27%2F%3E%3C%2Fsvg%3E");
+	background-position: right 10px center;
+	background-repeat: no-repeat;
+	background-size: 14px 14px;
+	appearance: none;
+	-webkit-appearance: none;
+	cursor: pointer;
 }
 
 .ffx-app input:focus,
@@ -9700,8 +9713,57 @@ span.ffx-abline--3,
 	color: var(--ffb-text-muted);
 }
 
-.ffx-analyze__form select {
+.ffx-app .ffx-analyze__form select {
 	min-width: 140px;
+	height: 40px;
+	min-height: 40px;
+	padding-top: 0;
+	padding-bottom: 0;
+	line-height: 38px;
+}
+
+/* The AI analyses left this month, as on the page of the Predictive AI. */
+.ffx-ai-quota {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 14px 16px;
+	border-radius: 12px;
+	background: var(--ffb-brand-gradient);
+	color: #efe8ff;
+	font-size: 12.5px;
+	line-height: 1.4;
+}
+
+.ffx-ai-quota__left {
+	color: #fff;
+	font-family: var(--ffb-heading);
+	font-size: 24px;
+	line-height: 1.15;
+}
+
+.ffx-ai-quota__left span {
+	color: #efe8ff;
+	font-size: 14px;
+}
+
+.ffx-ai-quota__meter {
+	display: block;
+	height: 6px;
+	overflow: hidden;
+	border-radius: 99px;
+	background: rgba(255, 255, 255, 0.25);
+}
+
+.ffx-ai-quota__meter > span {
+	display: block;
+	height: 100%;
+	background: #fff;
+}
+
+.ffx-ai-quota__note {
+	color: rgba(239, 232, 255, 0.8);
+	font-size: 11.5px;
 }
 
 .ffx-analyze__progress,
@@ -10015,4 +10077,43 @@ span.ffx-abline--3,
 	.ffx-steptable__detail > td {
 		padding: 4px 12px 16px;
 	}
+}
+
+/* Migration overview: the details of the copy, folded below what needs doing. */
+.ffx-mig-more > summary {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 4px 12px;
+	cursor: pointer;
+	list-style: none;
+}
+
+.ffx-mig-more > summary::-webkit-details-marker {
+	display: none;
+}
+
+.ffx-mig-more > summary::before {
+	content: "▸";
+	color: var(--ffb-text-subtle);
+	transition: transform 0.15s ease;
+}
+
+.ffx-mig-more[open] > summary::before {
+	transform: rotate(90deg);
+}
+
+.ffx-mig-more > summary h2 {
+	margin: 0;
+	font-size: 16px;
+}
+
+.ffx-mig-more h3 {
+	margin: 0 0 10px;
+	font-size: 14px;
+}
+
+.ffx-mig-head__actions .ffx-inline + .ffx-inline,
+.ffx-table__actions .ffx-inline + .ffx-btn {
+	margin-left: 6px;
 }

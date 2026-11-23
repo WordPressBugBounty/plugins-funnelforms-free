@@ -16,6 +16,7 @@ use Funnelforms\Application\LeadMirror;
 use Funnelforms\Application\SetupFlow;
 use Funnelforms\Compat\Migration\AutoRenderer;
 use Funnelforms\Compat\Migration\FormVerifier;
+use Funnelforms\Compat\Migration\MigrationFix;
 use Funnelforms\Compat\Migration\MigrationLog;
 use Funnelforms\Compat\Migration\MigrationReport;
 use Funnelforms\Compat\Migration\MigrationRunner;
@@ -45,6 +46,8 @@ final class MigrationPage {
 	private const ALL      = 'funnelforms_form_renderer_all';
 	private const REIMPORT = 'funnelforms_migration_reimport';
 	private const AUTO     = 'funnelforms_auto_renderer';
+	private const FIX      = 'funnelforms_migration_fix';
+	private const FIX_ALL  = 'funnelforms_migration_fix_all';
 	public const PROGRESS  = 'funnelforms_migration_progress';
 
 	/**
@@ -56,6 +59,8 @@ final class MigrationPage {
 		add_action( 'admin_post_' . self::RENDERER, array( self::class, 'handle_renderer' ) );
 		add_action( 'admin_post_' . self::ALL, array( self::class, 'handle_renderer_all' ) );
 		add_action( 'admin_post_' . self::REIMPORT, array( self::class, 'handle_reimport' ) );
+		add_action( 'admin_post_' . self::FIX, array( self::class, 'handle_fix' ) );
+		add_action( 'admin_post_' . self::FIX_ALL, array( self::class, 'handle_fix_all' ) );
 		if ( self::way_back() ) {
 			add_action( 'admin_post_' . self::AUTO, array( self::class, 'handle_auto' ) );
 		}
@@ -210,6 +215,66 @@ final class MigrationPage {
 	}
 
 	/**
+	 * "Fix" of one form (MigrationFix): copies it again where needed, repairs what Funnelforms 5
+	 * cannot show, takes over the copy when asked and moves it.
+	 */
+	public static function handle_fix(): void {
+		if ( ! current_user_can( Capabilities::MANAGE_SETTINGS ) || ! current_user_can( Capabilities::EDIT_FORMS ) ) {
+			wp_die( esc_html__( 'You are not allowed to do this.', 'funnelforms-free' ), 403 );
+		}
+		$legacy_id = isset( $_POST['legacy'] ) ? absint( $_POST['legacy'] ) : 0;
+		check_admin_referer( self::FIX . '_' . $legacy_id );
+		$result = MigrationFix::create()->run( $legacy_id, ! empty( $_POST['accept'] ) );
+		wp_safe_redirect(
+			self::url(
+				array(
+					'tab'    => 'forms',
+					'form'   => $result['form'],
+					'legacy' => $legacy_id,
+					'done'   => 'fixed',
+					'status' => $result['state'],
+					'did'    => implode( ',', $result['done'] ),
+				)
+			)
+		);
+		exit;
+	}
+
+	/**
+	 * "Fix everything": the fix of every form that has something the button can solve. Differences
+	 * found by the comparison are not taken over here; they need a look at the form first.
+	 */
+	public static function handle_fix_all(): void {
+		if ( ! current_user_can( Capabilities::MANAGE_SETTINGS ) || ! current_user_can( Capabilities::EDIT_FORMS ) ) {
+			wp_die( esc_html__( 'You are not allowed to do this.', 'funnelforms-free' ), 403 );
+		}
+		check_admin_referer( self::FIX_ALL );
+		$fix   = MigrationFix::create();
+		$count = array(
+			'v5'      => 0,
+			'waiting' => 0,
+			'stays'   => 0,
+		);
+		foreach ( MigrationReport::forms() as $form ) {
+			if ( ! $form['in_3x'] || ! MigrationFix::can_fix( $form, false ) ) {
+				continue;
+			}
+			++$count[ $fix->run( (int) $form['legacy_id'], false )['state'] ];
+		}
+		wp_safe_redirect(
+			self::url(
+				array(
+					'done'     => 'fixed_all',
+					'switched' => $count['v5'],
+					'waiting'  => $count['waiting'],
+					'stayed'   => $count['stays'],
+				)
+			)
+		);
+		exit;
+	}
+
+	/**
 	 * Saves whether checked forms move to the new renderer on their own.
 	 */
 	public static function handle_auto(): void {
@@ -293,7 +358,8 @@ final class MigrationPage {
 		$parts  = explode( ':', $code );
 		$labels = array(
 			'needs_review'               => __( 'the comparison found differences', 'funnelforms-free' ),
-			'not_verified'               => __( 'the migration check did not pass', 'funnelforms-free' ),
+			'not_verified'               => __( 'the form has not been checked yet', 'funnelforms-free' ),
+			'check_failed'               => __( 'the copy has an error', 'funnelforms-free' ),
 			'runtime_not_built'          => __( 'the new renderer is missing in this build', 'funnelforms-free' ),
 			'no_document'                => __( 'the form was not imported', 'funnelforms-free' ),
 			'no_backup'                  => __( 'there is no restore point of the Funnelforms 3 data yet', 'funnelforms-free' ),
@@ -473,6 +539,37 @@ final class MigrationPage {
 					: sprintf( _n( 'Saved. %d form that had moved on its own runs on Funnelforms 3 again.', 'Saved. %d forms that had moved on their own run on Funnelforms 3 again.', $switched, 'funnelforms-free' ), $switched )
 				);
 				break;
+			case 'fixed':
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display only.
+				$did   = array_filter( explode( ',', isset( $_GET['did'] ) ? sanitize_text_field( wp_unslash( $_GET['did'] ) ) : '' ) );
+				$parts = array_map( array( MigrationTexts::class, 'fixed' ), array_diff( $did, array( 'moved' ) ) );
+				$what  = array() === $parts ? '' : ' ' . sprintf(
+					/* translators: %s: list of what was done. */
+					__( 'Done: %s.', 'funnelforms-free' ),
+					implode( ', ', $parts )
+				);
+				$text = match ( $status ) {
+					'v5'      => __( 'Fixed: the form runs on Funnelforms 5 now. Your pages and shortcodes stay as they are.', 'funnelforms-free' ),
+					'waiting' => __( 'Fixed: the form moves to Funnelforms 5 as soon as the restore point is saved, in a few minutes.', 'funnelforms-free' ),
+					default   => __( 'Not everything could be fixed by itself. Below you see what is left and how to solve it.', 'funnelforms-free' ),
+				};
+				$notice( 'stays' === $status ? 'warning' : 'success', $text . $what );
+				break;
+			case 'fixed_all':
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display only.
+				$waiting = isset( $_GET['waiting'] ) ? absint( $_GET['waiting'] ) : 0;
+				/* translators: %d: number of forms. */
+				$text = sprintf( _n( '%d form was fixed and runs on Funnelforms 5 now.', '%d forms were fixed and run on Funnelforms 5 now.', $switched, 'funnelforms-free' ), $switched );
+				if ( $waiting > 0 ) {
+					/* translators: %d: number of forms. */
+					$text .= ' ' . sprintf( _n( '%d form follows as soon as the restore point is saved.', '%d forms follow as soon as the restore point is saved.', $waiting, 'funnelforms-free' ), $waiting );
+				}
+				if ( $stayed > 0 ) {
+					/* translators: %d: number of forms. */
+					$text .= ' ' . sprintf( _n( '%d form still needs you; it is listed below with what to do.', '%d forms still need you; they are listed below with what to do.', $stayed, 'funnelforms-free' ), $stayed );
+				}
+				$notice( $stayed > 0 ? 'warning' : 'success', $text );
+				break;
 			case 'reimported':
 				$text = match ( $status ) {
 					FormVerifier::VERIFIED     => __( 'Imported again and checked: the form behaves exactly as in Funnelforms 3.', 'funnelforms-free' ),
@@ -500,81 +597,74 @@ final class MigrationPage {
 		$files   = MigrationReport::files();
 		$new     = MigrationReport::new_entries();
 		$by      = array_count_values( array_column( $forms, 'state' ) );
-		$on_v5   = (int) ( $by['v5'] ?? 0 );
 		$total   = count( $forms );
 		$running = 'running' === $state['status'] || LegacyBackup::running();
-		self::hero( $state, $data, $by, $total, $running );
-		self::mail_server_notice();
+		// First what the person has to know and do: the state with one button, then what is left.
+		self::hero( $state, $data, $by, $total, $running, $forms );
 		/**
 		 * Fires below the state of the move on the migration overview. Pro shows here the
 		 * appointment types from 3.x that lost their Cronofy calendar (CronofyNotice).
 		 */
 		do_action( 'funnelforms_migration_overview_top' );
+		self::attention( $forms, $data, $files );
+		self::hints( $forms );
 		?>
-		<div class="ffx-grid ffx-mig-kpis ffx-section">
-			<?php
-			$f = $data['forms'];
-			self::kpi(
-				'form',
-				MigrationTexts::kind( 'forms' ),
-				number_format_i18n( $f['legacy'] ),
-				/* translators: 1: forms checked, 2: forms to look at. */
-				0 === $f['review'] + $f['failed'] + $f['pending'] ? __( 'All copied and checked', 'funnelforms-free' ) : sprintf( __( '%1$s checked, %2$s to look at', 'funnelforms-free' ), number_format_i18n( $f['verified'] ), number_format_i18n( $f['review'] + $f['failed'] + $f['pending'] ) ),
-				0 === $f['failed'] + $f['missing'] + $f['pending'] && 0 === $f['review'] ? 'ok' : 'warn'
-			);
-			foreach ( array( 'leads', 'bookings' ) as $kind ) {
-				$k = $data[ $kind ];
-				self::kpi( 'leads' === $kind ? 'inbox' : 'calendar', MigrationTexts::kind( $kind ), number_format_i18n( $k['legacy'] - $k['mirror'] ), self::accounted( $k ), $k['ok'] ? 'ok' : 'warn' );
-			}
-			self::kpi(
-				'download',
-				MigrationTexts::kind( 'files' ),
-				number_format_i18n( $files['total'] ),
-				$files['found'] === $files['checked'] ? __( 'All found in the uploads folder', 'funnelforms-free' ) : sprintf(
-					/* translators: %s: number of files. */
-					_n( '%s file is missing in the uploads folder', '%s files are missing in the uploads folder', $files['checked'] - $files['found'], 'funnelforms-free' ),
-					number_format_i18n( $files['checked'] - $files['found'] )
-				),
-				$files['found'] === $files['checked'] ? 'ok' : 'warn'
-			);
-			?>
-		</div>
-
-		<div class="ffx-split ffx-section">
-			<section class="ffx-card" aria-labelledby="ffx-mig-data">
-				<div class="ffx-card__head">
-					<div>
-						<h2 id="ffx-mig-data"><?php esc_html_e( 'What was copied and checked', 'funnelforms-free' ); ?></h2>
-						<p><?php esc_html_e( 'Every piece of Funnelforms 3 data is accounted for: copied, checked, or with a reason why not.', 'funnelforms-free' ); ?></p>
-					</div>
-				</div>
-				<?php self::data_rows( $data, $files, $new ); ?>
-			</section>
-			<section class="ffx-card" aria-labelledby="ffx-mig-where">
-				<div class="ffx-card__head">
-					<h2 id="ffx-mig-where"><?php esc_html_e( 'Where your forms run', 'funnelforms-free' ); ?></h2>
-				</div>
-				<?php self::where( $by, $total ); ?>
-				<p class="ffx-mig-where__auto"><?php echo esc_html( self::auto_sentence() ); ?></p>
-				<div class="ffx-mig-where__actions">
-					<?php if ( ( (int) ( $by['ready'] ?? 0 ) > 0 || Rollback::active() ) && current_user_can( Capabilities::EDIT_FORMS ) ) : ?>
-						<?php self::all_v5_button( 'primary' ); ?>
-					<?php endif; ?>
-					<?php echo Ui::button( __( 'See all forms', 'funnelforms-free' ), self::url( array( 'tab' => 'forms' ) ), $on_v5 === $total ? 'secondary' : 'ghost', 'arrow' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in button(). ?>
-				</div>
-			</section>
-		</div>
-
-		<?php self::attention( $forms, $data, $files ); ?>
-		<?php self::hints( $forms ); ?>
-
-		<section class="ffx-card ffx-section" aria-labelledby="ffx-mig-latest">
-			<div class="ffx-card__head">
-				<h2 id="ffx-mig-latest"><?php esc_html_e( 'Latest activity', 'funnelforms-free' ); ?></h2>
-				<?php echo Ui::button( __( 'Full log', 'funnelforms-free' ), self::url( array( 'tab' => 'log' ) ), 'ghost', 'arrow' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in button(). ?>
+		<details class="ffx-card ffx-section ffx-mig-more">
+			<summary><h2><?php esc_html_e( 'Details of the copy', 'funnelforms-free' ); ?></h2><span class="ffx-muted"><?php esc_html_e( 'Forms, leads, appointments and files, where your forms run and the latest activity', 'funnelforms-free' ); ?></span></summary>
+			<?php self::mail_server_notice(); ?>
+			<div class="ffx-grid ffx-mig-kpis ffx-section">
+				<?php
+				$f = $data['forms'];
+				self::kpi(
+					'form',
+					MigrationTexts::kind( 'forms' ),
+					number_format_i18n( $f['legacy'] ),
+					/* translators: 1: forms checked, 2: forms to look at. */
+					0 === $f['review'] + $f['failed'] + $f['pending'] ? __( 'All copied and checked', 'funnelforms-free' ) : sprintf( __( '%1$s checked, %2$s to look at', 'funnelforms-free' ), number_format_i18n( $f['verified'] ), number_format_i18n( $f['review'] + $f['failed'] + $f['pending'] ) ),
+					0 === $f['failed'] + $f['missing'] + $f['pending'] && 0 === $f['review'] ? 'ok' : 'warn'
+				);
+				foreach ( array( 'leads', 'bookings' ) as $kind ) {
+					$k = $data[ $kind ];
+					self::kpi( 'leads' === $kind ? 'inbox' : 'calendar', MigrationTexts::kind( $kind ), number_format_i18n( $k['legacy'] - $k['mirror'] ), self::accounted( $k ), $k['ok'] ? 'ok' : 'warn' );
+				}
+				self::kpi(
+					'download',
+					MigrationTexts::kind( 'files' ),
+					number_format_i18n( $files['total'] ),
+					$files['found'] === $files['checked'] ? __( 'All found in the uploads folder', 'funnelforms-free' ) : sprintf(
+						/* translators: %s: number of files. */
+						_n( '%s file is missing in the uploads folder', '%s files are missing in the uploads folder', $files['checked'] - $files['found'], 'funnelforms-free' ),
+						number_format_i18n( $files['checked'] - $files['found'] )
+					),
+					$files['found'] === $files['checked'] ? 'ok' : 'warn'
+				);
+				?>
 			</div>
-			<?php self::timeline( MigrationLog::with_backups( MigrationLog::timeline( 5 ) ), 5 ); ?>
-		</section>
+
+			<div class="ffx-split ffx-section">
+				<section aria-labelledby="ffx-mig-data">
+					<h3 id="ffx-mig-data"><?php esc_html_e( 'What was copied and checked', 'funnelforms-free' ); ?></h3>
+					<?php self::data_rows( $data, $files, $new ); ?>
+				</section>
+				<section aria-labelledby="ffx-mig-where">
+					<h3 id="ffx-mig-where"><?php esc_html_e( 'Where your forms run', 'funnelforms-free' ); ?></h3>
+					<?php self::where( $by, $total ); ?>
+					<p class="ffx-mig-where__auto"><?php echo esc_html( self::auto_sentence() ); ?></p>
+					<div class="ffx-mig-where__actions">
+						<?php if ( ( (int) ( $by['ready'] ?? 0 ) > 0 || Rollback::active() ) && current_user_can( Capabilities::EDIT_FORMS ) ) : ?>
+							<?php self::all_v5_button( 'secondary' ); ?>
+						<?php endif; ?>
+						<?php echo Ui::button( __( 'See all forms', 'funnelforms-free' ), self::url( array( 'tab' => 'forms' ) ), 'ghost', 'arrow' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in button(). ?>
+					</div>
+				</section>
+			</div>
+
+			<section class="ffx-section" aria-labelledby="ffx-mig-latest">
+				<h3 id="ffx-mig-latest"><?php esc_html_e( 'Latest activity', 'funnelforms-free' ); ?></h3>
+				<?php self::timeline( MigrationLog::with_backups( MigrationLog::timeline( 5 ) ), 5 ); ?>
+				<p><?php echo Ui::button( __( 'Full log', 'funnelforms-free' ), self::url( array( 'tab' => 'log' ) ), 'ghost', 'arrow' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in button(). ?></p>
+			</section>
+		</details>
 		<?php
 	}
 
@@ -639,8 +729,9 @@ final class MigrationPage {
 	 * @param array<string,int>                 $by      Forms per state.
 	 * @param int                               $total   Forms from Funnelforms 3.
 	 * @param bool                              $running Whether a copy or restore point runs.
+	 * @param list<array<string,mixed>>         $forms   MigrationReport::forms().
 	 */
-	private static function hero( array $state, array $data, array $by, int $total, bool $running ): void {
+	private static function hero( array $state, array $data, array $by, int $total, bool $running, array $forms = array() ): void {
 		$on_v5    = (int) ( $by['v5'] ?? 0 );
 		$attn     = (int) ( $by['review'] ?? 0 ) + (int) ( $by['stays'] ?? 0 );
 		$all_data = $data['leads']['ok'] && $data['bookings']['ok'] && $data['booking_types']['ok'];
@@ -685,12 +776,17 @@ final class MigrationPage {
 					<?php
 					if ( $rollback && current_user_can( 'manage_options' ) ) {
 						SafetySection::forward_button();
-					} elseif ( 'ready' === $tone || ( 'attention' === $tone && (int) ( $by['ready'] ?? 0 ) > 0 ) ) {
-						if ( current_user_can( Capabilities::EDIT_FORMS ) ) {
-							self::all_v5_button( 'primary' );
-						}
 					} elseif ( 'attention' === $tone ) {
-						echo Ui::button( __( 'See what needs a look', 'funnelforms-free' ), '#ffx-mig-attention', 'primary', 'arrow' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in button().
+						// One button solves what can be solved and moves every form it can.
+						if ( ! self::fix_all_button( $forms, 'primary' ) ) {
+							if ( (int) ( $by['ready'] ?? 0 ) > 0 && current_user_can( Capabilities::EDIT_FORMS ) ) {
+								self::all_v5_button( 'primary' );
+							} else {
+								echo Ui::button( __( 'See what needs a look', 'funnelforms-free' ), '#ffx-mig-attention', 'primary', 'arrow' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in button().
+							}
+						}
+					} elseif ( 'ready' === $tone && current_user_can( Capabilities::EDIT_FORMS ) ) {
+						self::all_v5_button( 'primary' );
 					}
 					if ( ! $running ) {
 						self::start_button( null === $state['last_sync_at'] ? 'primary' : 'ghost' );
@@ -985,8 +1081,9 @@ final class MigrationPage {
 			<div class="ffx-card__head">
 				<div>
 					<h2 id="ffx-mig-attention-title"><?php esc_html_e( 'What needs your attention', 'funnelforms-free' ); ?></h2>
-					<p><?php esc_html_e( 'Nothing here puts your data at risk. It only keeps forms on Funnelforms 3 until it is solved.', 'funnelforms-free' ); ?></p>
+					<p><?php esc_html_e( 'Nothing here puts your data at risk. It only keeps forms on Funnelforms 3 until it is solved. Most of it the "Fix" button solves by itself.', 'funnelforms-free' ); ?></p>
 				</div>
+				<?php self::fix_all_button( $forms, 'secondary' ); ?>
 			</div>
 			<ul class="ffx-mig-problems">
 				<?php foreach ( $items as $item ) : ?>
@@ -1223,8 +1320,14 @@ final class MigrationPage {
 					)
 				)
 			) . '">' . Ui::icon( 'undo' ) . '<span>' . esc_html__( 'Back to Funnelforms 3', 'funnelforms-free' ) . '</span></a>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
-		} elseif ( 'review' === $form['state'] && ! $compact && $form['in_3x'] && self::way_back() && current_user_can( 'manage_options' ) ) {
-			echo Ui::button( __( 'Compare old and new', 'funnelforms-free' ), '#ffx-mig-compare', 'primary', 'eye' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in button().
+		} elseif ( in_array( $form['state'], array( 'review', 'stays' ), true ) ) {
+			if ( 'review' === $form['state'] && ! $compact && $form['in_3x'] && self::way_back() && current_user_can( 'manage_options' ) ) {
+				echo Ui::button( __( 'Compare old and new', 'funnelforms-free' ), '#ffx-mig-compare', 'secondary', 'eye' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in button().
+			}
+			// In the table a review form opens its page first: differences are taken over after a look.
+			if ( ! ( $compact && 'review' === $form['state'] ) ) {
+				self::fix_button( $form, $compact );
+			}
 		} elseif ( 'ready' === $form['state'] && current_user_can( Capabilities::EDIT_FORMS ) ) {
 			?>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="ffx-inline">
@@ -1253,8 +1356,11 @@ final class MigrationPage {
 			echo '<div class="ffx-card ffx-empty"><h2>' . esc_html__( 'This form is not part of the migration.', 'funnelforms-free' ) . '</h2></div>';
 			return;
 		}
-		$on_v5   = 'v5' === $form['state'];
-		$builder = add_query_arg( 'form', (int) $form['id'], admin_url( 'admin.php?page=' . BuilderPage::SLUG ) );
+		$on_v5    = 'v5' === $form['state'];
+		$builder  = add_query_arg( 'form', (int) $form['id'], admin_url( 'admin.php?page=' . BuilderPage::SLUG ) );
+		$repo     = new FormRepository();
+		$row      = $form['id'] > 0 ? $repo->by_id( (int) $form['id'] ) : null;
+		$document = null === $row || null === $row['current_revision_id'] ? null : $repo->document( (int) $row['current_revision_id'] );
 		?>
 		<section class="ffx-card ffx-mig-head">
 			<div class="ffx-mig-head__main">
@@ -1306,8 +1412,8 @@ final class MigrationPage {
 					<?php foreach ( $form['blockers'] as $code ) : ?>
 						<?php
 						$item = MigrationTexts::blocker( (string) $code, (int) $form['id'] );
-						if ( 'needs_review' === $code ) {
-							$item['details'] = MigrationTexts::findings( (array) $form['checks'] );
+						if ( in_array( $code, array( 'needs_review', 'check_failed' ), true ) ) {
+							$item['details'] = array_values( array_unique( array_merge( MigrationTexts::located( $document, (array) $form['checks'] ), MigrationTexts::findings( (array) $form['checks'] ) ) ) );
 						}
 						?>
 						<li><?php self::problem( $item ); ?></li>
@@ -1516,6 +1622,57 @@ final class MigrationPage {
 			<button type="submit" class="ffx-btn<?php echo 'secondary' === $kind ? '' : esc_attr( ' ffx-btn--' . $kind ); ?>"><?php echo Ui::icon( 'history' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?><span><?php echo esc_html( $label ); ?></span></button>
 		</form>
 		<?php
+	}
+
+	/**
+	 * Button "Fix" of one form (MigrationFix), when it can do something for it.
+	 *
+	 * @param array<string,mixed> $form    MigrationReport::forms() row.
+	 * @param bool                $compact In the table.
+	 */
+	private static function fix_button( array $form, bool $compact ): void {
+		if ( ! $form['in_3x'] || ! MigrationFix::can_fix( $form ) || ! current_user_can( Capabilities::MANAGE_SETTINGS ) || ! current_user_can( Capabilities::EDIT_FORMS ) ) {
+			return;
+		}
+		$review = 'review' === $form['state'];
+		$label  = $review ? __( 'Take over and move', 'funnelforms-free' ) : __( 'Fix', 'funnelforms-free' );
+		?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="ffx-inline">
+			<input type="hidden" name="action" value="<?php echo esc_attr( self::FIX ); ?>">
+			<input type="hidden" name="legacy" value="<?php echo esc_attr( (string) $form['legacy_id'] ); ?>">
+			<?php if ( $review && ! $compact ) : ?>
+				<input type="hidden" name="accept" value="1">
+			<?php endif; ?>
+			<?php wp_nonce_field( self::FIX . '_' . $form['legacy_id'] ); ?>
+			<button type="submit" class="ffx-btn ffx-btn--primary<?php echo $compact ? ' ffx-btn--sm' : ''; ?>"><?php echo Ui::icon( 'sparkles' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?><span><?php echo esc_html( $label ); ?></span></button>
+		</form>
+		<?php
+	}
+
+	/**
+	 * Button "Fix everything" (every form the fix can help, without taking over differences).
+	 *
+	 * @param list<array<string,mixed>> $forms MigrationReport::forms().
+	 * @param string                    $kind  primary or secondary.
+	 * @return bool Whether it was shown.
+	 */
+	private static function fix_all_button( array $forms, string $kind ): bool {
+		$fixable = array_filter( $forms, static fn( array $f ): bool => $f['in_3x'] && MigrationFix::can_fix( $f, false ) );
+		// Only checked forms without blockers: moving them needs no fix ("Move all checked forms").
+		$broken = array_filter( $fixable, static fn( array $f ): bool => array() !== (array) ( $f['blockers'] ?? array() ) );
+		if ( array() === $broken || ! current_user_can( Capabilities::MANAGE_SETTINGS ) || ! current_user_can( Capabilities::EDIT_FORMS ) ) {
+			return false;
+		}
+		/* translators: %d: number of forms. */
+		$label = sprintf( _n( 'Fix %d form and move it', 'Fix %d forms and move them', count( $fixable ), 'funnelforms-free' ), count( $fixable ) );
+		?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="ffx-inline">
+			<input type="hidden" name="action" value="<?php echo esc_attr( self::FIX_ALL ); ?>">
+			<?php wp_nonce_field( self::FIX_ALL ); ?>
+			<button type="submit" class="ffx-btn<?php echo 'primary' === $kind ? ' ffx-btn--primary' : ''; ?>"><?php echo Ui::icon( 'sparkles' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?><span><?php echo esc_html( $label ); ?></span></button>
+		</form>
+		<?php
+		return true;
 	}
 
 	/**

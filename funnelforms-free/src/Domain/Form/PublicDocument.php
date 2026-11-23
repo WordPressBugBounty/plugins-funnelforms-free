@@ -20,7 +20,10 @@ defined( 'ABSPATH' ) || exit;
  * browser, nor the right answers of a quiz unless it tells visitors after each question; calculations
  * shown in content steps and live results are computed through the REST API (live results get the
  * number format of their calculations). HTML written by the site owner passes wp_kses with the post
- * rules plus iframes (video embeds).
+ * rules plus iframes (video embeds): every text the runtime puts into the page, the form's heading,
+ * the texts of the thank-you page and the fields of repeat groups included. Only the HTML of content
+ * steps and HTML blocks keeps its scripts, and only where the site allows them (Frontend\TrackingCode,
+ * Domain\Form\SensitiveChanges).
  */
 final class PublicDocument {
 
@@ -40,14 +43,15 @@ final class PublicDocument {
 			unset( $node['legacy'], $node['tracking'] );
 			if ( 'end' === $node['type'] ) {
 				if ( is_array( $node['success'] ?? null ) ) {
-					$node['success']['text'] = self::html( $node['success']['text'] );
+					$node['success'] = self::success( $node['success'] );
 				}
 				$nodes[] = $node;
 				continue;
 			}
-			if ( 'contact' === $node['type'] ) {
-				$node['title']       = self::html( $node['title'] );
-				$node['description'] = self::html( $node['description'] );
+			foreach ( array( 'title', 'description' ) as $key ) {
+				if ( isset( $node[ $key ] ) || 'contact' === $node['type'] ) {
+					$node[ $key ] = self::html( $node[ $key ] ?? array() );
+				}
 			}
 			$fields = array();
 			foreach ( $node['fields'] as $field ) {
@@ -92,6 +96,10 @@ final class PublicDocument {
 
 		// Of the quiz the browser needs only to know that it shows right and wrong answers.
 		$settings = array_diff_key( $document['settings'], array_flip( array( 'access', 'retentionDays', 'doubleOptIn', 'publicEntries', 'payment', 'quiz', 'abandonment' ) ) );
+		// The heading above every step; the runtime shows it as text, the server cleans it anyway.
+		if ( isset( $settings['heading'] ) ) {
+			$settings['heading'] = self::html( $settings['heading'] );
+		}
 		if ( $feedback ) {
 			$settings['quiz'] = array( 'feedback' => true );
 		}
@@ -168,6 +176,12 @@ final class PublicDocument {
 		if ( $verify ) {
 			$field['props']['verify'] = 'sms';
 		}
+		if ( 'repeat' === $field['type'] && is_array( $field['props']['fields'] ?? null ) ) {
+			// The fields of a repeat group render like the others, so they are cleaned like them.
+			foreach ( $field['props']['fields'] as $i => $sub ) {
+				$field['props']['fields'][ $i ] = is_array( $sub ) ? self::field( $sub, false, $feedback ) : $sub;
+			}
+		}
 		if ( 'result' === $field['type'] ) {
 			foreach ( (array) ( $field['props']['lines'] ?? array() ) as $i => $line ) {
 				$field['props']['lines'][ $i ]['label'] = self::html( $line['label'] ?? array() );
@@ -180,6 +194,28 @@ final class PublicDocument {
 			}
 		}
 		return $field;
+	}
+
+	/**
+	 * Public part of a thank-you page: its text, heading, button and download labels cleaned.
+	 *
+	 * @param array<string,mixed> $success Thank-you page of an end.
+	 * @return array<string,mixed>
+	 */
+	private static function success( array $success ): array {
+		$success['text'] = self::html( $success['text'] ?? array() );
+		if ( isset( $success['heading'] ) ) {
+			$success['heading'] = self::html( $success['heading'] );
+		}
+		if ( is_array( $success['button'] ?? null ) && isset( $success['button']['label'] ) ) {
+			$success['button']['label'] = self::html( $success['button']['label'] );
+		}
+		foreach ( (array) ( $success['downloads'] ?? array() ) as $i => $download ) {
+			if ( is_array( $download ) && isset( $download['label'] ) ) {
+				$success['downloads'][ $i ]['label'] = self::html( $download['label'] );
+			}
+		}
+		return $success;
 	}
 
 	/**
@@ -287,16 +323,16 @@ final class PublicDocument {
 	}
 
 	/**
-	 * Sanitizes the HTML of every locale.
+	 * Sanitizes the HTML of every locale (also used when a draft is saved, FormEditor).
 	 *
 	 * @param mixed $text Text per locale.
 	 * @return array<string,string>|\stdClass
 	 */
-	private static function html( $text ) {
+	public static function html( $text ) {
 		$out = array();
 		foreach ( (array) $text as $locale => $value ) {
 			// wp_kses() removes the tags but keeps the code between them as text.
-			$out[ $locale ] = wp_kses( (string) preg_replace( '#<(script|style)\b[^>]*>.*?</\1\s*>#is', '', (string) $value ), self::allowed_html() );
+			$out[ $locale ] = wp_kses( (string) preg_replace( '#<(script|style)\b[^>]*>.*?</\1\s*>#is', '', is_scalar( $value ) ? (string) $value : '' ), self::allowed_html() );
 		}
 		return array() === $out ? new \stdClass() : $out;
 	}

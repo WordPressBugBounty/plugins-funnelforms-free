@@ -18,18 +18,24 @@ export function h<K extends keyof HTMLElementTagNameMap>( tag: K, attrs: Attrs =
 	return el;
 }
 
-/** Element with HTML that the plugin already sanitized (wp_kses). */
+/**
+ * Element with HTML that the plugin already sanitized (wp_kses in PublicDocument::from()). Only for
+ * texts the plugin cleans; a text it does not clean is shown with h() or textOf() as text.
+ */
 export function trusted<K extends keyof HTMLElementTagNameMap>( tag: K, html: string, attrs: Attrs = {} ): HTMLElementTagNameMap[ K ] {
 	const el = h( tag, attrs );
 	el.innerHTML = html;
 	return el;
 }
 
-/** Plain text of HTML, for labels in summaries. */
+/**
+ * Plain text of HTML, for labels in summaries and texts shown as text. Parsed in a template, whose
+ * content is inert: an <img onerror> in it never loads or runs, unlike in a detached element.
+ */
 export function textOf( html: string ): string {
-	const div = document.createElement( 'div' );
-	div.innerHTML = html;
-	return ( div.textContent ?? '' ).trim();
+	const template = document.createElement( 'template' );
+	template.innerHTML = html;
+	return ( template.content.textContent ?? '' ).trim();
 }
 
 /** HTML-escapes visitor input. */

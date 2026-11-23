@@ -76,6 +76,33 @@ final class Icons {
 	}
 
 	/**
+	 * Whether a document shows Font Awesome icons (answers and sliders of kind "icon", contact fields
+	 * with an icon class), as forms imported from Funnelforms 3 do.
+	 *
+	 * @param array<string,mixed> $document Form document.
+	 */
+	public static function font_awesome( array $document ): bool {
+		foreach ( (array) ( $document['nodes'] ?? array() ) as $node ) {
+			foreach ( (array) ( $node['fields'] ?? array() ) as $field ) {
+				$props = (array) ( $field['props'] ?? array() );
+				if ( 'icon' === ( ( (array) ( $props['media'] ?? array() ) )['kind'] ?? null ) ) {
+					return true;
+				}
+				foreach ( (array) ( $field['options'] ?? array() ) as $option ) {
+					if ( 'icon' === ( ( (array) ( ( (array) $option )['media'] ?? array() ) )['kind'] ?? null ) ) {
+						return true;
+					}
+				}
+				$icon = $props['icon'] ?? null;
+				if ( 'contact' === ( $node['type'] ?? '' ) && is_string( $icon ) && '' !== trim( $icon ) && ! str_starts_with( $icon, self::PREFIX ) ) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * SVG markup of the icons a document uses, for the runtime; names the set lacks are left out.
 	 *
 	 * @param array<string,mixed> $document Form document.

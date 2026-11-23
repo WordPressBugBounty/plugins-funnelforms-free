@@ -3,7 +3,7 @@
  * rules, otherwise), the rules of one path, and when a field of a step is shown. Rules read as a
  * sentence: "Go to … when all of these apply: Budget is at least 5000 and …".
  */
-import React, { useState } from 'react';
+import React, { Fragment, useState } from 'react';
 import type { Condition, Edge, FormDocument, FormNode } from '@funnelforms/form-schema';
 import {
 	calcRule,
@@ -27,7 +27,7 @@ import {
 } from '../conditions';
 import { coverage } from '../coverage';
 import { addEnd, connect, findNode, nodeName, removeEdge, setCondition, text } from '../document';
-import { addRulePath, answerField, applyShownOrder, canAddRule, canMoveRule, moveRule, orderDiffers, outputsOf, settlePath, type RuleOutput } from '../ports';
+import { addRulePath, answerField, canAddRule, canMoveRule, moveRule, outputsOf, settlePath, type AnswerOutput, type RuleOutput } from '../ports';
 import { isQuizEdge } from '../quiz';
 import type { Recipe } from '../store';
 import { useBuilder, useEnv } from './context';
@@ -239,8 +239,10 @@ function LeafEditor( { doc, fields, calcs, leaf, onChange, onRemove }: EditorPro
 			onChange( start );
 		}
 	};
+	// The whole name as the tooltip of the list, which ends in "…" when the name is long.
+	const subjectTitle = 'calc' in leaf ? doc.calculations.find( ( c ) => c.id === leaf.calc )?.label || undefined : all.has( leaf.field ) ? fieldTitle( all.get( leaf.field ), ctx.locale ) : undefined;
 	const subjectSelect = (
-		<select className="ffxb-input ffxb-rule__subject" aria-label={ __( 'Field', 'funnelforms-pro' ) } value={ subject } disabled={ readOnly } onChange={ ( e ) => chooseSubject( e.target.value ) }>
+		<select className="ffxb-input ffxb-rule__subject" aria-label={ __( 'Field', 'funnelforms-pro' ) } title={ subjectTitle } value={ subject } disabled={ readOnly } onChange={ ( e ) => chooseSubject( e.target.value ) }>
 			{ known ? null : <option value={ subject }>{ 'calc' in leaf ? __( 'Deleted calculation', 'funnelforms-pro' ) : all.has( leaf.field ) ? sprintf( __( '%s (answered later)', 'funnelforms-pro' ), fieldTitle( all.get( leaf.field ), ctx.locale ) ) : __( 'Deleted field', 'funnelforms-pro' ) }</option> }
 			{ steps.map( ( [ name, list ], i ) => (
 				<optgroup key={ i } label={ name }>
@@ -296,6 +298,11 @@ function LeafEditor( { doc, fields, calcs, leaf, onChange, onRemove }: EditorPro
 
 type CalcRuleOp = ( typeof CALC_OPS )[ number ];
 
+/** The text of an answer, for the tooltip of its list. */
+function answerTitle( option: { label: Record<string, string>; value: string } | undefined, locale: string ): string | undefined {
+	return option ? text( option.label, locale ).replace( /<[^>]*>/g, '' ) || option.value : undefined;
+}
+
 /** Comparison and value of a rule on an answer. */
 function RuleInputs( { rule, field, onChange }: { rule: Rule | Between; field: ConditionField | undefined; onChange: ( rule: Rule | Between, key?: string ) => void } ) {
 	const { ctx, readOnly } = useEnv();
@@ -321,7 +328,14 @@ function RuleInputs( { rule, field, onChange }: { rule: Rule | Between; field: C
 		);
 	} else if ( ( 'selected' === rule.op || 'selectedOnly' === rule.op ) && field && 'options' in field.field ) {
 		input = (
-			<select className="ffxb-input" aria-label={ __( 'Answer', 'funnelforms-pro' ) } value={ String( value ) } disabled={ readOnly } onChange={ ( e ) => set( { value: e.target.value } ) }>
+			<select
+				className="ffxb-input ffxb-rule__value"
+				aria-label={ __( 'Answer', 'funnelforms-pro' ) }
+				title={ answerTitle( field.field.options.find( ( o ) => o.id === value ), ctx.locale ) }
+				value={ String( value ) }
+				disabled={ readOnly }
+				onChange={ ( e ) => set( { value: e.target.value } ) }
+			>
 				{ field.field.options.some( ( o ) => o.id === value ) ? null : <option value={ String( value ) }>{ __( 'deleted answer', 'funnelforms-pro' ) }</option> }
 				{ field.field.options.map( ( o ) => (
 					<option key={ o.id } value={ o.id }>
@@ -366,8 +380,9 @@ function RuleInputs( { rule, field, onChange }: { rule: Rule | Between; field: C
 		const numeric = 'number' === typeof value;
 		input = (
 			<input
-				className="ffxb-input"
+				className="ffxb-input ffxb-rule__value"
 				aria-label={ __( 'Value', 'funnelforms-pro' ) }
+				title={ numeric ? undefined : String( value ?? '' ) || undefined }
 				type={ numeric ? 'number' : 'text' }
 				value={ String( value ?? '' ) }
 				disabled={ readOnly }
@@ -392,7 +407,7 @@ function RuleInputs( { rule, field, onChange }: { rule: Rule | Between; field: C
 					) ) }
 				</select>
 			) : null }
-			<select className="ffxb-input" aria-label={ __( 'Comparison', 'funnelforms-pro' ) } value={ op } disabled={ readOnly } onChange={ ( e ) => onChange( withOp( rule, e.target.value as RuleOp, field?.field ) ) }>
+			<select className="ffxb-input" aria-label={ __( 'Comparison', 'funnelforms-pro' ) } title={ opName( op ) } value={ op } disabled={ readOnly } onChange={ ( e ) => onChange( withOp( rule, e.target.value as RuleOp, field?.field ) ) }>
 				{ ( ops.includes( op ) ? ops : [ op, ...ops ] ).map( ( o ) => (
 					<option key={ o } value={ o }>
 						{ opName( o ) }
@@ -470,8 +485,11 @@ function FreeCondition( { candidates, value, onChange, subject = 'path' }: { can
  */
 /** Sets the condition of a path and keeps its place among the paths true to what is shown (ports.ts, settlePath). */
 function setPath( doc: FormDocument, edgeId: string, when: Condition ): void {
+	const edge = doc.edges.find( ( e ) => e.id === edgeId );
+	const node = edge ? findNode( doc, edge.from ) : undefined;
+	const wasRule = !! node && outputsOf( doc, node ).rules.some( ( r ) => r.edge.id === edgeId );
 	setCondition( doc, edgeId, when );
-	settlePath( doc, edgeId );
+	settlePath( doc, edgeId, wasRule );
 }
 
 export function PathEditor( { doc, edge, order = true, deletable = true }: { doc: FormDocument; edge: Edge; order?: boolean; deletable?: boolean } ) {
@@ -556,9 +574,6 @@ export function NodeLogic( { doc, node, title }: { doc: FormDocument; node: Extr
 	const cover = conditional.length ? coverage( doc, node ) : null;
 	const rest = cover && ! cover.complete ? restText( cover.rest, ctx.locale ) : '';
 	const fields = fieldIndex( doc );
-	const before = outputs.rules.filter( ( r ) => r.first );
-	const after = outputs.rules.filter( ( r ) => ! r.first );
-	const answered = routes.some( ( r ) => r.edge );
 
 	const addRule = (): void => {
 		let id: string | null = null;
@@ -622,26 +637,11 @@ export function NodeLogic( { doc, node, title }: { doc: FormDocument; node: Extr
 			</>
 		) : null;
 
-	return (
-		<Section title={ title ?? __( 'Next step', 'funnelforms-pro' ) }>
-			<HintList doc={ doc } hints={ hints } compact />
-			{ orderDiffers( doc, node, choice?.id ) ? (
-				<Notice
-					tone="warning"
-					title={ __( 'Checked in another order', 'funnelforms-pro' ) }
-					action={
-						<Button size="sm" disabled={ readOnly } onClick={ () => change( ( d ) => applyShownOrder( d, node.id, choice?.id ) ) }>
-							{ __( 'Use the order shown', 'funnelforms-pro' ) }
-						</Button>
-					}
-				>
-					{ __( 'The form checks the paths of this step in another order than this list shows them (from an import). Where several apply, another path can win than you expect.', 'funnelforms-pro' ) }
-				</Notice>
-			) : null }
-			{ ruleList( before, answered || after.length ? __( 'Checked first', 'funnelforms-pro' ) : null ) }
-			{ choice ? (
+	// The answers of one part of the outputs; the head (which field) above the first part of answers.
+	const answerList = ( list: AnswerOutput[], head: boolean, last: boolean ): React.ReactNode =>
+		choice ? (
 				<div className="ffxb-answer-routes">
-					<div className="ffxb-answer-routes__head">
+					{ head ? <div className="ffxb-answer-routes__head">
 						{ choices.length > 1 ? (
 							<label>
 								<span>{ __( 'By the answer to', 'funnelforms-pro' ) }</span>
@@ -660,12 +660,12 @@ export function NodeLogic( { doc, node, title }: { doc: FormDocument; node: Extr
 									: __( 'By answer', 'funnelforms-pro' ) }
 							</span>
 						) }
-					</div>
+					</div> : null }
 					<ul className="ffxb-answer-routes__list">
-					{ routes.map( ( r, i ) => {
+					{ list.map( ( r ) => {
 						const answer = text( r.option.label, ctx.locale ).replace( /<[^>]*>/g, '' ) || r.option.value;
 						// A path for several answers is edited at the first of them.
-						const edge = r.edge && routes.findIndex( ( x ) => x.edge?.id === r.edge?.id ) === i ? r.edge : undefined;
+						const edge = r.edge && routes.find( ( x ) => x.edge?.id === r.edge?.id ) === r ? r.edge : undefined;
 						const expanded = !! edge && open === edge.id;
 						return (
 							<li key={ r.option.id } className={ expanded ? 'is-open' : undefined }>
@@ -699,10 +699,31 @@ export function NodeLogic( { doc, node, title }: { doc: FormDocument; node: Extr
 						);
 					} ) }
 				</ul>
-				{ 'choice' === choice.type && choice.props.multiple ? <p className="ffxb-hint">{ __( 'With several answers chosen, the first answer in this list with its own step decides.', 'funnelforms-pro' ) }</p> : null }
+				{ last && 'choice' === choice.type && choice.props.multiple ? <p className="ffxb-hint">{ __( 'With several answers chosen, the first answer in this list with its own step decides.', 'funnelforms-pro' ) }</p> : null }
 				</div>
-			) : null }
-			{ ruleList( after, __( 'Checked after the answers', 'funnelforms-pro' ) ) }
+			) : null;
+
+	// Rules and answers in the order the form checks them (ports.ts, parts).
+	const parts = outputs.parts;
+	const firstAnswers = parts.findIndex( ( p ) => 'answers' === p.kind );
+	const lastAnswers = parts.length - 1 - [ ...parts ].reverse().findIndex( ( p ) => 'answers' === p.kind );
+	const lead = ( i: number ): string | null => {
+		if ( parts.length < 2 ) {
+			return null;
+		}
+		if ( 0 === i ) {
+			return __( 'Checked first', 'funnelforms-pro' );
+		}
+		return i > lastAnswers ? __( 'Checked after the answers', 'funnelforms-pro' ) : __( 'Checked between the answers', 'funnelforms-pro' );
+	};
+
+	return (
+		<Section title={ title ?? __( 'Next step', 'funnelforms-pro' ) }>
+			<HintList doc={ doc } hints={ hints } compact />
+			{ parts.map( ( p, i ) => (
+				<Fragment key={ i }>{ 'rules' === p.kind ? ruleList( p.rules, lead( i ) ) : answerList( p.answers, i === firstAnswers, i === lastAnswers ) }</Fragment>
+			) ) }
+			{ choice && firstAnswers < 0 ? answerList( [], true, true ) : null }
 			{ outputs.rules.length || choice ? addButton : null }
 			<div className="ffxb-otherwise">
 				<span>{ conditional.length ? __( 'Otherwise go to', 'funnelforms-pro' ) : __( 'Go to', 'funnelforms-pro' ) }</span>

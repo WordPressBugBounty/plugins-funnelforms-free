@@ -20,6 +20,7 @@ use Funnelforms\Compat\Migration\FormConverter;
 use Funnelforms\Compat\Migration\MigrationStore;
 use Funnelforms\Domain\Form\BlankDocument;
 use Funnelforms\Domain\Form\DocumentChecker;
+use Funnelforms\Domain\Form\PublicDocument;
 use Funnelforms\Domain\Form\RendererSupport;
 use Funnelforms\Domain\Form\SchemaValidator;
 use Funnelforms\Domain\Form\SensitiveChanges;
@@ -147,12 +148,26 @@ final class FormEditor {
 	 * @return array{problems:string[],missingRights:string[]}
 	 */
 	public function save_draft( array $form, object $document ): array {
-		$document = ( new SchemaValidator() )->repair( $document );
+		$document = self::clean_texts( ( new SchemaValidator() )->repair( $document ) );
 		$this->forms->save_draft( (int) $form['id'], self::encode( $document ), get_current_user_id(), is_string( $document->title ?? null ) ? (string) $document->title : null );
 		return array(
 			'problems'      => self::problems( $document ),
 			'missingRights' => $this->missing_rights( $form, $document ),
 		);
+	}
+
+	/**
+	 * The heading above every step is text, never code: it is stored cleaned with wp_kses, like
+	 * PublicDocument cleans it again before it reaches a browser.
+	 *
+	 * @param object $document Document.
+	 */
+	private static function clean_texts( object $document ): object {
+		$settings = $document->settings ?? null;
+		if ( is_object( $settings ) && isset( $settings->heading ) && ( is_object( $settings->heading ) || is_array( $settings->heading ) ) ) {
+			$settings->heading = (object) PublicDocument::html( (array) $settings->heading );
+		}
+		return $document;
 	}
 
 	/**

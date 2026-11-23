@@ -1215,7 +1215,7 @@
     "meta": {
         "legacy": {
             "formId": 635,
-            "migratorVersion": 1,
+            "migratorVersion": 2,
             "notes": []
         }
     }

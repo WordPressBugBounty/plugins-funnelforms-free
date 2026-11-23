@@ -8,6 +8,9 @@
  * The paths of a node are checked in their order and the first that applies decides. Rules the
  * builder adds go before the paths per answer, so the more special path wins; the card and the
  * panel show them in that order (rules checked first, the answers, rules checked after them).
+ * Where a form checks in another order (rules between paths of answers, made with the sidebar
+ * of 5.0.8 or imported), card and panel show the paths exactly in the order stored (`parts`):
+ * what is shown is always what visitors get, and nothing is moved.
  */
 import type { Condition, Edge, Field, FormDocument, FormNode, Option } from '@funnelforms/form-schema';
 import { answerOptions, answerRoutes, calcRule, connectFromCanvas, fieldsBefore, freshRule, placeAnswerPath, routeAnswer, type NumberOp } from './conditions';
@@ -75,7 +78,16 @@ export interface Outputs {
 	otherwise?: Edge;
 	/** The handles each path of the node starts at: one, or one per answer of a path for several answers. */
 	handles: Map<string, string[]>;
+	/** Rules and answers in the order card and panel show them, which is the order the form checks them. */
+	parts: OutputPart[];
+	/** The paths are shown in the order stored, as it differs from rules first, answers, other rules (orderDiffers). */
+	stored: boolean;
+	/** How many paths with a condition the node has. */
+	count: number;
 }
+
+/** Rules or answers next to each other in the order of a node's outputs. */
+export type OutputPart = { kind: 'rules'; rules: RuleOutput[] } | { kind: 'answers'; answers: AnswerOutput[] };
 
 const SYMBOLS: Record<string, string> = { lt: '<', lte: '≤', gt: '>', gte: '≥', eq: '=', neq: '≠' };
 const TONES: Record<string, RuleTone> = { lt: 'below', lte: 'below', gt: 'above', gte: 'above', eq: 'equal', neq: 'rule' };
@@ -172,7 +184,7 @@ export function ruleShape( edge: Edge, own: Field[] ): Pick<RuleOutput, 'tone' |
 /** The outputs of a node; `chosen` is the field whose answers the canvas shows when the step has several. */
 export function outputsOf( doc: FormDocument, node: FormNode, chosen?: string ): Outputs {
 	const handles = new Map<string, string[]>();
-	const out: Outputs = { fields: answerFields( node ), answers: [], rules: [], handles };
+	const out: Outputs = { fields: answerFields( node ), answers: [], rules: [], handles, parts: [], stored: false, count: 0 };
 	if ( 'end' === node.type ) {
 		return out;
 	}
@@ -208,7 +220,66 @@ export function outputsOf( doc: FormDocument, node: FormNode, chosen?: string ):
 		out.rules.push( { handle, edge, ...ruleShape( edge, own ), first: ! answered, order } );
 		handles.set( edge.id, [ handle ] );
 	}
+	out.count = order;
+	out.stored = differs( doc, node, out );
+	out.parts = out.stored ? storedParts( doc, node, out ) : shownParts( out );
 	return out;
+}
+
+function part( parts: OutputPart[], kind: 'rules', item: RuleOutput ): void;
+function part( parts: OutputPart[], kind: 'answers', item: AnswerOutput ): void;
+function part( parts: OutputPart[], kind: OutputPart[ 'kind' ], item: RuleOutput | AnswerOutput ): void {
+	const last = parts[ parts.length - 1 ];
+	if ( 'rules' === kind ) {
+		if ( last?.kind === 'rules' ) {
+			last.rules.push( item as RuleOutput );
+		} else {
+			parts.push( { kind, rules: [ item as RuleOutput ] } );
+		}
+	} else if ( last?.kind === 'answers' ) {
+		last.answers.push( item as AnswerOutput );
+	} else {
+		parts.push( { kind, answers: [ item as AnswerOutput ] } );
+	}
+}
+
+/** Rules checked first, the answers in their order, the other rules. */
+function shownParts( out: Outputs ): OutputPart[] {
+	const parts: OutputPart[] = [];
+	out.rules.filter( ( r ) => r.first ).forEach( ( r ) => part( parts, 'rules', r ) );
+	out.answers.forEach( ( a ) => part( parts, 'answers', a ) );
+	out.rules.filter( ( r ) => ! r.first ).forEach( ( r ) => part( parts, 'rules', r ) );
+	return parts;
+}
+
+/**
+ * The paths in the order stored: each rule where it is checked, the answers of each path where
+ * that path is checked; answers without a path of their own (they follow the other paths) last
+ * among the answers.
+ */
+function storedParts( doc: FormDocument, node: FormNode, out: Outputs ): OutputPart[] {
+	const parts: OutputPart[] = [];
+	let lastAnswers = -1;
+	for ( const edge of doc.edges ) {
+		if ( edge.from !== node.id || edge.default ) {
+			continue;
+		}
+		const rule = out.rules.find( ( r ) => r.edge.id === edge.id );
+		if ( rule ) {
+			part( parts, 'rules', rule );
+			continue;
+		}
+		out.answers.filter( ( a ) => a.edge?.id === edge.id ).forEach( ( a ) => part( parts, 'answers', a ) );
+		lastAnswers = parts.length - 1;
+	}
+	const free = out.answers.filter( ( a ) => ! a.edge );
+	const at = parts[ lastAnswers ];
+	if ( at?.kind === 'answers' ) {
+		at.answers.push( ...free );
+	} else {
+		free.forEach( ( a ) => part( parts, 'answers', a ) );
+	}
+	return parts;
 }
 
 /**
@@ -325,11 +396,12 @@ export function addRulePath( doc: FormDocument, nodeId: string ): string | null 
 }
 
 /**
- * Keeps the order shown true after the condition of a path changed: a path that now asks for
- * one answer of the step takes its place among the paths per answer, and a rule that stood among
- * them is checked before them, as the more special path.
+ * Keeps the usual order after the condition of a path changed: a path that now asks for one
+ * answer of the step takes its place among the paths per answer, and a path of an answer that
+ * became a rule is checked before them, as the more special path. A rule that was one before
+ * (`wasRule`) stays where it is checked.
  */
-export function settlePath( doc: FormDocument, edgeId: string ): void {
+export function settlePath( doc: FormDocument, edgeId: string, wasRule = false ): void {
 	const edge = doc.edges.find( ( e ) => e.id === edgeId );
 	const node = edge ? findNode( doc, edge.from ) : undefined;
 	if ( ! edge || edge.default || ! node || 'end' === node.type ) {
@@ -339,6 +411,10 @@ export function settlePath( doc: FormDocument, edgeId: string ): void {
 	const [ handle ] = out.handles.get( edgeId ) ?? [];
 	if ( handle?.startsWith( 'a:' ) && out.field ) {
 		placeAnswerPath( doc, node.id, out.field.id, handle.slice( 2 ), edgeId );
+		return;
+	}
+	// A rule that was a rule before stays where it is checked: only its condition changed.
+	if ( wasRule ) {
 		return;
 	}
 	const rules = new Set( out.rules.map( ( r ) => r.edge.id ) );
@@ -351,19 +427,19 @@ export function settlePath( doc: FormDocument, edgeId: string ): void {
 	}
 }
 
-/** The paths with a condition of a node in the order its card and its panel show them: rules checked first, the paths per answer in the order of the answers, the other rules. */
+/** The paths with a condition of a node in the order rules first, answers, other rules. */
 function shownOrder( out: Outputs ): string[] {
 	const answers = [ ...new Set( out.answers.flatMap( ( a ) => ( a.edge ? [ a.edge.id ] : [] ) ) ) ];
 	return [ ...out.rules.filter( ( r ) => r.first ).map( ( r ) => r.edge.id ), ...answers, ...out.rules.filter( ( r ) => ! r.first ).map( ( r ) => r.edge.id ) ];
 }
 
 /**
- * Whether the form checks the paths of a node in another order than shown, where that can
- * decide: a rule between the paths per answer, or the paths of answers that can be chosen
- * together in another order than the answers. Forms made here keep the order; an import may not.
+ * Whether the form checks the paths of a node in another order than rules first, answers, other
+ * rules, where that can decide: a rule between the paths per answer, or the paths of answers that
+ * can be chosen together in another order than the answers. Card and panel then show the order
+ * stored. Forms made with this builder keep the usual order; the sidebar of 5.0.8 or an import may not.
  */
-export function orderDiffers( doc: FormDocument, node: FormNode, chosen?: string ): boolean {
-	const out = outputsOf( doc, node, chosen );
+function differs( doc: FormDocument, node: FormNode, out: Outputs ): boolean {
 	const rules = new Set( out.rules.map( ( r ) => r.edge.id ) );
 	const paths = doc.edges.filter( ( e ) => e.from === node.id && ! e.default );
 	const first = paths.findIndex( ( e ) => ! rules.has( e.id ) );
@@ -377,27 +453,15 @@ export function orderDiffers( doc: FormDocument, node: FormNode, chosen?: string
 	return shownOrder( out ).join( ' ' ) !== paths.map( ( e ) => e.id ).join( ' ' );
 }
 
-/** Puts the paths of a node into the order shown (orderDiffers). */
-export function applyShownOrder( doc: FormDocument, nodeId: string, chosen?: string ): void {
-	const node = findNode( doc, nodeId );
-	if ( ! node ) {
-		return;
-	}
-	const order = shownOrder( outputsOf( doc, node, chosen ) );
-	const byId = new Map( doc.edges.map( ( e ) => [ e.id, e ] ) );
-	const slots = doc.edges.flatMap( ( e, i ) => ( e.from === nodeId && ! e.default ? [ i ] : [] ) );
-	order.forEach( ( id, n ) => {
-		const edge = byId.get( id );
-		const slot = slots[ n ];
-		if ( edge && undefined !== slot ) {
-			doc.edges[ slot ] = edge;
-		}
-	} );
+/** Whether card and panel show the paths of a node in the order stored (see differs). */
+export function orderDiffers( doc: FormDocument, node: FormNode, chosen?: string ): boolean {
+	return outputsOf( doc, node, chosen ).stored;
 }
 
 /**
  * Moves a rule up (-1) or down (+1) among the rules of its node. Past the last rule checked
  * before the answers it goes behind the paths per answer, and back before them the other way.
+ * Where the paths are shown as stored, it changes places with the path next to it.
  */
 export function moveRule( doc: FormDocument, edgeId: string, delta: -1 | 1, chosen?: string ): void {
 	const moved = doc.edges.find( ( e ) => e.id === edgeId );
@@ -410,6 +474,18 @@ export function moveRule( doc: FormDocument, edgeId: string, delta: -1 | 1, chos
 	const rule = out.rules[ at ];
 	const other = out.rules[ at + delta ];
 	if ( ! rule ) {
+		return;
+	}
+	if ( out.stored ) {
+		// Shown as stored: the rule changes places with the path checked just before or after it.
+		const paths = doc.edges.filter( ( e ) => e.from === node.id && ! e.default );
+		const next = paths[ paths.findIndex( ( e ) => e.id === edgeId ) + delta ];
+		if ( next ) {
+			const a = doc.edges.indexOf( moved );
+			const b = doc.edges.indexOf( next );
+			doc.edges[ a ] = next;
+			doc.edges[ b ] = moved;
+		}
 		return;
 	}
 	if ( other && other.first === rule.first ) {
@@ -440,6 +516,9 @@ export function canMoveRule( outputs: Outputs, edgeId: string, delta: -1 | 1 ): 
 	const other = outputs.rules[ at + delta ];
 	if ( ! rule ) {
 		return false;
+	}
+	if ( outputs.stored ) {
+		return delta < 0 ? rule.order > 1 : rule.order < outputs.count;
 	}
 	if ( other && other.first === rule.first ) {
 		return true;
