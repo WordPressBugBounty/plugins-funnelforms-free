@@ -953,6 +953,71 @@ body.ffx-screen #wpbody-content > .error {
 	margin-bottom: 6px;
 }
 
+/* Settings → General → Address fields: the check of the Google Maps key (assets/admin/maps-check.js). */
+.ffx-maps-check {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 10px;
+	margin-top: 12px;
+}
+
+.ffx-maps-check__list {
+	display: grid;
+	gap: 6px;
+	width: 100%;
+	max-width: 640px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ffx-maps-check__item {
+	display: grid;
+	grid-template-columns: 22px 180px 1fr;
+	align-items: baseline;
+	gap: 2px 10px;
+	margin: 0;
+	padding: 8px 12px;
+	border-radius: 8px;
+	background: var(--ffb-success-bg);
+	color: var(--ffb-success-fg);
+}
+
+.ffx-maps-check__item::before {
+	content: "\2713";
+	font-weight: 700;
+}
+
+.ffx-maps-check__item.is-missing {
+	background: var(--ffb-danger-bg);
+	color: var(--ffb-danger-fg);
+}
+
+.ffx-maps-check__item.is-missing::before {
+	content: "\2715";
+}
+
+.ffx-maps-check__item small {
+	grid-column: 2 / -1;
+	opacity: 0.85;
+}
+
+.ffx-maps-check__result {
+	margin: 0;
+	max-width: 640px;
+}
+
+.ffx-maps-check__result.is-error {
+	color: var(--ffb-danger-fg);
+	font-weight: 600;
+}
+
+.ffx-maps-check__result.is-ok {
+	color: var(--ffb-success-fg);
+	font-weight: 600;
+}
+
 .ffx-field input[type='text'],
 .ffx-field input[type='email'],
 .ffx-field input[type='url'],
@@ -3038,9 +3103,149 @@ body.ffx-setup-body {
 	color: var(--ffb-text-muted);
 }
 
-.ffx-setup__account.is-active {
-	border-color: #c8e8d4;
-	background: linear-gradient(120deg, var(--ffb-success-bg), var(--ffb-surface) 70%);
+/* The connected account: a clear success mark, the plan in facts, actions below. */
+.ffx-setup__connected {
+	padding: 0;
+	overflow: hidden;
+	border-color: color-mix(in srgb, var(--ffb-success-dot) 35%, var(--ffb-border));
+}
+
+.ffx-setup__connected-head {
+	display: flex;
+	gap: 16px;
+	align-items: center;
+	padding: 20px 24px;
+	background: linear-gradient(120deg, var(--ffb-success-bg), color-mix(in srgb, var(--ffb-success-bg) 35%, var(--ffb-surface)) 100%);
+	border-bottom: 1px solid color-mix(in srgb, var(--ffb-success-dot) 20%, var(--ffb-border));
+}
+
+.ffx-setup__connected.is-warning .ffx-setup__connected-head {
+	background: linear-gradient(120deg, var(--ffb-warning-bg), var(--ffb-surface) 100%);
+}
+
+.ffx-setup__connected.is-error .ffx-setup__connected-head {
+	background: linear-gradient(120deg, var(--ffb-danger-bg), var(--ffb-surface) 100%);
+}
+
+.ffx-setup__connected-mark {
+	display: inline-grid;
+	place-items: center;
+	flex: 0 0 48px;
+	width: 48px;
+	height: 48px;
+	border-radius: 50%;
+	background: var(--ffb-success-dot);
+	color: #fff;
+	box-shadow: 0 0 0 6px color-mix(in srgb, var(--ffb-success-dot) 16%, transparent), 0 6px 16px -6px color-mix(in srgb, var(--ffb-success-dot) 70%, transparent);
+}
+
+.ffx-setup__connected.is-warning .ffx-setup__connected-mark {
+	background: var(--ffb-warning-dot);
+	box-shadow: 0 0 0 6px color-mix(in srgb, var(--ffb-warning-dot) 16%, transparent);
+}
+
+.ffx-setup__connected.is-error .ffx-setup__connected-mark {
+	background: var(--ffb-danger-dot);
+	box-shadow: 0 0 0 6px color-mix(in srgb, var(--ffb-danger-dot) 16%, transparent);
+}
+
+.ffx-setup__connected-mark svg {
+	width: 24px;
+	height: 24px;
+	stroke-width: 2.5;
+}
+
+.ffx-setup__connected-head h3 {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	margin: 0 0 2px;
+	font-family: var(--ffb-heading);
+	font-size: 17px;
+}
+
+.ffx-setup .ffx-setup__connected-head p {
+	margin: 0;
+	color: var(--ffb-text-muted);
+}
+
+.ffx-setup__connected-facts {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 20px 32px;
+	margin: 0;
+	padding: 20px 24px;
+}
+
+.ffx-setup__connected-facts dt {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+	margin: 0 0 4px;
+	color: var(--ffb-text-subtle);
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.ffx-setup__connected-facts dt svg {
+	width: 14px;
+	height: 14px;
+	color: var(--ffb-accent-text);
+}
+
+.ffx-setup__connected-facts dd {
+	margin: 0;
+	color: var(--ffb-text);
+	font-size: 15px;
+	font-weight: 600;
+	overflow-wrap: anywhere;
+}
+
+.ffx-setup__connected-facts dd small {
+	display: block;
+	margin-top: 2px;
+	color: var(--ffb-text-subtle);
+	font-size: 12px;
+	font-weight: 400;
+}
+
+.ffx-setup__connected-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px 20px;
+	align-items: center;
+	padding: 14px 24px;
+	border-top: 1px solid var(--ffb-border);
+	background: var(--ffb-surface-2);
+}
+
+.ffx-setup__connected-actions .ffx-link-button svg {
+	width: 16px;
+	height: 16px;
+}
+
+.ffx-setup .ffx-setup__next {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	margin-top: 16px;
+	color: var(--ffb-text-muted);
+}
+
+.ffx-setup__next svg {
+	width: 16px;
+	height: 16px;
+	color: var(--ffb-accent-text);
+}
+
+.ffx-setup__nav-end {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+	margin-left: auto;
 }
 
 .ffx-setup__templates {
@@ -3268,6 +3473,10 @@ body.ffx-setup-body {
 
 	.ffx-setup__nav {
 		padding: 12px 20px;
+	}
+
+	.ffx-setup__connected-facts {
+		grid-template-columns: 1fr;
 	}
 
 	.ffx-setup__options-row,

@@ -15,6 +15,12 @@ export interface FieldContext {
 	set( fieldId: string, value: unknown ): void;
 	/** Goes to the next step after the current one is answered. */
 	advance(): void;
+	/**
+	 * Whether a click on a single choice or a rating moves on (settings.autoAdvance of the step or
+	 * the form); false: visitors see their answer and go on with Next. The content step's button and
+	 * a choice's "continue at this number of answers" move on either way.
+	 */
+	auto: boolean;
 	/** HTML of the answers so far, for {{answers}} in content steps. */
 	summaryHtml(): string;
 	/** Uploads a file of a file field; resolves to the stored file or an error code. */
@@ -243,7 +249,9 @@ function choice( field: ChoiceField, ctx: FieldContext, label: string, head: HTM
 			button.addEventListener( 'click', () => {
 				ctx.set( field.id, [ option.id ] );
 				list.querySelectorAll( 'button' ).forEach( ( b ) => b.setAttribute( 'aria-pressed', b === button ? 'true' : 'false' ) );
-				ctx.advance();
+				if ( ctx.auto ) {
+					ctx.advance();
+				}
 			} );
 			list.append( button );
 		}
@@ -257,7 +265,7 @@ function choice( field: ChoiceField, ctx: FieldContext, label: string, head: HTM
 		list,
 		error
 	);
-	return { el, error, focus: list.querySelector( 'button, input' ), selfAdvancing: ! p.multiple && field.required };
+	return { el, error, focus: list.querySelector( 'button, input' ), selfAdvancing: ctx.auto && ! p.multiple && field.required };
 }
 
 /** Option labels as plain text, for lists that cannot hold markup. */
@@ -545,7 +553,9 @@ function rating( field: RatingField, ctx: FieldContext, label: string, head: HTM
 		button.addEventListener( 'click', () => {
 			ctx.set( field.id, n );
 			mark( n );
-			ctx.advance();
+			if ( ctx.auto ) {
+				ctx.advance();
+			}
 		} );
 		buttons.push( button );
 		list.append( button );
@@ -564,7 +574,7 @@ function rating( field: RatingField, ctx: FieldContext, label: string, head: HTM
 		legend,
 		error
 	);
-	return { el, error, focus: buttons[ 0 ] ?? null, selfAdvancing: field.required };
+	return { el, error, focus: buttons[ 0 ] ?? null, selfAdvancing: ctx.auto && field.required };
 }
 
 const SIGNATURE_FONT = 'italic 44px "Segoe Script", "Bradley Hand", "Brush Script MT", cursive';

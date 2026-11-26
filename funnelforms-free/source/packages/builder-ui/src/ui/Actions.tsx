@@ -6,7 +6,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import type { Action, Condition, FormDocument, Text } from '@funnelforms/form-schema';
-import { ACTION_FOR_TYPE, ACTION_KINDS, actionGaps, addAction, addActionFor, addCrmAction, CONNECTION_TYPES, duplicateAction, emailFields, integrationsUrl, removeAction, retiredConnection, setRecipient, type ActionKind, type ActionTexts } from '../actions';
+import { ACTION_FOR_TYPE, ACTION_KINDS, actionGaps, addAction, addActionFor, addCrmAction, chatServices, CONNECTION_TYPES, duplicateAction, emailFields, integrationsUrl, removeAction, retiredConnection, setRecipient, type ActionKind, type ActionTexts } from '../actions';
 import type { Connection, ConnectionTest } from '../api';
 import { calcRule, entryFields, starterRule } from '../conditions';
 import { contactFields, CRM_NAMES, suggestMapping, type CrmConnection } from '../connect';
@@ -24,19 +24,26 @@ import { CodeNotices } from './CustomCode';
 import { useCrmCatalog } from './CrmConnections';
 import { ConditionEditor } from './Logic';
 import { MailEditor } from './MailEditor';
+import { telegramChatHint, TelegramChatFinder, TelegramPublicNotice, telegramSteps } from './TelegramChat';
 import { WhatsAppTemplatePicker } from './WhatsAppTemplates';
+import { namesPublicChat, telegramLabel, withTelegramChat, withTypedChat } from '../telegram';
 import { Button, Dialog, Field as FieldRow, icons, Notice, ProBadge, Select, TextInput, Toggle } from './ui';
 
 function useChange(): ( recipe: Recipe, key?: string ) => void {
 	return useEnv().store.getState().change;
 }
 
-export function kindName( kind: string ): string {
+/**
+ * The name of a kind of action. telegram: whether the host offers Telegram (FormsApi.telegramChats,
+ * as chatServices()); without it a chat message is a Slack or Teams message, so no screen names a
+ * service it does not offer.
+ */
+export function kindName( kind: string, telegram = true ): string {
 	const names: Record<string, string> = {
 		email: __( 'E-mail to you', 'funnelforms-pro' ),
 		autoresponder: __( 'Confirmation to the visitor', 'funnelforms-pro' ),
 		webhook: __( 'Webhook', 'funnelforms-pro' ),
-		chat: __( 'Slack or Teams message', 'funnelforms-pro' ),
+		chat: telegram ? __( 'Slack, Teams or Telegram message', 'funnelforms-pro' ) : __( 'Slack or Teams message', 'funnelforms-pro' ),
 		sms: __( 'Text message (SMS)', 'funnelforms-pro' ),
 		whatsapp: __( 'WhatsApp message', 'funnelforms-pro' ),
 		aiCall: __( 'AI Phone Agent', 'funnelforms-pro' ),
@@ -48,10 +55,28 @@ export function kindName( kind: string ): string {
 	return names[ kind ] ?? kind;
 }
 
+/** The name of one action: a chat message by its service, the others by their kind (telegram as for kindName). */
+export function actionName( action: { kind: string; config?: unknown }, telegram = true ): string {
+	if ( 'chat' === action.kind ) {
+		const service = ( action.config as { service?: string } | undefined )?.service;
+		if ( 'telegram' === service ) {
+			return __( 'Telegram message', 'funnelforms-pro' );
+		}
+		if ( 'teams' === service ) {
+			return __( 'Microsoft Teams message', 'funnelforms-pro' );
+		}
+		if ( 'slack' === service ) {
+			return __( 'Slack message', 'funnelforms-pro' );
+		}
+	}
+	return kindName( action.kind, telegram );
+}
+
 function connectionTypeName( type: string ): string {
 	const names: Record<string, string> = {
 		slack: 'Slack',
 		teams: 'Microsoft Teams',
+		telegram: 'Telegram',
 		twilio: 'Twilio',
 		bird: 'Bird',
 		whatsapp: 'WhatsApp Business',
@@ -78,6 +103,11 @@ function credentials( type: string ): Array<[ string, string, boolean, boolean? 
 	const all: Record<string, Array<[ string, string, boolean, boolean? ]>> = {
 		slack: [ [ 'url', webhook, true ] ],
 		teams: [ [ 'url', webhook, true ] ],
+		// The name of the chat comes with the search (TelegramChatFinder), not as a field.
+		telegram: [
+			[ 'botToken', __( 'Bot token', 'funnelforms-pro' ), true ],
+			[ 'chatId', __( 'Chat ID', 'funnelforms-pro' ), false ],
+		],
 		twilio: [
 			[ 'accountSid', __( 'Account SID', 'funnelforms-pro' ), false ],
 			[ 'authToken', __( 'Auth token', 'funnelforms-pro' ), true ],
@@ -125,7 +155,7 @@ function testKind( type: string ): 'number' | 'whatsapp' | 'direct' | null {
 	if ( 'whatsapp' === type ) {
 		return 'whatsapp';
 	}
-	return [ 'slack', 'teams', 'caldav', 'google', 'microsoft' ].includes( type ) ? 'direct' : null;
+	return [ 'slack', 'teams', 'telegram', 'caldav', 'google', 'microsoft' ].includes( type ) ? 'direct' : null;
 }
 
 /** Where the form uses a connection: its actions, the mail server of mails, the payment. */
@@ -138,7 +168,7 @@ export function connectionUses( doc: FormDocument | null, ref: string ): string[
 			const config = a.config as unknown as { connectionRef?: string; transport?: { connectionRef?: string } };
 			return config.connectionRef === ref || config.transport?.connectionRef === ref;
 		} )
-		.map( ( a ) => kindName( a.kind ) );
+		.map( ( a ) => actionName( a ) );
 	if ( doc.settings.payment?.connection === ref ) {
 		uses.push( __( 'Payment', 'funnelforms-pro' ) );
 	}
@@ -174,6 +204,17 @@ function gapText( gap: ReturnType<typeof actionGaps>[ number ] ): string {
 		code: __( 'Enter the code that runs after sending.', 'funnelforms-pro' ),
 	};
 	return texts[ gap ];
+}
+
+/** What the chosen webhook format sends, below the choice. */
+function webhookFormatHint( format: 'ff4' | 'ff5' | undefined ): string {
+	switch ( format ) {
+		case 'ff5':
+			return __( 'Each answer by its variable name with its label, plus lead status, score, lead value, UTM parameters and payment: the same fields as the Zapier, Make and n8n trigger.', 'funnelforms-pro' );
+		case 'ff4':
+			return __( 'Fields are named by their variable names; contact fields as "field-" plus the name. Give fields the IDs they had in Funnelforms 4 as variable names, and existing Zaps keep working.', 'funnelforms-pro' );
+	}
+	return __( 'The data as Funnelforms Pro 3 sent it, so receivers built for it keep working. For a new receiver choose Funnelforms 5.', 'funnelforms-pro' );
 }
 
 /** One line about where an action goes. */
@@ -214,6 +255,8 @@ function target( action: Action, locale: string, connections: Connection[] ): st
  */
 export function ActionsSection( { doc, node }: { doc: FormDocument; node?: string } ) {
 	const { api, rights, readOnly } = useEnv();
+	// As the service select of a chat message (chatServices): Telegram only where the host offers it.
+	const telegram = Boolean( api.telegramChats );
 	const change = useChange();
 	const [ connections, setConnections ] = useState<Connection[]>( [] );
 	const [ open, setOpen ] = useState<string | null>( null );
@@ -260,7 +303,7 @@ export function ActionsSection( { doc, node }: { doc: FormDocument; node?: strin
 						<li key={ action.id } className={ `ffxb-action${ expanded ? ' is-open' : '' }` }>
 							<div className="ffxb-action__head">
 								<button type="button" className="ffxb-action__toggle" aria-expanded={ expanded } onClick={ () => setOpen( expanded ? null : action.id ) }>
-									<strong>{ kindName( action.kind ) }</strong>
+									<strong>{ actionName( action ) }</strong>
 									{ /* The Leadcaller names its agent inside; no line instead of a dash. */ }
 									{ 'aiCall' === action.kind && ! target( action, locale, connections ) ? null : <span className="ffxb-action__target">{ target( action, locale, connections ) || '—' }</span> }
 									{ node && several && ! action.node ? <span className="ffxb-action__scope">{ __( 'Every contact step', 'funnelforms-pro' ) }</span> : null }
@@ -291,7 +334,7 @@ export function ActionsSection( { doc, node }: { doc: FormDocument; node?: strin
 						value=""
 						options={ [
 							{ value: '', label: __( 'Choose…', 'funnelforms-pro' ) },
-							...freeKinds( doc, node && several ? node : undefined ).map( ( k ) => ( { value: k, label: kindName( k ) } ) ),
+							...freeKinds( doc, node && several ? node : undefined ).map( ( k ) => ( { value: k, label: kindName( k, telegram ) } ) ),
 						] }
 						onChange={ ( v ) => {
 							if ( '' !== v && ! readOnly ) {
@@ -300,7 +343,7 @@ export function ActionsSection( { doc, node }: { doc: FormDocument; node?: strin
 						} }
 					/>
 					<p className="ffxb-hint">
-						<ProBadge /> { __( 'Webhooks, CRM and newsletter tools, Slack and Teams, text messages, WhatsApp, conversion tracking and more than one mail of each kind come with Funnelforms Pro.', 'funnelforms-pro' ) }
+						<ProBadge /> { __( 'Webhooks, CRM and newsletter tools, Slack, Teams and Telegram, text messages, WhatsApp, conversion tracking and more than one mail of each kind come with Funnelforms Pro.', 'funnelforms-pro' ) }
 					</p>
 				</>
 			) : (
@@ -310,7 +353,7 @@ export function ActionsSection( { doc, node }: { doc: FormDocument; node?: strin
 						value=""
 						options={ [
 							{ value: '', label: __( 'Choose…', 'funnelforms-pro' ) },
-							...ACTION_KINDS.map( ( k ) => ( { value: k, label: kindName( k ) } ) ),
+							...ACTION_KINDS.map( ( k ) => ( { value: k, label: kindName( k, telegram ) } ) ),
 						] }
 						onChange={ ( v ) => {
 							if ( '' !== v && ! readOnly ) {
@@ -327,7 +370,7 @@ export function ActionsSection( { doc, node }: { doc: FormDocument; node?: strin
 
 /**
  * The site's connections an action can send entries through (CRM, newsletter and spreadsheet
- * tools, Slack and Teams, SMS, WhatsApp, conversion platforms), each ready to add with one click,
+ * tools, Slack, Teams and Telegram, SMS, WhatsApp, conversion platforms), each ready to add with one click,
  * except those this step already sends to. Tools that are not connected yet are connected under
  * Funnelforms → Integrations, which the hint links to for users who may change settings.
  */
@@ -416,9 +459,10 @@ function freeKinds( doc: FormDocument, node: string | undefined ): ActionKind[] 
 	return ACTION_KINDS.filter( ( k ) => ! isPro( 'action:' + k ) && ! doc.actions.some( ( a ) => a.kind === k && ( a.node ?? '' ) === ( node ?? '' ) ) );
 }
 
-/** In Funnelforms Free: an action of Pro, which it neither edits nor runs. */
-function ProAction( { kind }: { kind: ActionKind } ) {
-	return <Notice tone="warning">{ sprintf( /* translators: %s: name of an action, such as Webhook */ __( '%s is part of Funnelforms Pro. Delete this action to publish the form.', 'funnelforms-pro' ), kindName( kind ) ) }</Notice>;
+/** In Funnelforms Free: an action of Pro, which it neither edits nor runs; named as the list names it. */
+function ProAction( { action }: { action: Action } ) {
+	const { api } = useEnv();
+	return <Notice tone="warning">{ sprintf( /* translators: %s: name of an action, such as Webhook */ __( '%s is part of Funnelforms Pro. Delete this action to publish the form.', 'funnelforms-pro' ), actionName( action, Boolean( api.telegramChats ) ) ) }</Notice>;
 }
 
 /** Changes a plain value of the action. */
@@ -803,16 +847,32 @@ function ConnectionDialog( { types, connection, onClose, onSaved }: { types: str
 			{ error ? <Notice tone="danger">{ error }</Notice> : null }
 			{ types.length > 1 && ! connection ? <Select label={ __( 'Service', 'funnelforms-pro' ) } value={ type } options={ types.map( ( t ) => ( { value: t, label: connectionTypeName( t ) } ) ) } onChange={ setType } /> : null }
 			{ connection ? <p className="ffxb-hint">{ connectionTypeName( type ) }</p> : null }
+			{ 'telegram' === type && ! connection ? <p className="ffxb-hint">{ telegramSteps( Boolean( api.telegramChats ) ) }</p> : null }
 			<TextInput label={ __( 'Name', 'funnelforms-pro' ) } value={ label } onChange={ setLabel } hint={ __( 'Shown when you choose the connection.', 'funnelforms-pro' ) } />
 			{ fields.map( ( [ key, name, secret, optional ] ) => (
-				<TextInput
-					key={ type + key }
-					label={ optional && ! connection ? sprintf( __( '%s (optional)', 'funnelforms-pro' ), name ) : name }
-					type={ secret ? 'password' : 'text' }
-					value={ values[ key ] ?? '' }
-					placeholder={ connection ? __( 'Unchanged', 'funnelforms-pro' ) : undefined }
-					onChange={ ( v ) => setValues( ( x ) => ( { ...x, [ key ]: v } ) ) }
-				/>
+				<React.Fragment key={ type + key }>
+					<TextInput
+						label={ optional && ! connection ? sprintf( __( '%s (optional)', 'funnelforms-pro' ), name ) : name }
+						type={ secret ? 'password' : 'text' }
+						value={ values[ key ] ?? '' }
+						placeholder={ connection ? __( 'Unchanged', 'funnelforms-pro' ) : undefined }
+						hint={ 'telegram' === type && 'chatId' === key ? telegramChatHint() : undefined }
+						onChange={ ( v ) => setValues( ( x ) => ( 'telegram' === type && 'chatId' === key ? withTypedChat( x, v ) : { ...x, [ key ]: v } ) ) }
+					/>
+					{ 'telegram' === type && 'chatId' === key && namesPublicChat( values.chatId ?? '' ) ? <TelegramPublicNotice /> : null }
+					{ 'telegram' === type && 'botToken' === key && api.telegramChats ? (
+						<TelegramChatFinder
+							api={ api }
+							token={ values.botToken ?? '' }
+							connectionRef={ connection?.ref }
+							chatId={ values.chatId ?? '' }
+							onPick={ ( chat ) => {
+								setValues( ( x ) => withTelegramChat( x, chat ) );
+								setLabel( ( l ) => telegramLabel( l, chat ) );
+							} }
+						/>
+					) : null }
+				</React.Fragment>
 			) ) }
 			{ 'paypal' === type && ! connection ? <Toggle label={ __( 'App of the PayPal sandbox (test payments)', 'funnelforms-pro' ) } checked={ sandbox } onChange={ setSandbox } /> : null }
 			<p className="ffxb-hint">{ connection ? __( 'Fill in only what changes; empty fields keep the stored values. Access keys are stored encrypted and never shown again.', 'funnelforms-pro' ) : __( 'Access keys are stored encrypted and never shown again.', 'funnelforms-pro' ) }</p>
@@ -884,6 +944,7 @@ function ActionEditor( { doc, action, connections, onConnections }: { doc: FormD
 	const change = useChange();
 	const textOf = useConfigText( doc, action );
 	const set = useConfigValue( action );
+	const { api } = useEnv();
 	const locale = doc.locales.default;
 	const contacts = doc.nodes.filter( ( n ) => 'contact' === n.type );
 
@@ -997,7 +1058,7 @@ function ActionEditor( { doc, action, connections, onConnections }: { doc: FormD
 			);
 		}
 		case 'webhook':
-			return 'free' === process.env.FUNNELFORMS_EDITION ? <ProAction kind={ action.kind } /> : (
+			return 'free' === process.env.FUNNELFORMS_EDITION ? <ProAction action={ action } /> : (
 				<>
 					<TextInput
 						label={ __( 'Web address', 'funnelforms-pro' ) }
@@ -1011,32 +1072,30 @@ function ActionEditor( { doc, action, connections, onConnections }: { doc: FormD
 						label={ __( 'Format', 'funnelforms-pro' ) }
 						value={ action.config.format ?? '' }
 						options={ [
-							{ value: '', label: __( 'Funnelforms 3 (Pro)', 'funnelforms-pro' ) },
-							{ value: 'ff4', label: __( 'Funnelforms 4 (Zaps and scenarios built on the online version)', 'funnelforms-pro' ) },
+							{ value: 'ff5', label: __( 'Funnelforms 5 (recommended)', 'funnelforms-pro' ) },
+							{ value: '', label: __( 'Funnelforms 3 (for existing Zaps and scenarios from Pro 3)', 'funnelforms-pro' ) },
+							{ value: 'ff4', label: __( 'Funnelforms 4 (for Zaps and scenarios built on the online version)', 'funnelforms-pro' ) },
 						] }
-						onChange={ ( v ) => set( 'format', 'ff4' === v ? 'ff4' : undefined ) }
-						hint={
-							'ff4' === action.config.format
-								? __( 'Fields are named by their variable names; contact fields as "field-" plus the name. Give fields the IDs they had in Funnelforms 4 as variable names, and existing Zaps keep working.', 'funnelforms-pro' )
-								: undefined
-						}
+						onChange={ ( v ) => set( 'format', 'ff4' === v || 'ff5' === v ? v : undefined ) }
+						hint={ webhookFormatHint( action.config.format ) }
 					/>
 					{ common }
 				</>
 			);
 		case 'crm':
-			return 'free' === process.env.FUNNELFORMS_EDITION ? <ProAction kind={ action.kind } /> : <CrmAction doc={ doc } action={ action } common={ common } />;
+			return 'free' === process.env.FUNNELFORMS_EDITION ? <ProAction action={ action } /> : <CrmAction doc={ doc } action={ action } common={ common } />;
 		case 'chat':
-			return 'free' === process.env.FUNNELFORMS_EDITION ? <ProAction kind={ action.kind } /> : (
+			return 'free' === process.env.FUNNELFORMS_EDITION ? <ProAction action={ action } /> : (
 				<>
 					<Select
 						label={ __( 'Service', 'funnelforms-pro' ) }
 						value={ action.config.service }
-						options={ [
-							{ value: 'slack', label: 'Slack' },
-							{ value: 'teams', label: 'Microsoft Teams' },
-						] }
-						onChange={ ( v ) => set( 'service', v ) }
+						options={ chatServices( Boolean( api.telegramChats ) || 'telegram' === action.config.service ).map( ( v ) => ( { value: v, label: connectionTypeName( v ) } ) ) }
+						onChange={ ( v ) => {
+							set( 'service', v );
+							// A connection of the other service would not fit.
+							set( 'connectionRef', '' );
+						} }
 					/>
 					<ConnectionPicker types={ [ action.config.service ] } value={ action.config.connectionRef } connections={ connections } onChange={ ( v ) => set( 'connectionRef', v ) } onConnection={ onConnection } onConnections={ onConnections } />
 					{ field( 'message', __( 'Message', 'funnelforms-pro' ), { multiline: true, placeholders: true } ) }
@@ -1046,7 +1105,7 @@ function ActionEditor( { doc, action, connections, onConnections }: { doc: FormD
 				</>
 			);
 		case 'sms':
-			return 'free' === process.env.FUNNELFORMS_EDITION ? <ProAction kind={ action.kind } /> : (
+			return 'free' === process.env.FUNNELFORMS_EDITION ? <ProAction action={ action } /> : (
 				<>
 					<ConnectionPicker types={ CONNECTION_TYPES.sms } value={ action.config.connectionRef } connections={ connections } onChange={ ( v ) => set( 'connectionRef', v ) } onConnection={ onConnection } onConnections={ onConnections } test={ { sender: action.config.sender } } />
 					{ field( 'to', __( 'To', 'funnelforms-pro' ), { hint: __( 'Numbers separated by commas; a placeholder of a phone field sends to the visitor.', 'funnelforms-pro' ), placeholders: true } ) }
@@ -1057,7 +1116,7 @@ function ActionEditor( { doc, action, connections, onConnections }: { doc: FormD
 				</>
 			);
 		case 'whatsapp':
-			return 'free' === process.env.FUNNELFORMS_EDITION ? <ProAction kind={ action.kind } /> : (
+			return 'free' === process.env.FUNNELFORMS_EDITION ? <ProAction action={ action } /> : (
 				<>
 					<ConnectionPicker types={ CONNECTION_TYPES.whatsapp } value={ action.config.connectionRef } connections={ connections } onChange={ ( v ) => set( 'connectionRef', v ) } onConnection={ onConnection } onConnections={ onConnections } test={ { template: action.config.template, language: action.config.language } } />
 					{ field( 'to', __( 'To', 'funnelforms-pro' ), { placeholders: true } ) }
@@ -1137,7 +1196,7 @@ function ActionEditor( { doc, action, connections, onConnections }: { doc: FormD
 			);
 		case 'aiCall':
 			return 'free' === process.env.FUNNELFORMS_EDITION ? (
-				<ProAction kind={ action.kind } />
+				<ProAction action={ action } />
 			) : (
 				<AiCallEditor
 					doc={ doc }
@@ -1148,7 +1207,7 @@ function ActionEditor( { doc, action, connections, onConnections }: { doc: FormD
 				/>
 			);
 		case 'conversion':
-			return 'free' === process.env.FUNNELFORMS_EDITION ? <ProAction kind={ action.kind } /> : (
+			return 'free' === process.env.FUNNELFORMS_EDITION ? <ProAction action={ action } /> : (
 				<>
 					<Select
 						label={ __( 'Platform', 'funnelforms-pro' ) }
@@ -1187,7 +1246,7 @@ function ActionEditor( { doc, action, connections, onConnections }: { doc: FormD
 				</>
 			);
 		case 'googleAds':
-			return 'free' === process.env.FUNNELFORMS_EDITION ? <ProAction kind={ action.kind } /> : (
+			return 'free' === process.env.FUNNELFORMS_EDITION ? <ProAction action={ action } /> : (
 				<>
 					<TextInput
 						label={ __( 'Conversion ID and label', 'funnelforms-pro' ) }
@@ -1229,7 +1288,7 @@ function ActionEditor( { doc, action, connections, onConnections }: { doc: FormD
 				</>
 			);
 		case 'customCode':
-			return 'free' === process.env.FUNNELFORMS_EDITION ? <ProAction kind={ action.kind } /> : <CustomCodeEditor doc={ doc } action={ action } common={ common } />;
+			return 'free' === process.env.FUNNELFORMS_EDITION ? <ProAction action={ action } /> : <CustomCodeEditor doc={ doc } action={ action } common={ common } />;
 		default:
 			return (
 				<>

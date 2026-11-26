@@ -158,6 +158,24 @@ export function AnalyticsLegend( { dots = false }: { dots?: boolean } ) {
 	);
 }
 
+/**
+ * A line of figures that counts up while the visitors of a prediction play: the final text holds its
+ * place underneath, so the node keeps its size and its paths stay where they are.
+ */
+function Counting( { now, all }: { now: string; all: string } ) {
+	if ( now === all ) {
+		return <span>{ all }</span>;
+	}
+	return (
+		<span className="ffxb-counting">
+			<span>{ now }</span>
+			<span className="ffxb-counting__all" aria-hidden="true">
+				{ all }
+			</span>
+		</span>
+	);
+}
+
 /** The figures of a node on the canvas; forecast: of the prediction (virtual visitors). */
 export function NodeAnalyticsView( { type, figures: all, forecast = false, played = null }: { type: 'step' | 'contact' | 'end'; figures: NodeAnalytics; forecast?: boolean; played?: { reached: number; left: number } | null } ) {
 	// While the visitors of a prediction play, the counts so far.
@@ -166,21 +184,31 @@ export function NodeAnalyticsView( { type, figures: all, forecast = false, playe
 		return <div className="ffxb-node__analytics ffxb-node__analytics--none">{ forecast ? __( 'No virtual visitor reaches this.', 'funnelforms-pro' ) : __( 'Nobody reached this in the period.', 'funnelforms-pro' ) }</div>;
 	}
 	if ( 'end' === type ) {
+		const text = ( f: NodeAnalytics ): string => ( all.sent ? sprintf( __( '%d sent forms ended here', 'funnelforms-pro' ), number( f.sent ) ) : sprintf( __( '%d reached', 'funnelforms-pro' ), number( f.reached ) ) );
 		return (
 			<div className="ffxb-node__analytics">
-				<span>{ figures.sent ? sprintf( __( '%d sent forms ended here', 'funnelforms-pro' ), figures.sent ) : sprintf( __( '%d reached', 'funnelforms-pro' ), figures.reached ) }</span>
+				<Counting now={ text( figures ) } all={ text( all ) } />
 			</div>
 		);
 	}
+	const reach = ( f: NodeAnalytics ): string => sprintf( __( '%1$d reached · %2$d left (%3$s)', 'funnelforms-pro' ), number( f.reached ), number( f.left ), percent( all.dropRate ) );
+	const sent = ( f: NodeAnalytics ): string => sprintf( __( '%1$d sent (%2$s)', 'funnelforms-pro' ), number( f.sent ), percent( all.sentRate ) );
+	// Of all who reach the node in the end: who went on (or sent the form) and who left, so far.
+	const width = ( n: number ): string => `${ Math.max( 0, Math.min( 100, ( 100 * n ) / all.reached ) ) }%`;
+	const on = 'contact' === type ? figures.sent : Math.max( 0, figures.reached - figures.left );
 	return (
-		<div className="ffxb-node__analytics">
+		<div className={ 'ffxb-node__analytics' + ( figures.band ? ` is-${ figures.band }` : '' ) }>
 			{ figures.band ? (
 				<span className={ `ffxb-analytics-band ffxb-analytics-band--${ figures.band }` }>
 					{ bandName( figures.band ) }
 				</span>
 			) : null }
-			<span>{ sprintf( __( '%1$d reached · %2$d left (%3$s)', 'funnelforms-pro' ), figures.reached, figures.left, percent( figures.dropRate ) ) }</span>
-			{ 'contact' === type ? <span>{ sprintf( __( '%1$d sent (%2$s)', 'funnelforms-pro' ), figures.sent, percent( figures.sentRate ) ) }</span> : null }
+			<span className="ffxb-node__meter" aria-hidden="true">
+				<span className="ffxb-node__meter-on" style={ { width: width( on ) } } />
+				<span className="ffxb-node__meter-left" style={ { width: width( figures.left ) } } />
+			</span>
+			<Counting now={ reach( figures ) } all={ reach( all ) } />
+			{ 'contact' === type ? <Counting now={ sent( figures ) } all={ sent( all ) } /> : null }
 			{ null !== figures.seconds ? <span>{ sprintf( __( 'Median time here: %s', 'funnelforms-pro' ), duration( figures.seconds ) ) }</span> : null }
 		</div>
 	);

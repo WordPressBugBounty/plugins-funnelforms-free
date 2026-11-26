@@ -61,15 +61,23 @@ test( 'the builder shows a prediction on the canvas', async ( { page } ) => {
 	await page.goto( `/wp-admin/admin.php?page=funnelforms-builder&form=${ id }` );
 	await page.getByRole( 'button', { name: 'Prediction' } ).click();
 
-	await expect( page.locator( '.ffxb-prediction__rate' ) ).toContainText( 'sent' );
+	const bar = page.locator( '.ffxb-pai-hud' );
+	await expect( bar.locator( '.ffxb-prediction__rate' ) ).toContainText( 'sent' );
 	await expect( page.locator( '.ffxb-node.has-analytics' ).first() ).toBeVisible();
-	await expect( page.locator( '.ffxb-node__analytics' ).first() ).toContainText( '1000 reached' );
+	await expect( page.locator( '.ffxb-node__analytics' ).first() ).toContainText( /1[.,]?000 reached/ );
 	const overview = page.locator( '.ffxb-prediction-section' );
 	await expect( overview ).toContainText( 'Ein kurzer Rückruf-Funnel.' );
 	await expect( overview ).toContainText( 'Vertrauen vor dem Absenden' );
-	// Without a license the dialog asks to connect it first.
-	await page.getByRole( 'button', { name: 'Predict again' } ).click();
-	await expect( page.locator( '.ffxb-dialog' ) ).toContainText( 'Connect your license' );
+	// The visitors run on the canvas; meanwhile the steps cannot be moved.
+	await bar.getByRole( 'button', { name: 'Play visitors' } ).click();
+	await expect( page.locator( '.react-flow.is-playing' ) ).toBeVisible();
+	await expect( page.locator( '.react-flow__node.draggable' ) ).toHaveCount( 0 );
+	await expect( page.locator( '.ffxb-pai-flow circle' ).first() ).toBeAttached();
+	await expect( page.locator( '.react-flow.is-playing' ) ).toHaveCount( 0, { timeout: 20000 } );
+	// No prediction is made on the canvas: the bar leads to the tab, which asks to connect the license first.
+	await expect( page.getByRole( 'button', { name: 'Predict again' } ) ).toHaveCount( 0 );
+	await bar.getByRole( 'button', { name: 'Open Predictive AI' } ).click();
+	await expect( page.locator( '.ffxb-predict-tab' ) ).toContainText( 'Connect your license' );
 	expect( errors, 'browser errors in the builder' ).toEqual( [] );
 } );
 

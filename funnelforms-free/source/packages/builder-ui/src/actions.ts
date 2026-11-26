@@ -2,7 +2,7 @@
  * Actions of a form: what happens with an entry once it is sent (or paid). Like document.ts,
  * each function changes the document it gets and returns the id of what it created.
  */
-import type { Action, ContactField, FormDocument, Text } from '@funnelforms/form-schema';
+import type { Action, ChatConfig, ContactField, FormDocument, Text } from '@funnelforms/form-schema';
 import { consentFields, phoneFields } from './aicall';
 import { newId } from './document';
 
@@ -13,12 +13,20 @@ export type ActionKind = ( typeof ACTION_KINDS )[ number ];
 
 /** Connection types each kind can use. */
 export const CONNECTION_TYPES: Record<'chat' | 'sms' | 'whatsapp' | 'conversion' | 'smtp', string[]> = {
-	chat: [ 'slack', 'teams' ],
+	chat: [ 'slack', 'teams', 'telegram' ],
 	sms: [ 'twilio', 'bird' ],
 	whatsapp: [ 'whatsapp' ],
 	conversion: [ 'meta', 'ga4', 'tiktok' ],
 	smtp: [ 'smtp' ],
 };
+
+/**
+ * The services a chat action offers. Telegram needs a host that finds the chats of a bot
+ * (FormsApi.telegramChats); an action that already sends to Telegram keeps it.
+ */
+export function chatServices( telegram: boolean ): ChatConfig[ 'service' ][] {
+	return telegram ? [ 'slack', 'teams', 'telegram' ] : [ 'slack', 'teams' ];
+}
 
 /**
  * Whether a connection ref names a provider Funnelforms no longer supports: MessageBird (Bird is
@@ -68,6 +76,7 @@ export function integrationsUrl(): string {
 export const ACTION_FOR_TYPE: Record<string, 'chat' | 'sms' | 'whatsapp' | 'conversion'> = {
 	slack: 'chat',
 	teams: 'chat',
+	telegram: 'chat',
 	twilio: 'sms',
 	bird: 'sms',
 	whatsapp: 'whatsapp',
@@ -127,7 +136,8 @@ export function createAction( doc: FormDocument, kind: ActionKind, texts: Partia
 			return { id, on: 'submit', kind, config: { ...config, to: t( locale, `{{field:${ email.key }}}` ), recipientField: email.id } };
 		}
 		case 'webhook':
-			return { id, on: 'submit', kind, config: { url: '' } };
+			// New webhooks send the entry of 5.0; the 3.x payload stays for existing receivers.
+			return { id, on: 'submit', kind, config: { url: '', format: 'ff5' } };
 		case 'crm':
 			return { id, on: 'submit', kind, config: { provider: '', connectionRef: '', mapping: {} } };
 		case 'chat':
@@ -155,9 +165,9 @@ export function addAction( doc: FormDocument, kind: ActionKind, texts: Partial<A
 }
 
 /**
- * Adds an action that sends each entry through a connection the site has (Slack, an SMS
- * provider, WhatsApp, a conversion platform), with the connection already chosen. Returns its id,
- * or null for a type no action sends through.
+ * Adds an action that sends each entry through a connection the site has (Slack, Teams,
+ * Telegram, an SMS provider, WhatsApp, a conversion platform), with the connection already
+ * chosen. Returns its id, or null for a type no action sends through.
  */
 export function addActionFor( doc: FormDocument, connection: { type: string; ref: string }, texts: Partial<ActionTexts> = {} ): string | null {
 	const kind = ACTION_FOR_TYPE[ connection.type ];
@@ -166,7 +176,8 @@ export function addActionFor( doc: FormDocument, connection: { type: string; ref
 	}
 	const action = createAction( doc, kind, texts );
 	if ( 'chat' === action.kind ) {
-		action.config.service = 'teams' === connection.type ? 'teams' : 'slack';
+		// The chat types (CONNECTION_TYPES.chat) are the services.
+		action.config.service = connection.type as typeof action.config.service;
 	} else if ( 'conversion' === action.kind ) {
 		action.config.platform = connection.type as typeof action.config.platform;
 	}

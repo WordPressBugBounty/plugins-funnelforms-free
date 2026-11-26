@@ -89,9 +89,20 @@ export function bookingText( value: unknown, locale?: string ): string {
 	return `${ when } (${ durationText( value.duration ) })`;
 }
 
+/** Part of the day of a time in the visitor's time zone: before 12, before 17, from 17 o'clock. */
+export function partOfDay( iso: string ): 'morning' | 'afternoon' | 'evening' {
+	const hour = new Date( iso ).getHours();
+	return hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
+}
+
+/** Days of the earliest free times: from yesterday (time zones), 61 days on (Bookings::MAX_RANGE_DAYS is 62). */
+const SOON_DAYS = 61;
+
 /**
  * Appointment (chunk runtime-booking.js): the visitor picks a duration (when the type offers
- * several), a day in a month view and one of its free times. Times show in the visitor's time zone,
+ * several), a day in a month view and one of its free times. With props.earliest a box above lists
+ * the earliest free times of the next two months (two a day at most), with buttons to narrow them
+ * down to a part of the day and to weekdays. Times show in the visitor's time zone,
  * which is named below; the plugin checks again on submit that the time is still free. Fills the
  * group the core rendered (fields.ts later()).
  */
@@ -121,6 +132,14 @@ export function bookingField( field: BookingField, ctx: FieldContext, r: Rendere
 	const dayTitle = h( 'p', { class: 'ffx-booking-date', 'aria-hidden': 'true' } );
 	const status = h( 'p', { class: 'ffx-booking-status', 'aria-live': 'polite' } );
 	const chosen = h( 'p', { class: 'ffx-booking-chosen', 'aria-live': 'polite' } );
+	const earliest = field.props.earliest;
+	const soonBox = h( 'div', { class: 'ffx-booking-earliest', role: 'group', 'aria-label': ctx.t( 'booking_earliest' ), hidden: true } );
+	let soon: string[] = [];
+	let soonRequest = 0;
+	const parts = new Set<string>();
+	const weekdays = new Set<number>();
+	const markSoon = (): void =>
+		soonBox.querySelectorAll<HTMLElement>( '.ffx-booking-soon' ).forEach( ( b ) => b.setAttribute( 'aria-pressed', b.dataset.start === value?.start ? 'true' : 'false' ) );
 
 	const showChosen = (): void => {
 		chosen.hidden = ! value;
@@ -142,6 +161,7 @@ export function bookingField( field: BookingField, ctx: FieldContext, r: Rendere
 					ctx.set( field.id, undefined );
 				}
 				void load( false );
+				void loadSoon();
 			} );
 			return button;
 		} ) );
@@ -161,9 +181,102 @@ export function bookingField( field: BookingField, ctx: FieldContext, r: Rendere
 				ctx.set( field.id, value );
 				times.querySelectorAll( 'button' ).forEach( ( b ) => b.setAttribute( 'aria-pressed', b === button ? 'true' : 'false' ) );
 				showChosen();
+				markSoon();
 			} );
 			return button;
 		} ) );
+	};
+
+	/** The earliest free times that fit the filters, as buttons; a click picks the time as in the calendar. */
+	const drawSoon = (): void => {
+		soonBox.hidden = ! soon.length;
+		if ( ! soon.length ) {
+			soonBox.replaceChildren();
+			return;
+		}
+		const fits = soon.filter( ( iso ) => ( ! parts.size || parts.has( partOfDay( iso ) ) ) && ( ! weekdays.size || weekdays.has( new Date( iso ).getDay() ) ) );
+		const chip = ( label: string, on: boolean, toggle: () => void ): HTMLElement => {
+			const button = h( 'button', { type: 'button', class: 'ffx-booking-chip', 'aria-pressed': on ? 'true' : 'false' }, label );
+			button.addEventListener( 'click', () => {
+				toggle();
+				drawSoon();
+				soonBox.querySelector<HTMLElement>( `.ffx-booking-chip[data-key="${ button.dataset.key }"]` )?.focus();
+			} );
+			return button;
+		};
+		const filters: HTMLElement[] = [];
+		if ( earliest?.filters ) {
+			// Only what the times offer: no button for evenings when there are none, none at all for a single choice.
+			const offered = [ 'morning', 'afternoon', 'evening' ].filter( ( part ) => soon.some( ( iso ) => partOfDay( iso ) === part ) );
+			const days = [ 0, 1, 2, 3, 4, 5, 6 ].map( ( i ) => ( first + i ) % 7 ).filter( ( d ) => soon.some( ( iso ) => new Date( iso ).getDay() === d ) );
+			const group = ( label: string, chips: HTMLElement[] ): HTMLElement =>
+				h( 'div', { class: 'ffx-booking-filter', role: 'group', 'aria-label': label }, h( 'span', { class: 'ffx-booking-label', 'aria-hidden': 'true' }, label ), h( 'div', { class: 'ffx-booking-chips' }, ...chips ) );
+			if ( offered.length > 1 ) {
+				filters.push( group( ctx.t( 'booking_time_of_day' ), offered.map( ( part ) => {
+					const c = chip( ctx.t( `booking_${ part }` ), parts.has( part ), () => void ( parts.has( part ) ? parts.delete( part ) : parts.add( part ) ) );
+					c.dataset.key = part;
+					return c;
+				} ) ) );
+			}
+			if ( days.length > 1 ) {
+				filters.push( group( ctx.t( 'booking_weekday' ), days.map( ( d ) => {
+					// 7 January 2024 was a Sunday.
+					const name = new Date( 2024, 0, 7 + d );
+					const c = chip( name.toLocaleDateString( locale, { weekday: 'short' } ), weekdays.has( d ), () => void ( weekdays.has( d ) ? weekdays.delete( d ) : weekdays.add( d ) ) );
+					c.dataset.key = String( d );
+					c.setAttribute( 'aria-label', name.toLocaleDateString( locale, { weekday: 'long' } ) );
+					return c;
+				} ) ) );
+			}
+		}
+		// At most two times a day, so the box shows several days and does not repeat the calendar's day.
+		const perDay: Record<string, number> = {};
+		const list = fits.filter( ( iso ) => ( perDay[ dayOf( new Date( iso ) ) ] = ( perDay[ dayOf( new Date( iso ) ) ] ?? 0 ) + 1 ) <= 2 ).slice( 0, earliest?.count ?? 6 ).map( ( iso ) => {
+			const date = new Date( iso );
+			const button = h(
+				'button',
+				{ type: 'button', class: 'ffx-booking-soon', 'data-start': iso, 'aria-pressed': value?.start === iso ? 'true' : 'false', 'aria-label': date.toLocaleString( locale, { dateStyle: 'full', timeStyle: 'short' } ) },
+				h( 'span', { class: 'ffx-booking-soon-day' }, date.toLocaleDateString( locale, { weekday: 'short', day: 'numeric', month: 'short' } ) ),
+				h( 'span', { class: 'ffx-booking-soon-time' }, date.toLocaleTimeString( locale, { timeStyle: 'short' } ) )
+			);
+			button.addEventListener( 'click', () => {
+				value = { start: iso, duration };
+				ctx.set( field.id, value );
+				showChosen();
+				day = dayOf( date );
+				const shown = new Date( date.getFullYear(), date.getMonth(), 1 );
+				if ( shown.getTime() !== month.getTime() ) {
+					month = shown;
+					void load( false );
+				} else {
+					drawMonth();
+				}
+				markSoon();
+			} );
+			return button;
+		} );
+		soonBox.replaceChildren(
+			h( 'p', { class: 'ffx-booking-earliest-title' }, ctx.t( 'booking_earliest' ) ),
+			...filters,
+			list.length ? h( 'div', { class: 'ffx-booking-soon-list' }, ...list ) : h( 'p', { class: 'ffx-booking-status' }, ctx.t( 'booking_earliest_none' ) )
+		);
+	};
+
+	/** The earliest free times of the next two months (for the box; the month view asks on its own). */
+	const loadSoon = async (): Promise<void> => {
+		if ( ! earliest ) {
+			return;
+		}
+		const id = ++soonRequest;
+		const now = new Date();
+		const from = dayOf( new Date( now.getFullYear(), now.getMonth(), now.getDate() - 1 ) );
+		const to = dayOf( new Date( now.getFullYear(), now.getMonth(), now.getDate() - 1 + SOON_DAYS ) );
+		const result = await ctx.slots( field.id, from, to, duration );
+		if ( id !== soonRequest ) {
+			return;
+		}
+		soon = 'error' in result ? [] : Object.values( result.days ).flat().filter( ( iso ) => new Date( iso ).getTime() > Date.now() ).sort();
+		drawSoon();
 	};
 
 	const drawMonth = (): void => {
@@ -254,6 +367,7 @@ export function bookingField( field: BookingField, ctx: FieldContext, r: Rendere
 	showChosen();
 	drawMonth();
 	void load( ! value );
+	void loadSoon();
 
 	// Wide enough (a container query on .ffx-booking), the times stand next to a compact month.
 	r.error.before(
@@ -261,6 +375,7 @@ export function bookingField( field: BookingField, ctx: FieldContext, r: Rendere
 			'div',
 			{ class: 'ffx-booking' },
 			durations,
+			soonBox,
 			h(
 				'div',
 				{ class: 'ffx-booking-main' },

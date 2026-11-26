@@ -243,7 +243,7 @@ final class UpgradePage {
 			array( 'calendar', __( 'Appointment booking', 'funnelforms-free' ), __( 'Leads book a time in the form. Google, Microsoft and iCloud calendars, opening hours, buffers and reminders.', 'funnelforms-free' ) ),
 			array( 'card', __( 'Payments', 'funnelforms-free' ), __( 'Take payments and deposits with Stripe and PayPal right in the funnel, with coupons.', 'funnelforms-free' ) ),
 			array( 'calculator', __( 'Calculations and quizzes', 'funnelforms-free' ), __( 'Price calculators, scores and results that change with every answer.', 'funnelforms-free' ) ),
-			array( 'link', __( 'Integrations', 'funnelforms-free' ), __( 'Send leads to your CRM and newsletter tool, by webhook, to Slack, Teams, SMS or WhatsApp.', 'funnelforms-free' ) ),
+			array( 'link', __( 'Integrations', 'funnelforms-free' ), __( 'Send leads to your CRM and newsletter tool, by webhook, to Slack, Teams, Telegram, SMS or WhatsApp.', 'funnelforms-free' ) ),
 			array( 'activity', __( 'A/B tests and conversions', 'funnelforms-free' ), __( 'Test two designs against each other and report conversions to Google Ads and Meta from the server.', 'funnelforms-free' ) ),
 			array( 'globe', __( 'Every language', 'funnelforms-free' ), __( 'One form in several languages, save and continue later, password and time limit.', 'funnelforms-free' ) ),
 		);

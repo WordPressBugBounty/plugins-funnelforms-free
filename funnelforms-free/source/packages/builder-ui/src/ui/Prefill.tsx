@@ -4,11 +4,12 @@
  * shows; the server fills a hidden field's fixed value and keeps it out of the page.
  */
 import React from 'react';
-import type { ContactField, Field } from '@funnelforms/form-schema';
+import type { ContactField, Field, Text } from '@funnelforms/form-schema';
 import { PREFILL_CONTACT_TYPES, PREFILL_STEP_TYPES } from '@funnelforms/form-core';
 import { useEnv } from './context';
 import { __, sprintf } from './i18n';
 import { Button, icons, Notice, TextInput, Toggle } from './ui';
+import { text } from '../document';
 
 type AnyField = Field | ContactField;
 type Edit = ( recipe: ( f: AnyField ) => void, key?: string ) => void;
@@ -30,6 +31,20 @@ export function isHidden( field: { type: string; props?: unknown }, contact: boo
 export function prefillParam( field: { props?: unknown } ): string | null {
 	const name = ( field.props as Record<string, unknown> | undefined )?.prefillFromQuery;
 	return typeof name === 'string' && '' !== name ? name : null;
+}
+
+/**
+ * The name of a field on the canvas and in lists: its label, else its placeholder. Forms of
+ * Funnelforms 3 often have contact fields with only a placeholder ("Ihr Name *"), which the
+ * visitor sees as the field's name.
+ */
+export function caption( field: { label?: Text; props?: unknown }, locale: string ): string {
+	const own = text( field.label, locale ).trim();
+	if ( '' !== own ) {
+		return own;
+	}
+	const placeholder = ( field.props as { placeholder?: Text } | undefined )?.placeholder;
+	return placeholder ? text( placeholder, locale ).trim() : '';
 }
 
 /** What the address carries for a field, as an example: kundennummer=123. */

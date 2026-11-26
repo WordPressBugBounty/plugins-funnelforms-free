@@ -63,10 +63,10 @@ final class FormsAdminController {
 	private const ID   = '/(?P<id>\d+)';
 
 	/**
-	 * Connection types forms use: mail servers, chat, SMS, WhatsApp, conversion platforms (actions)
-	 * and payment providers.
+	 * Connection types forms use: mail servers, chat (Slack, Teams, Telegram), SMS, WhatsApp,
+	 * conversion platforms (actions) and payment providers.
 	 */
-	private const FORM_CONNECTIONS = array( 'smtp', 'slack', 'teams', 'twilio', 'bird', 'whatsapp', 'meta', 'ga4', 'tiktok', 'stripe', 'paypal', 'mollie' );
+	private const FORM_CONNECTIONS = array( 'smtp', 'slack', 'teams', 'telegram', 'twilio', 'bird', 'whatsapp', 'meta', 'ga4', 'tiktok', 'stripe', 'paypal', 'mollie' );
 
 	/**
 	 * Registers the routes.

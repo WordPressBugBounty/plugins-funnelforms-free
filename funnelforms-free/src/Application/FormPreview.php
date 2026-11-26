@@ -164,7 +164,7 @@ final class FormPreview {
 			. '<title>' . esc_html( (string) $form['title'] ) . '</title>'
 			// A page of its own for the frame, outside the WordPress page that enqueues assets.
 			. '<link rel="stylesheet" href="' . esc_url( $assets . 'runtime.css?ver=' . $version ) . '">' // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet
-			. ( Renderer::icon_font( $document ) ? '<link rel="stylesheet" href="' . esc_url( Renderer::icon_font_url() ) . '">' : '' ) // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet
+			. ( Renderer::icon_font( $document ) ? '<link rel="stylesheet" href="' . esc_url( Renderer::icon_font_url() ) . '">' . self::icon_font_faces( $document ) : '' ) // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet
 			// On the website the form takes the theme's font; the frame has no theme.
 			. '<style>body{margin:0;padding:32px 16px;background:#fff;color:#1d1b26;font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}</style></head><body>'
 			. Renderer::preview( $form, $document, $endpoint, $locale )
@@ -174,6 +174,33 @@ final class FormPreview {
 			// The scripts of features the draft has (live results, phone fields), at once.
 			. implode( '', array_map( static fn( string $name ): string => '<script id="funnelforms-runtime-' . $name . '-js" src="' . esc_url( Renderer::chunk_url( $name ) ) . '"></script>', Renderer::chunks( $document ) ) ) // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript
 			. '</body></html>';
+	}
+
+	/**
+	 * The faces of Font Awesome as data, for the frame. The frame is sandboxed without an origin of
+	 * its own, so the browser loads the stylesheet but refuses the font files of the site (fonts
+	 * need CORS) and shows empty squares where the website shows the icons of answers. Later faces
+	 * of the same family and weight win over those of the stylesheet. Brands and regular icons
+	 * only when the form uses them; solid ones always (fa, fas).
+	 *
+	 * @param array<string,mixed> $document Document.
+	 */
+	public static function icon_font_faces( array $document ): string {
+		$json  = (string) wp_json_encode( $document );
+		$dir   = FUNNELFORMS_PLUGIN_DIR . '/fonts/FontAwesome/';
+		$faces = array(
+			array( 'Font Awesome 5 Free', 900, 'fa-solid-900.woff2', true ),
+			array( 'Font Awesome 5 Free', 400, 'fa-regular-400.woff2', 1 === preg_match( '/\\bfar\\b/', $json ) ),
+			array( 'Font Awesome 5 Brands', 400, 'fa-brands-400.woff2', 1 === preg_match( '/\\bfab\\b/', $json ) ),
+		);
+		$css   = '';
+		foreach ( $faces as list( $family, $weight, $file, $used ) ) {
+			$font = $used && is_readable( $dir . $file ) ? (string) file_get_contents( $dir . $file ) : ''; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- A file of the plugin.
+			if ( '' !== $font ) {
+				$css .= "@font-face{font-family:'" . $family . "';font-style:normal;font-weight:" . $weight . ';font-display:block;src:url(data:font/woff2;base64,' . base64_encode( $font ) . ') format("woff2")}'; // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- the font as a data address.
+			}
+		}
+		return '' === $css ? '' : '<style>' . $css . '</style>';
 	}
 
 	/**

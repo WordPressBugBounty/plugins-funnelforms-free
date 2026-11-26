@@ -220,7 +220,8 @@ export function createField( doc: FormDocument, type: StepKind, ctx: Context, ta
 			return { ...base, type, props: { zoom: 12, start: { name: '', lat: 52.52, lng: 13.405 }, combined: true, showCountry: false, placesAutocomplete: false } };
 		case 'booking':
 			// The appointment type is chosen in the inspector; until then the form shows a problem.
-			return { ...base, type, props: { bookingTypeRef: '' } };
+			// New appointment questions list the earliest free times above the calendar.
+			return { ...base, type, props: { bookingTypeRef: '', earliest: { filters: true } } };
 		case 'signature':
 			return { ...base, type, props: { clearLabel: label( ctx, 'clear' ), typeLabel: label( ctx, 'typeName' ) } };
 		case 'result': {
@@ -659,6 +660,88 @@ export function duplicateField( doc: FormDocument, nodeId: string, fieldId: stri
 	const copy = renew( doc, list[ index ] as { id: string; key?: string }, 'contact' === node.type ? 'c' : 'q', usedIds( doc ) );
 	list.splice( index + 1, 0, copy );
 	return copy.id;
+}
+
+/**
+ * Gives every element whose id an earlier one already has an id of its own: steps, fields (also in
+ * repeat groups), paths, calculations and actions. The first one keeps the id and every reference
+ * to it, except references inside the step of the renamed field and in actions of that step, which
+ * meant their own field (two contact steps of Funnelforms 3 with the same labels both had c_email,
+ * and the autoresponder of the second step its own e-mail field). Drafts saved before the import
+ * gave such fields ids of their own keep the clash until this runs. Returns the ids it changed.
+ */
+export function separateDuplicateIds( doc: FormDocument ): string[] {
+	const nodes = new Set<string>();
+	const seen = new Set<string>();
+	const changed: string[] = [];
+	let taken: Set<string> | null = null;
+	const fresh = ( prefix: string ): string => newId( doc, prefix, ( taken ??= usedIds( doc ) ) );
+	const swap = ( value: unknown, from: string, to: string ): void => {
+		if ( Array.isArray( value ) ) {
+			value.forEach( ( v ) => swap( v, from, to ) );
+		} else if ( value && 'object' === typeof value ) {
+			const record = value as Record<string, unknown>;
+			for ( const key of Object.keys( record ) ) {
+				const item = record[ key ];
+				if ( ( 'field' === key || 'recipientField' === key ) && from === item ) {
+					record[ key ] = to;
+				} else if ( 'string' === typeof item && item.includes( '{{field:' + from + '}}' ) ) {
+					record[ key ] = item.split( '{{field:' + from + '}}' ).join( '{{field:' + to + '}}' );
+				} else {
+					swap( record[ key ], from, to );
+				}
+			}
+		}
+	};
+	for ( const node of doc.nodes ) {
+		if ( nodes.has( node.id ) ) {
+			const id = fresh( 'contact' === node.type ? 'contact' : 'end' === node.type ? 'end' : 'n' );
+			const at = doc.layout?.nodes[ node.id ];
+			if ( doc.layout && at ) {
+				doc.layout.nodes[ id ] = { ...at, x: at.x + 40, y: at.y + 160 };
+			}
+			changed.push( node.id );
+			node.id = id;
+		}
+		nodes.add( node.id );
+	}
+	for ( const node of doc.nodes ) {
+		if ( ! ( 'fields' in node ) ) {
+			continue;
+		}
+		const prefix = 'contact' === node.type ? 'c' : 'q';
+		for ( const field of node.fields as Array<{ id: string; props?: unknown }> ) {
+			if ( seen.has( field.id ) ) {
+				const from = field.id;
+				field.id = fresh( prefix );
+				changed.push( from );
+				( node.fields as Array<{ id: string }> ).forEach( ( other ) => other !== field && swap( other, from, field.id ) );
+				doc.actions.filter( ( a ) => a.node === node.id ).forEach( ( a ) => swap( a, from, field.id ) );
+			}
+			seen.add( field.id );
+			const inner = ( field.props as { fields?: Array<{ id: string }> } | undefined )?.fields;
+			const local = new Set<string>();
+			inner?.forEach( ( item ) => {
+				if ( local.has( item.id ) ) {
+					changed.push( item.id );
+					item.id = fresh( 'q' );
+				}
+				local.add( item.id );
+			} );
+		}
+	}
+	const lists: Array<[ Array<{ id: string }>, string ]> = [ [ doc.edges, 'e' ], [ doc.calculations, 'calc' ], [ doc.actions, 'a' ] ];
+	for ( const [ list, prefix ] of lists ) {
+		const own = new Set<string>();
+		for ( const item of list ) {
+			if ( own.has( item.id ) ) {
+				changed.push( item.id );
+				item.id = fresh( prefix );
+			}
+			own.add( item.id );
+		}
+	}
+	return changed;
 }
 
 /** A node or field copied with Ctrl+C, to paste into this form or another one. */

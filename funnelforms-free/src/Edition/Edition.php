@@ -364,7 +364,7 @@ final class Edition {
 			'variables'                        => __( 'Earlier answers in questions and in the address of a redirect', 'funnelforms-free' ),
 			'action:webhook'                   => __( 'Webhooks', 'funnelforms-free' ),
 			'action:crm'                       => __( 'CRM and newsletter tools', 'funnelforms-free' ),
-			'action:chat'                      => __( 'Slack and Microsoft Teams', 'funnelforms-free' ),
+			'action:chat'                      => __( 'Slack, Microsoft Teams and Telegram', 'funnelforms-free' ),
 			'action:sms'                       => __( 'Text messages', 'funnelforms-free' ),
 			'action:whatsapp'                  => __( 'WhatsApp', 'funnelforms-free' ),
 			'action:conversion'                => __( 'Conversion tracking', 'funnelforms-free' ),

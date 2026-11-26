@@ -999,10 +999,11 @@ final class EntriesController {
 
 	/**
 	 * Actions that can run again: those of the revision the visitor sent, for entries of the new
-	 * renderer. Entries imported from 3.x have no submission to rebuild.
+	 * renderer. Entries imported from 3.x have no submission to rebuild. A chat message names its
+	 * service (slack, teams, telegram), so the entry calls it as the builder does.
 	 *
 	 * @param array<string,mixed> $entry Entry.
-	 * @return array<int,array{id:string,kind:string}>
+	 * @return array<int,array{id:string,kind:string,service?:string}>
 	 */
 	private static function actions( array $entry ): array {
 		if ( Edition::is_free() ) {
@@ -1016,10 +1017,14 @@ final class EntriesController {
 				// Sent once by the visitor's browser; nothing to send again.
 				continue;
 			}
-			$out[] = array(
+			$item = array(
 				'id'   => (string) $action['id'],
 				'kind' => (string) $action['kind'],
 			);
+			if ( 'chat' === $action['kind'] ) {
+				$item['service'] = (string) ( $action['config']['service'] ?? '' );
+			}
+			$out[] = $item;
 		}
 		$optin = Edition::pro( DoubleOptIn::class );
 		if ( 'pending' === ( $entry['optin_status'] ?? '' ) && null !== $optin ) {

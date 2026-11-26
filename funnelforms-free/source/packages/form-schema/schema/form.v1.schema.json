@@ -181,6 +181,10 @@
         "autoHeight": {
           "type": "boolean"
         },
+        "autoAdvance": {
+          "type": "boolean",
+          "description": "false: a click on a single choice or a rating only marks the answer, visitors go on with Next. Absent or true: steps with one such question move on by themselves. A step can say otherwise (autoAdvance of the step)."
+        },
         "iconFont": {
           "type": "boolean"
         },
@@ -1902,6 +1906,21 @@
           "properties": {
             "bookingTypeRef": {
               "type": "string"
+            },
+            "earliest": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "A box above the calendar with the earliest free times of the next two months; filters: buttons for the time of day and the weekdays.",
+              "properties": {
+                "count": {
+                  "type": "integer",
+                  "minimum": 3,
+                  "maximum": 12
+                },
+                "filters": {
+                  "type": "boolean"
+                }
+              }
             }
           }
         }
@@ -2801,6 +2820,10 @@
               "items": {
                 "$ref": "#/definitions/field"
               }
+            },
+            "autoAdvance": {
+              "type": "boolean",
+              "description": "Whether a click on a single choice or a rating moves on by itself; without it the setting of the form applies."
             },
             "tracking": {
               "type": "object",
@@ -3884,9 +3907,10 @@
                 },
                 "format": {
                   "enum": [
-                    "ff4"
+                    "ff4",
+                    "ff5"
                   ],
-                  "description": "Payload of Funnelforms 4 instead of the 3.x one."
+                  "description": "Payload of the webhook: the 3.x one when missing, \"ff4\" the one of Funnelforms 4, \"ff5\" the entry of the automation API (default of new webhooks)."
                 }
               }
             },
@@ -3962,7 +3986,7 @@
             "kind",
             "config"
           ],
-          "description": "Message about the new entry in a Slack or Microsoft Teams channel. The webhook address is a secret of the connection (Http\\ConnectionsController in the plugin), never part of the document.",
+          "description": "Message about the new entry in a Slack or Microsoft Teams channel or a Telegram chat. The webhook address and the bot token are secrets of the connection (Http\\ConnectionsController in the plugin), as is the Telegram chat; none of them is part of the document.",
           "properties": {
             "id": {
               "$ref": "#/definitions/id"
@@ -3991,8 +4015,10 @@
                 "service": {
                   "enum": [
                     "slack",
-                    "teams"
-                  ]
+                    "teams",
+                    "telegram"
+                  ],
+                  "description": "The kind of connection connectionRef names: a webhook of Slack or Teams, or a Telegram bot with its chat."
                 },
                 "connectionRef": {
                   "type": "string",

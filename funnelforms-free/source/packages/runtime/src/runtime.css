@@ -136,10 +136,8 @@
 	.ffx-step,
 	.ffx-contact,
 	.ffx-field,
-	.ffx-slider,
 	.ffx-success,
-	.ffx-payment,
-	.ffx-loader {
+	.ffx-payment {
 		display: flex;
 		flex-direction: column;
 	}
@@ -579,9 +577,8 @@
 		resize: vertical;
 	}
 
-	/* Lists get their own arrow, a small triangle. */
-	select.ffx-input,
-	.ffx-pick-toggle {
+	/* Lists get their own arrow, a small triangle (the dropdown with a search box in runtime-more.css). */
+	select.ffx-input {
 		padding-inline-end: 44px;
 		background:
 			linear-gradient(45deg, transparent 50%, currentColor 50%) calc(100% - 21px) 55% / 5px 5px no-repeat,
@@ -590,7 +587,7 @@
 		appearance: none;
 	}
 
-	[dir="rtl"] :is(select.ffx-input, .ffx-pick-toggle) {
+	[dir="rtl"] select.ffx-input {
 		background-position: 21px 55%, 16px 55%, 0 0;
 	}
 
@@ -1121,8 +1118,7 @@
 		margin: 0 auto;
 	}
 
-	.ffx-media-image,
-	.ffx-media-video {
+	.ffx-media-image {
 		display: block;
 		width: 100%;
 		height: auto;
@@ -1250,7 +1246,7 @@
 			transition: none;
 		}
 
-		.ffx-form :is(.ffx-option, .ffx-button, .ffx-rating-option) {
+		.ffx-form :is(.ffx-option, .ffx-button) {
 			transform: none !important;
 		}
 
@@ -1265,11 +1261,6 @@
 			stroke-dashoffset: 0;
 		}
 	}
-}
-
-/* No page scrolling behind an open popup. */
-html:has(.ffx-popup[open]) {
-	overflow: hidden;
 }
 
 /*

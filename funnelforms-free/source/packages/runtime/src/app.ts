@@ -504,6 +504,8 @@ export class FormApp {
 		// A live result asks nothing, so a single choice next to it still moves on by itself.
 		const single = node.fields.filter( ( f ) => f.type !== 'result' ).length === 1;
 		const ctx: FieldContext = {
+			// The step decides first, then the form; on unless turned off, as since 5.0.
+			auto: false !== ( node.autoAdvance ?? this.doc.settings.autoAdvance ),
 			text: ( v ) => this.piped( v ),
 			t: ( k ) => this.t( k ),
 			get: ( f ) => this.values[ f ],

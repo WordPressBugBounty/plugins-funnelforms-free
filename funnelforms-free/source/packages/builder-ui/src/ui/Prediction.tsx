@@ -6,20 +6,21 @@
  * behaviour model, and the builder sends virtual visitors through the form with it (predict.ts).
  * The figures are drawn on the canvas like those of the analytics mode and follow changes to the
  * form at once; a suggestion goes to the AI bar as an instruction, or (in the tab of the Predictive
- * AI) the AI puts it into the form with one click. Nothing is changed by itself.
+ * AI) the AI puts it into the form with one click. Nothing is changed by itself. Predictions are
+ * made in the tab of the Predictive AI only; the canvas shows the last one (PredictionBar).
  */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import type { FormDocument } from '@funnelforms/form-schema';
 import type { FormsApi } from '../api';
 import { nodeName } from '../document';
-import { AGES, DEFAULT_VISITORS, figuresOf, INDUSTRIES, predict, VISITORS, type AppliedSuggestion, type Prediction, type PredictionParameters, type StoredPrediction } from '../predict';
+import { figuresOf, INDUSTRIES, predict, type AppliedSuggestion, type Prediction, type PredictionParameters, type StoredPrediction } from '../predict';
 import { canvasAnalytics, percent, type CanvasAnalytics } from '../stats';
 import type { BuilderStore } from '../store';
 import { AI_MAX_PROMPT, useAiAsk } from './AiForm';
 import { useBuilder, useEnv } from './context';
 import { __, sprintf } from './i18n';
-import { Button, Dialog, Field, icons, Notice, NumberInput, Select, Spinner, TextInput } from './ui';
+import { Button, icons, Notice } from './ui';
 
 export interface PredictionMode {
 	on: boolean;
@@ -60,6 +61,10 @@ export interface PredictionMode {
 	revert: ( id: string, how: 'undo' | 'before' | 'open' ) => void;
 	/** How a suggestion put in can be taken out of the form: null when the change is not known here (an earlier visit). */
 	undoable: ( id: string ) => 'undo' | 'before' | null;
+	/** The visitors are to be played on the canvas once the prediction is on it (Show on the canvas in the tab). */
+	cue: boolean;
+	/** Asks the canvas to play the visitors (true), or says it did (false). */
+	setCue: ( cue: boolean ) => void;
 }
 
 /** A change the AI made to put suggestions into the form, while the editor is open. */
@@ -123,6 +128,13 @@ const SETTLE_MS = 400;
  */
 export function usePredictionState( api: FormsApi, formId: number, store: BuilderStore, ai: { ready: boolean; accountUrl: string } | null | undefined, active = false, readOnly = false ): PredictionMode | null {
 	const [ on, setOn ] = useState( false );
+	const [ cue, setCue ] = useState( false );
+	// A request to play is for the next time the prediction is on the canvas only.
+	useEffect( () => {
+		if ( ! on ) {
+			setCue( false );
+		}
+	}, [ on ] );
 	const [ stored, setStored ] = useState<StoredPrediction | null>( null );
 	const [ loading, setLoading ] = useState( false );
 	const [ busy, setBusy ] = useState( false );
@@ -324,8 +336,8 @@ export function usePredictionState( api: FormsApi, formId: number, store: Builde
 	const canApply = !! api.aiEdit && !! ai?.ready && ! readOnly;
 	const figures = useMemo( () => ( on && result && doc ? canvasAnalytics( doc, result.simulation.report ) : null ), [ on, result, doc ] );
 	const mode = useMemo<PredictionMode>(
-		() => ( { on, setOn, ready: !! ai?.ready, accountUrl: ai?.accountUrl ?? '', stored, loading, busy, error, remaining, run, result, resultOf: computed?.of ?? null, figures, applied, canApply, applying, applyError, apply, revert, undoable } ),
-		[ on, ai, stored, loading, busy, error, remaining, run, result, computed, figures, applied, canApply, applying, applyError, apply, revert, undoable ]
+		() => ( { on, setOn, ready: !! ai?.ready, accountUrl: ai?.accountUrl ?? '', stored, loading, busy, error, remaining, run, result, resultOf: computed?.of ?? null, figures, applied, canApply, applying, applyError, apply, revert, undoable, cue, setCue } ),
+		[ on, ai, stored, loading, busy, error, remaining, run, result, computed, figures, applied, canApply, applying, applyError, apply, revert, undoable, cue ]
 	);
 	return offered ? mode : null;
 }
@@ -377,119 +389,6 @@ export function predictionPrivacyText(): string {
 	return __( 'The structure of the form and your description of the visitors are sent to the Funnelforms server and to Anthropic. No entries and no visitor data are sent, and nothing is stored there.', 'funnelforms-pro' );
 }
 
-/** The description of the visitors, and the number of virtual visitors, before a prediction. */
-export function PredictionDialog( { onClose }: { onClose: () => void } ) {
-	const mode = usePrediction();
-	const [ p, setP ] = useState<PredictionParameters>( () => mode?.stored?.parameters ?? defaultParameters() );
-	const [ visitors, setVisitors ] = useState<number>( mode?.stored?.visitors ?? DEFAULT_VISITORS );
-	if ( ! mode ) {
-		return null;
-	}
-	const submit = async (): Promise<void> => {
-		if ( await mode.run( p, visitors ) ) {
-			onClose();
-		}
-	};
-	return (
-		<Dialog
-			title={ __( 'Predict the visitors of this form', 'funnelforms-pro' ) }
-			open
-			wide
-			onClose={ () => ( mode.busy ? undefined : onClose() ) }
-			actions={
-				<>
-					<Button onClick={ onClose } disabled={ mode.busy }>
-						{ __( 'Cancel', 'funnelforms-pro' ) }
-					</Button>
-					<Button variant="primary" icon={ icons.sparkles } disabled={ mode.busy || ! mode.ready } onClick={ () => void submit() }>
-						{ __( 'Predict', 'funnelforms-pro' ) }
-					</Button>
-				</>
-			}
-		>
-			<div className="ffxb-predict-form">
-				{ mode.ready ? null : <NotReady accountUrl={ mode.accountUrl } /> }
-				<p className="ffxb-hint">{ __( 'The more you say about your visitors, the closer the prediction. It is an estimate based on experience, not a measurement.', 'funnelforms-pro' ) }</p>
-				<PredictionFields value={ p } onChange={ setP } visitors={ visitors } onVisitors={ setVisitors } />
-				<p className="ffxb-ai__privacy">{ predictionPrivacyText() }</p>
-				{ mode.busy ? (
-					<div className="ffxb-ai__progress" role="status">
-						<span className="ffxb-spinner" aria-hidden="true" />
-						<span>
-							<strong>{ __( 'The AI studies the form and its visitors…', 'funnelforms-pro' ) }</strong>
-							<span>{ __( 'This can take up to a minute.', 'funnelforms-pro' ) }</span>
-						</span>
-					</div>
-				) : null }
-				{ mode.error ? <Notice tone="danger">{ mode.error }</Notice> : null }
-			</div>
-		</Dialog>
-	);
-}
-
-/** The description of the visitors and the number of virtual visitors: in the dialog of the canvas and on the page of the Predictive AI. */
-export function PredictionFields( { value: p, onChange, visitors, onVisitors, disabled = false }: { value: PredictionParameters; onChange: ( p: PredictionParameters ) => void; visitors: number; onVisitors: ( visitors: number ) => void; disabled?: boolean } ) {
-	const set = <K extends keyof PredictionParameters>( key: K, value: PredictionParameters[ K ] ): void => onChange( { ...p, [ key ]: value } );
-	const names = industryNames();
-	return (
-		<fieldset className="ffxb-predict-form__fields" disabled={ disabled }>
-			<Select label={ __( 'Industry', 'funnelforms-pro' ) } value={ p.industry as ( typeof INDUSTRIES )[ number ] } options={ INDUSTRIES.map( ( value ) => ( { value, label: names[ value ] } ) ) } onChange={ ( v ) => set( 'industry', v ) } />
-			{ 'other' === p.industry ? <TextInput label={ __( 'Your industry', 'funnelforms-pro' ) } value={ p.industry_label } onChange={ ( v ) => set( 'industry_label', v.slice( 0, 100 ) ) } /> : null }
-			<div className="ffxb-predict-form__row">
-				<NumberInput label={ __( 'Value of one lead', 'funnelforms-pro' ) } value={ p.lead_value } min={ 0 } max={ 1000000 } onChange={ ( v ) => set( 'lead_value', Math.min( 1000000, Math.max( 0, v ?? 0 ) ) ) } hint={ __( 'What a new enquiry is worth to you on average.', 'funnelforms-pro' ) } />
-				<TextInput label={ __( 'Currency', 'funnelforms-pro' ) } value={ p.currency } onChange={ ( v ) => set( 'currency', v.toUpperCase().replace( /[^A-Z]/g, '' ).slice( 0, 3 ) ) } />
-			</div>
-			<Select
-				label={ __( 'Customers', 'funnelforms-pro' ) }
-				value={ p.audience }
-				options={ [
-					{ value: 'b2c', label: __( 'Private customers', 'funnelforms-pro' ) },
-					{ value: 'b2b', label: __( 'Business customers', 'funnelforms-pro' ) },
-					{ value: 'mixed', label: __( 'Both', 'funnelforms-pro' ) },
-				] }
-				onChange={ ( v ) => set( 'audience', v ) }
-			/>
-			<fieldset className="ffxb-predict-form__ages">
-				<legend className="ffxb-field__label">{ __( 'Age groups (none: mixed)', 'funnelforms-pro' ) }</legend>
-				{ AGES.map( ( age ) => (
-					<label key={ age } className="ffxb-check">
-						<input type="checkbox" checked={ p.ages.includes( age ) } onChange={ ( e ) => set( 'ages', e.target.checked ? [ ...p.ages, age ] : p.ages.filter( ( a ) => a !== age ) ) } />
-						{ age }
-					</label>
-				) ) }
-			</fieldset>
-			<Select
-				label={ __( 'How ready to buy are they?', 'funnelforms-pro' ) }
-				value={ p.intent }
-				options={ [
-					{ value: 'research', label: __( 'Just looking around', 'funnelforms-pro' ) },
-					{ value: 'compare', label: __( 'Comparing offers', 'funnelforms-pro' ) },
-					{ value: 'ready', label: __( 'Ready to buy', 'funnelforms-pro' ) },
-				] }
-				onChange={ ( v ) => set( 'intent', v ) }
-			/>
-			<Select
-				label={ __( 'Where do they come from?', 'funnelforms-pro' ) }
-				value={ p.traffic }
-				options={ [
-					{ value: 'search_ads', label: __( 'Search ads', 'funnelforms-pro' ) },
-					{ value: 'social_ads', label: __( 'Social media ads', 'funnelforms-pro' ) },
-					{ value: 'organic', label: __( 'Search results and own website', 'funnelforms-pro' ) },
-					{ value: 'email', label: __( 'Newsletter and e-mail', 'funnelforms-pro' ) },
-					{ value: 'direct', label: __( 'Direct, recommendations', 'funnelforms-pro' ) },
-					{ value: 'mixed', label: __( 'Mixed', 'funnelforms-pro' ) },
-				] }
-				onChange={ ( v ) => set( 'traffic', v ) }
-			/>
-			<NumberInput label={ __( 'Share on phones in percent (empty: usual for the source)', 'funnelforms-pro' ) } value={ p.mobile_share ?? undefined } min={ 0 } max={ 100 } onChange={ ( v ) => set( 'mobile_share', undefined === v ? null : Math.round( Math.min( 100, Math.max( 0, v ) ) ) ) } />
-			<Field label={ __( 'Anything else about your visitors?', 'funnelforms-pro' ) } hint={ __( 'For example: mostly home owners in the countryside who want a quick price.', 'funnelforms-pro' ) }>
-				{ ( id ) => <textarea id={ id } className="ffxb-input" rows={ 3 } maxLength={ 500 } value={ p.notes } onChange={ ( e ) => set( 'notes', e.target.value ) } /> }
-			</Field>
-			<Select label={ __( 'Virtual visitors', 'funnelforms-pro' ) } value={ String( visitors ) } options={ VISITORS.map( ( n ) => ( { value: String( n ), label: number( n ) } ) ) } onChange={ ( v ) => onVisitors( Number( v ) ) } />
-		</fieldset>
-	);
-}
-
 export function NotReady( { accountUrl }: { accountUrl: string } ) {
 	return (
 		<Notice
@@ -508,43 +407,22 @@ export function NotReady( { accountUrl }: { accountUrl: string } ) {
 	);
 }
 
-/** Switch and state of the mode, beside the analytics at the top right of the canvas. */
+/**
+ * The switch of the mode, beside the analytics at the top right of the canvas. The canvas only
+ * shows the last prediction (PredictionBar); predictions are made in the tab of the Predictive AI.
+ */
 export function PredictionPanel() {
 	const mode = usePrediction();
-	const [ asking, setAsking ] = useState( false );
 	const toggle = useCallback( () => mode?.setOn( ! mode.on ), [ mode ] );
 	if ( ! mode ) {
 		return null;
 	}
-	const { on, stored, loading, result, error, busy } = mode;
 	return (
 		<div className="ffxb-analytics ffxb-prediction">
-			<button type="button" className="ffxb-analytics__toggle" aria-pressed={ on } onClick={ toggle } title={ __( 'Predicted visitors on the canvas (P)', 'funnelforms-pro' ) } aria-keyshortcuts="P">
+			<button type="button" className="ffxb-analytics__toggle" aria-pressed={ mode.on } onClick={ toggle } title={ __( 'Predicted visitors on the canvas (P)', 'funnelforms-pro' ) } aria-keyshortcuts="P">
 				{ icons.sparkles }
 				{ __( 'Prediction', 'funnelforms-pro' ) }
 			</button>
-			{ on ? (
-				<div className="ffxb-analytics__body">
-					<div role="status" className="ffxb-analytics__status">
-						{ loading ? <Spinner label={ __( 'Loading the prediction…', 'funnelforms-pro' ) } /> : null }
-						{ ! loading && ! stored && ! error ? __( 'See how visitors will go through the form before it goes live.', 'funnelforms-pro' ) : null }
-						{ ! loading && ! stored && error ? error : null }
-						{ result ? (
-							<>
-								<strong className="ffxb-prediction__rate">{ sprintf( __( '%1$s sent (%2$s to %3$s)', 'funnelforms-pro' ), percent( result.conversion ), percent( result.low ), percent( result.high ) ) }</strong>
-								<span>{ sprintf( __( 'of %s virtual visitors', 'funnelforms-pro' ), number( result.visitors ) ) }</span>
-								{ result.unknown ? <p className="ffxb-analytics__small">{ sprintf( __( '%d steps are new since the prediction. Predict again to include them.', 'funnelforms-pro' ), result.unknown ) }</p> : null }
-							</>
-						) : null }
-						{ stored && ! result ? <Spinner label={ __( 'Simulating the visitors…', 'funnelforms-pro' ) } /> : null }
-					</div>
-					<Button size="sm" variant={ stored ? 'secondary' : 'primary' } icon={ icons.sparkles } disabled={ busy || loading } onClick={ () => setAsking( true ) }>
-						{ stored ? __( 'Predict again', 'funnelforms-pro' ) : __( 'Predict', 'funnelforms-pro' ) }
-					</Button>
-					{ mode.remaining ? <p className="ffxb-hint">{ sprintf( __( '%1$d predictions left today, %2$d this month.', 'funnelforms-pro' ), mode.remaining.today, mode.remaining.month ) }</p> : null }
-				</div>
-			) : null }
-			{ asking ? <PredictionDialog onClose={ () => setAsking( false ) } /> : null }
 		</div>
 	);
 }

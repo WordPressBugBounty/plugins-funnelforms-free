@@ -6,7 +6,8 @@
  * form to connect. Payments are checked with the provider right away, and the Stripe webhook is
  * set up with one click. Calendars open the calendar section below; CRM tools their dialog. This
  * is the only place for CRM, newsletter and spreadsheet connections: they are added, changed,
- * tested and deleted here.
+ * tested and deleted here. A Telegram bot finds its chat here (TelegramChatFinder); a host
+ * without that search shows no Telegram tile unless the site has such a connection.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FormsApi } from '../api';
@@ -15,6 +16,8 @@ import { connectionsOf, deletable, filterServices, hubServices, hubSummary, HUB_
 import type { CalendarService } from './BookingTypes';
 import { CrmConnectionDialog } from './CrmConnections';
 import { __, sprintf } from './i18n';
+import { telegramChatHint, TelegramChatFinder, TelegramPublicNotice, telegramSteps } from './TelegramChat';
+import { namesPublicChat, telegramLabel, withTelegramChat, withTypedChat } from '../telegram';
 import { Button, Dialog, Notice, Spinner, TextInput, Toggle } from './ui';
 
 export interface HubConfig {
@@ -25,7 +28,7 @@ export interface HubConfig {
 }
 
 /** What the overview needs of the API. */
-export type HubScreenApi = Pick<FormsApi, 'createConnection' | 'updateConnection'> & Required<Pick<FormsApi, 'deleteConnection' | 'testConnection'>> & { hub: HubApi; connect: ConnectApi };
+export type HubScreenApi = Pick<FormsApi, 'createConnection' | 'updateConnection' | 'telegramChats'> & Required<Pick<FormsApi, 'deleteConnection' | 'testConnection'>> & { hub: HubApi; connect: ConnectApi };
 
 const message = ( e: unknown ): string => ( e instanceof Error ? e.message : String( e ) );
 
@@ -74,6 +77,7 @@ function hint( service: HubService ): string {
 		'teams-meetings': __( 'With your Microsoft 365 calendar', 'funnelforms-pro' ),
 		slack: __( 'A message in a channel for each entry', 'funnelforms-pro' ),
 		teams: __( 'A message in a channel for each entry', 'funnelforms-pro' ),
+		telegram: __( 'A message in a chat, group or channel for each entry', 'funnelforms-pro' ),
 		whatsapp: __( 'WhatsApp message', 'funnelforms-pro' ),
 		twilio: __( 'Text message (SMS)', 'funnelforms-pro' ),
 		bird: __( 'Text message (SMS)', 'funnelforms-pro' ),
@@ -138,6 +142,11 @@ function credentials( type: string ): Array<[ string, string, boolean, boolean? 
 	const all: Record<string, Array<[ string, string, boolean, boolean? ]>> = {
 		slack: [ [ 'url', webhook, true ] ],
 		teams: [ [ 'url', webhook, true ] ],
+		// The name of the chat comes with the search (TelegramChatFinder), not as a field.
+		telegram: [
+			[ 'botToken', __( 'Bot token', 'funnelforms-pro' ), true ],
+			[ 'chatId', __( 'Chat ID', 'funnelforms-pro' ), false ],
+		],
 		twilio: [
 			[ 'accountSid', __( 'Account SID', 'funnelforms-pro' ), false ],
 			[ 'authToken', __( 'Auth token', 'funnelforms-pro' ), true ],
@@ -240,8 +249,10 @@ export function IntegrationsHub( { api, config, onCalendar, stamp }: { api: HubS
 		seen.current = true;
 	}, [ stamp, reload ] );
 
-	const services = useMemo( () => hubServices( providers ), [ providers ] );
 	const connections = data?.connections ?? [];
+	// Telegram needs the chat search of the host; a connection made elsewhere is still shown.
+	const telegram = Boolean( api.telegramChats ) || connections.some( ( c ) => 'telegram' === c.type );
+	const services = useMemo( () => hubServices( providers, telegram ? [] : [ 'telegram' ] ), [ providers, telegram ] );
 	const shown = filterServices( services, { query, category, connectedOnly }, connections, categoryName );
 	const figures = hubSummary( connections );
 	const service = services.find( ( s ) => s.id === open ) ?? null;
@@ -513,7 +524,7 @@ function ServicePanel( {
 	const [ adding, setAdding ] = useState( 0 === list.length );
 	const [ editing, setEditing ] = useState<string | null>( null );
 	const crm = 'crm' === service.kind;
-	const how = crm ? provider?.help ?? '' : steps( type );
+	const how = crm ? provider?.help ?? '' : 'telegram' === type ? telegramSteps( Boolean( api.telegramChats ) ) : steps( type );
 	return (
 		<Dialog
 			title={ service.name }
@@ -659,7 +670,7 @@ function ConnectionRow( {
 	const c = connection;
 	const payment = PAYMENTS.includes( c.type );
 	const number = SMS.includes( c.type ) || 'whatsapp' === c.type;
-	const direct = [ 'slack', 'teams' ].includes( c.type );
+	const direct = [ 'slack', 'teams', 'telegram' ].includes( c.type );
 	// The voice connection places no call for a test: it reads the account.
 	const voice = 'elevenlabs' === c.type;
 	// CRM tools brought over from Funnelforms 3 are still used there: they can be changed, not deleted.
@@ -734,6 +745,7 @@ function ConnectionRow( {
 				{ c.attention ? <span className="ffx-badge ffx-badge--danger">{ __( 'Needs attention', 'funnelforms-pro' ) }</span> : <span className="ffx-badge ffx-badge--success">{ __( 'Connected', 'funnelforms-pro' ) }</span> }
 				{ legacy ? <span className="ffx-badge">{ __( 'From Funnelforms 3', 'funnelforms-pro' ) }</span> : null }
 			</div>
+			{ c.chat ? <p className="ffx-hub-connection__used">{ sprintf( __( 'Chat: %s', 'funnelforms-pro' ), c.chat ) }</p> : null }
 			<p className="ffx-hub-connection__used">
 				{ c.formCount ? (
 					<>
@@ -866,14 +878,29 @@ function ConnectForm( { type, connection, defaultLabel = '', api, onCancel, onSa
 			{ error ? <Notice tone="danger">{ error }</Notice> : null }
 			<TextInput label={ __( 'Name', 'funnelforms-pro' ) } value={ label } onChange={ setLabel } hint={ __( 'Shown when you choose the connection.', 'funnelforms-pro' ) } />
 			{ fields.map( ( [ key, name, secret, optional ] ) => (
-				<TextInput
-					key={ type + key }
-					label={ optional && ! connection ? sprintf( __( '%s (optional)', 'funnelforms-pro' ), name ) : name }
-					type={ secret ? 'password' : 'text' }
-					value={ values[ key ] ?? '' }
-					placeholder={ connection ? __( 'Unchanged', 'funnelforms-pro' ) : undefined }
-					onChange={ ( v ) => setValues( ( x ) => ( { ...x, [ key ]: v } ) ) }
-				/>
+				<React.Fragment key={ type + key }>
+					<TextInput
+						label={ optional && ! connection ? sprintf( __( '%s (optional)', 'funnelforms-pro' ), name ) : name }
+						type={ secret ? 'password' : 'text' }
+						value={ values[ key ] ?? '' }
+						placeholder={ connection ? __( 'Unchanged', 'funnelforms-pro' ) : undefined }
+						hint={ 'telegram' === type && 'chatId' === key ? telegramChatHint() : undefined }
+						onChange={ ( v ) => setValues( ( x ) => ( 'telegram' === type && 'chatId' === key ? withTypedChat( x, v ) : { ...x, [ key ]: v } ) ) }
+					/>
+					{ 'telegram' === type && 'chatId' === key && namesPublicChat( values.chatId ?? '' ) ? <TelegramPublicNotice /> : null }
+					{ 'telegram' === type && 'botToken' === key && api.telegramChats ? (
+						<TelegramChatFinder
+							api={ api }
+							token={ values.botToken ?? '' }
+							connectionRef={ connection?.ref }
+							chatId={ values.chatId ?? '' }
+							onPick={ ( chat ) => {
+								setValues( ( x ) => withTelegramChat( x, chat ) );
+								setLabel( ( l ) => telegramLabel( l, chat ) );
+							} }
+						/>
+					) : null }
+				</React.Fragment>
 			) ) }
 			{ 'paypal' === type && ! connection ? <Toggle label={ __( 'App of the PayPal sandbox (test payments)', 'funnelforms-pro' ) } checked={ sandbox } onChange={ setSandbox } /> : null }
 			<p className="ffx-hub-form__hint">{ connection ? __( 'Fill in only what changes; empty fields keep the stored values. Access keys are stored encrypted and never shown again.', 'funnelforms-pro' ) : __( 'Access keys are stored encrypted and never shown again.', 'funnelforms-pro' ) }</p>

@@ -8,6 +8,7 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
+    "./references": "./src/references.ts",
     "./schema/form.v1.schema.json": "./schema/form.v1.schema.json"
   },
   "scripts": {

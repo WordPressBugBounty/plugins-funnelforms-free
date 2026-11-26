@@ -8,7 +8,7 @@ import { createBuilderStore } from '../src/store';
 import { Builder } from '../src/ui/Builder';
 import { blank } from './blank';
 
-// The prediction mode of the canvas (Predictive AI): asking for a prediction, its figures on the canvas and in the inspector.
+// The prediction mode of the canvas (Predictive AI): the last prediction on the canvas and in the inspector, playing its visitors; predictions are made in the tab only.
 ( globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean } ).IS_REACT_ACT_ENVIRONMENT = true;
 
 const summary: FormSummary = {
@@ -103,39 +103,39 @@ async function editor( api: FormsApi, ai: AiConfig | null = READY ) {
 	return store;
 }
 
-async function choose( label: string, value: string ): Promise<void> {
-	const field = [ ...document.querySelectorAll( '.ffxb-dialog .ffxb-field' ) ].find( ( f ) => f.querySelector( 'label' )?.textContent === label );
-	const select = field?.querySelector( 'select' ) as HTMLSelectElement;
-	await act( async () => {
-		select.value = value;
-		select.dispatchEvent( new Event( 'change', { bubbles: true } ) );
-	} );
-}
-
 describe( 'the prediction mode', () => {
-	it( 'asks for a prediction with the description of the visitors and shows it on the canvas', async () => {
+	it( 'makes no prediction on the canvas: without one it leads to the tab of the Predictive AI', async () => {
 		const api = fakeApi();
-		const store = await editor( api );
+		await editor( api );
 		await act( async () => button( 'Prediction' ).click() );
 		await settle();
 		expect( api.lastPrediction ).toHaveBeenCalledWith( 7 );
-		expect( container.querySelector( '.ffxb-prediction .ffxb-analytics__status' )?.textContent ).toContain( 'before it goes live' );
-
-		await act( async () => button( 'Predict' ).click() );
-		const dialog = document.querySelector( '.ffxb-dialog' ) as HTMLElement;
-		expect( dialog.querySelector( '.ffxb-ai__privacy' )?.textContent ).toContain( 'No entries and no visitor data' );
-		await choose( 'Industry', 'solar' );
-		await choose( 'Where do they come from?', 'social_ads' );
-		await choose( 'Virtual visitors', '1000' );
-		await act( async () => button( 'Predict', dialog ).click() );
-		await settle();
-
-		expect( api.predict ).toHaveBeenCalledWith( 7, store.getState().doc, expect.objectContaining( { industry: 'solar', traffic: 'social_ads', audience: 'b2c' } ), 1000 );
+		const bar = container.querySelector( '.ffxb-pai-hud' ) as HTMLElement;
+		expect( bar.textContent ).toContain( 'before it goes live' );
+		// No dialog and no button to predict on the canvas.
+		expect( () => button( 'Predict' ) ).toThrow();
+		expect( () => button( 'Predict again' ) ).toThrow();
 		expect( document.querySelector( '.ffxb-dialog' ) ).toBeNull();
-		// The canvas carries the figures of the virtual visitors; the panel the rate with its range.
-		expect( container.querySelector( '.ffxb-node.has-analytics .ffxb-node__analytics' )?.textContent ).toMatch( /1000 reached · \d+ left/ );
-		expect( container.querySelector( '.ffxb-prediction__rate' )?.textContent ).toMatch( /% sent \(.+ to .+\)/ );
-		expect( container.querySelector( '.ffxb-prediction' )?.textContent ).toContain( '9 predictions left today, 59 this month.' );
+
+		await act( async () => button( 'Open Predictive AI', bar ).click() );
+		await settle();
+		expect( container.querySelector( '.ffxb-predict-tab' ) ).not.toBeNull();
+		expect( container.querySelector( '.ffxb-views__item[data-view="predict"]' )?.getAttribute( 'aria-current' ) ).toBeTruthy();
+		expect( api.predict ).not.toHaveBeenCalled();
+	} );
+
+	it( 'shows the last prediction on the canvas and in the inspector, and follows changes to the form', async () => {
+		const api = fakeApi( { lastPrediction: vi.fn( async () => stored() ) } );
+		const store = await editor( api );
+		await act( async () => button( 'Prediction' ).click() );
+		await settle();
+		const bar = container.querySelector( '.ffxb-pai-hud' ) as HTMLElement;
+		expect( bar.querySelector( '.ffxb-prediction__rate' )?.textContent ).toMatch( /% sent \(.+ to .+\)/ );
+		expect( bar.textContent ).toMatch( /Prediction of .+ · 1,?000 virtual visitors/ );
+		// The canvas carries the figures of the virtual visitors, with the share that goes on and leaves.
+		expect( container.querySelector( '.ffxb-node.has-analytics .ffxb-node__analytics' )?.textContent ).toMatch( /1,?000 reached · \d+ left/ );
+		expect( container.querySelector( '.ffxb-node.has-analytics .ffxb-node__meter' ) ).not.toBeNull();
+		expect( api.predict ).not.toHaveBeenCalled();
 
 		// Nothing selected: the whole form in the inspector, with the sticking point, the kinds of visitors and what would help.
 		const overview = container.querySelector( '.ffxb-prediction-section' ) as HTMLElement;
@@ -152,18 +152,8 @@ describe( 'the prediction mode', () => {
 		await act( async () => store.getState().select( { node: 'contact' } ) );
 		await settle();
 		expect( container.querySelector( '.ffxb-prediction-section' )?.textContent ).toMatch( /100\s?% of the visitors reach this step/ );
-	} );
 
-	it( 'opens with the last prediction and follows changes to the form', async () => {
-		const api = fakeApi( { lastPrediction: vi.fn( async () => stored() ) } );
-		const store = await editor( api );
-		await act( async () => button( 'Prediction' ).click() );
-		await settle();
-		expect( container.querySelector( '.ffxb-prediction__rate' ) ).not.toBeNull();
-		expect( button( 'Predict again' ) ).toBeTruthy();
-		expect( api.predict ).not.toHaveBeenCalled();
-
-		// A new step before the contact step: not in the model, so the panel says to predict again.
+		// A new step before the contact step: not in the model, so the bar says to predict again.
 		await act( async () => {
 			store.getState().change( ( doc ) => {
 				doc.nodes.unshift( { id: 'neu', type: 'step', fields: [] } );
@@ -173,33 +163,50 @@ describe( 'the prediction mode', () => {
 		} );
 		await act( async () => new Promise( ( resolve ) => setTimeout( resolve, 500 ) ) );
 		await settle();
-		expect( container.querySelector( '.ffxb-prediction .ffxb-analytics__small' )?.textContent ).toContain( '1 steps are new since the prediction' );
+		expect( container.querySelector( '.ffxb-pai-hud .ffxb-analytics__small' )?.textContent ).toContain( '1 steps are new since the prediction' );
 	} );
 
-	it( 'plays the virtual visitors on the canvas', async () => {
+	it( 'plays the virtual visitors on the canvas and keeps the steps in place meanwhile', async () => {
 		// The frames do not run here: the playback stays at its start.
 		const frame = vi.spyOn( window, 'requestAnimationFrame' ).mockImplementation( () => 1 );
 		try {
-			await editor( fakeApi( { lastPrediction: vi.fn( async () => stored() ) } ) );
-			expect( container.querySelector( '.ffxb-pai-play' ) ).toBeNull();
+			const store = await editor( fakeApi( { lastPrediction: vi.fn( async () => stored() ) } ) );
+			expect( container.querySelector( '.ffxb-pai-hud' ) ).toBeNull();
 			await act( async () => button( 'Prediction' ).click() );
 			await settle();
-			const control = container.querySelector( '.ffxb-pai-play' ) as HTMLElement;
-			expect( control.textContent ).toMatch( /Prediction of .+ · 1,?000 virtual visitors/ );
-			expect( control.getAttribute( 'title' ) ).toBe( 'Each dot stands for about 10 virtual visitors.' );
+			const bar = container.querySelector( '.ffxb-pai-hud' ) as HTMLElement;
+			expect( bar.getAttribute( 'title' ) ).toBe( 'Each dot stands for about 10 virtual visitors.' );
 			expect( container.querySelector( '.ffxb-analytics-legend' )?.textContent ).not.toContain( 'Leaves' );
+			const flow = container.querySelector( '.react-flow' ) as HTMLElement;
+			expect( container.querySelector( '.react-flow__node.draggable' ) ).not.toBeNull();
 
-			await act( async () => button( 'Play visitors', control ).click() );
+			await act( async () => button( 'Play visitors', bar ).click() );
 			expect( frame ).toHaveBeenCalled();
-			expect( container.querySelector( '.ffxb-pai-play__progress' ) ).not.toBeNull();
+			expect( container.querySelector( '.ffxb-pai-hud__progress' ) ).not.toBeNull();
+			expect( bar.textContent ).toContain( 'The steps stay in place while the visitors run.' );
+			expect( bar.textContent ).toMatch( /Leads: 0/ );
 			expect( container.querySelector( '.ffxb-analytics-legend' )?.textContent ).toContain( 'Becomes a lead' );
-			await act( async () => button( 'Stop', control ).click() );
-			expect( button( 'Play visitors', control ) ).toBeTruthy();
-			expect( container.querySelector( '.ffxb-analytics-legend' )?.textContent ).not.toContain( 'Leaves' );
+			// Nothing can be moved or connected while the dots run.
+			expect( flow.classList.contains( 'is-playing' ) ).toBe( true );
+			expect( container.querySelector( '.react-flow__node.draggable' ) ).toBeNull();
+			await act( async () => button( 'Stop', bar ).click() );
+			expect( button( 'Play visitors', bar ) ).toBeTruthy();
+			expect( flow.classList.contains( 'is-playing' ) ).toBe( false );
+			expect( container.querySelector( '.react-flow__node.draggable' ) ).not.toBeNull();
 
-			// Turning the mode off takes the control away.
+			// A step added while the dots run ends the playback: its ways are no longer those of the form.
+			await act( async () => button( 'Play visitors', bar ).click() );
+			expect( flow.classList.contains( 'is-playing' ) ).toBe( true );
+			await act( async () => {
+				store.getState().change( ( doc ) => {
+					doc.nodes.push( { id: 'neu', type: 'step', fields: [] } );
+				} );
+			} );
+			expect( flow.classList.contains( 'is-playing' ) ).toBe( false );
+
+			// Turning the mode off takes the bar away.
 			await act( async () => button( 'Prediction' ).click() );
-			expect( container.querySelector( '.ffxb-pai-play' ) ).toBeNull();
+			expect( container.querySelector( '.ffxb-pai-hud' ) ).toBeNull();
 		} finally {
 			frame.mockRestore();
 		}
@@ -212,7 +219,7 @@ describe( 'the prediction mode', () => {
 			await act( async () => button( 'Prediction' ).click() );
 			await settle();
 			expect( container.querySelector( '.ffxb-prediction__rate' ) ).not.toBeNull();
-			expect( container.querySelector( '.ffxb-pai-play' ) ).toBeNull();
+			expect( container.querySelector( '.ffxb-pai-hud__play' ) ).toBeNull();
 		} finally {
 			media.mockRestore();
 		}
@@ -230,25 +237,40 @@ describe( 'the prediction mode', () => {
 		expect( button( 'Prediction' ).getAttribute( 'aria-pressed' ) ).toBe( 'false' );
 	} );
 
-	it( 'shows why a prediction failed and keeps the dialog open', async () => {
-		const api = fakeApi( { predict: vi.fn( async () => Promise.reject( new ApiError( 'ai_quota_month', 'Your license has used up its predictions for this month.', 429 ) ) ) } );
-		await editor( api );
+	it( 'says why the last prediction could not be loaded and leads to the tab', async () => {
+		await editor( fakeApi( { lastPrediction: vi.fn( async () => Promise.reject( new ApiError( 'http_error', 'The server could not be reached.', 500 ) ) ) } ) );
 		await act( async () => button( 'Prediction' ).click() );
 		await settle();
-		await act( async () => button( 'Predict' ).click() );
-		await act( async () => button( 'Predict', document.querySelector( '.ffxb-dialog' ) as HTMLElement ).click() );
-		await settle();
-		expect( document.querySelector( '.ffxb-dialog .ffxb-notice--danger' )?.textContent ).toContain( 'used up its predictions for this month' );
+		const bar = container.querySelector( '.ffxb-pai-hud' ) as HTMLElement;
+		expect( bar.textContent ).toContain( 'The server could not be reached.' );
+		expect( button( 'Open Predictive AI', bar ) ).toBeTruthy();
 	} );
 
-	it( 'asks to connect the license first', async () => {
+	it( 'asks to connect the license in the tab of the Predictive AI', async () => {
 		await editor( fakeApi(), { ...READY, ready: false } );
 		await act( async () => button( 'Prediction' ).click() );
 		await settle();
-		await act( async () => button( 'Predict' ).click() );
-		const dialog = document.querySelector( '.ffxb-dialog' ) as HTMLElement;
-		expect( dialog.textContent ).toContain( 'Connect your license' );
-		expect( button( 'Predict', dialog ).disabled ).toBe( true );
+		await act( async () => button( 'Open Predictive AI', container.querySelector( '.ffxb-pai-hud' ) as HTMLElement ).click() );
+		await settle();
+		expect( container.querySelector( '.ffxb-predict-tab' )?.textContent ).toContain( 'Connect your license' );
+	} );
+
+	it( 'plays the visitors at once from Show on the canvas in the tab', async () => {
+		const frame = vi.spyOn( window, 'requestAnimationFrame' ).mockImplementation( () => 1 );
+		try {
+			const api = fakeApi( { lastPrediction: vi.fn( async () => stored() ) } );
+			const store = createBuilderStore( api, 7, { autosaveMs: 60000 } );
+			await act( async () => root.render( <Builder api={ api } formId={ 7 } onBack={ () => undefined } store={ store } ai={ READY } view="predict" /> ) );
+			await settle();
+			await act( async () => button( 'Show on the canvas' ).click() );
+			await settle();
+			await act( async () => new Promise( ( resolve ) => setTimeout( resolve, 300 ) ) );
+			expect( button( 'Prediction' ).getAttribute( 'aria-pressed' ) ).toBe( 'true' );
+			expect( container.querySelector( '.react-flow' )?.classList.contains( 'is-playing' ) ).toBe( true );
+			expect( button( 'Stop', container.querySelector( '.ffxb-pai-hud' ) as HTMLElement ) ).toBeTruthy();
+		} finally {
+			frame.mockRestore();
+		}
 	} );
 
 	it( 'is not there without the AI form builder or in Funnelforms Free', async () => {

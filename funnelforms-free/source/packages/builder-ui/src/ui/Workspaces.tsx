@@ -9,7 +9,7 @@ import type { Device } from '../store';
 import { styleClasses, styleCss } from '../styleCss';
 import { ActionsSection } from './Actions';
 import { CalculationsSection } from './Calculations';
-import { problemTexts } from './catalog';
+import { ProblemIssues } from './Issues';
 import { useBuilder, useEnv } from './context';
 import { DesignInspector } from './Design';
 import { ExperimentsSection } from './Experiments';
@@ -143,17 +143,16 @@ function LivePreview( { api, formId }: { api: FormsApi; formId: number } ) {
 			{ 'loading' === live.state ? <Spinner label={ __( 'Loading preview…', 'funnelforms-pro' ) } /> : null }
 			{ 'failed' === live.state ? (
 				<div className="ffxb-live__error">
-					<Notice tone="danger" title={ live.problems.length ? __( 'Fix these to see the preview', 'funnelforms-pro' ) : __( 'The preview could not be loaded.', 'funnelforms-pro' ) }>
-						{ live.problems.length ? (
-							<ul>
-								{ problemTexts( live.problems ).map( ( p ) => (
-									<li key={ p }>{ p }</li>
-								) ) }
-							</ul>
-						) : (
-							live.message
-						) }
-					</Notice>
+					{ live.problems.length ? (
+						<div className="ffxb-preview__issues">
+							<h3>{ __( 'Fix these to see the preview', 'funnelforms-pro' ) }</h3>
+							<ProblemIssues problems={ live.problems } />
+						</div>
+					) : (
+						<Notice tone="danger" title={ __( 'The preview could not be loaded.', 'funnelforms-pro' ) }>
+							{ live.message }
+						</Notice>
+					) }
 				</div>
 			) : null }
 			{ 'ready' === live.state ? <DesignModeBar on={ designing } onToggle={ setDesigning } picked={ design.picked?.part ?? null } onChoose={ design.choose } chooser={ chooser } /> : null }

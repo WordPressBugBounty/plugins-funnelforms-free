@@ -32,6 +32,7 @@ import {
 	type NodeProps,
 	type AriaLabelConfig,
 	useConnection,
+	useStoreApi,
 	useUpdateNodeInternals,
 } from '@xyflow/react';
 import type { FormDocument, FormNode } from '@funnelforms/form-schema';
@@ -42,15 +43,18 @@ import { localeTag } from '@funnelforms/form-core';
 import { testKind, testSteps } from '../experiments';
 import { addContact, addEnd, addField, addStep, fieldKind, nodeName, setPositions, STEP_FIELD_TYPES, text, type StepKind } from '../document';
 import type { Selection } from '../store';
-import { kindName } from './Actions';
+import { actionName } from './Actions';
 import { AnalyticsLegend, AnalyticsPanel, edgeFigures, NodeAnalyticsView, useAnalytics } from './Analytics';
 import { PredictionPanel, usePrediction } from './Prediction';
-import { createPlayback, planPlayback, PlaybackContext, PlaybackControl, PlaybackLayer, usePlayedShare, type PlaybackBox } from './PredictionPlayback';
+import { PredictionBar } from './PredictionBar';
+import { createPlayback, planPlayback, PlaybackContext, PlaybackLayer, usePlayedShare, type PlaybackBox, type PlaybackGeometry } from './PredictionPlayback';
 import { contactFieldName, stepFieldName } from './catalog';
-import { isHidden, prefillParam } from './Prefill';
+import { caption, isHidden, prefillParam } from './Prefill';
 import { SHORTCUTS_EVENT, useBuilder, useEnv } from './context';
 import { describeCondition, edgeLabel, fieldIndex, fieldTitle, opName, ruleText } from './describe';
 import { hintText, restText, useHints } from './Hints';
+import { useIssues } from './Issues';
+import { markOf, type Issue } from './formCheck';
 import { __, sprintf } from './i18n';
 import { REVEAL_EVENT } from './Questions';
 import { isQuizEdge } from '../quiz';
@@ -75,6 +79,10 @@ type NodeData = {
 	variant: string;
 	/** Hints about the node and its paths, in words. */
 	hints: Array<{ level: LogicHint[ 'level' ]; text: string }>;
+	/** What is wrong here (issues.ts): the worst tone, the issues in words, and the tone of each field marked. */
+	issues: { tone?: Issue[ 'tone' ]; titles: string[]; fields: Record<string, Issue[ 'tone' ]> };
+	/** Lights up once after "Show" brought it into view; the field, when it was one. */
+	flash: { field?: string; seq: number } | null;
 	/** Contact steps: what runs on sending. */
 	actions: string[];
 	selectedField: string | undefined;
@@ -107,6 +115,8 @@ type OutputRow = {
 	tone?: RuleTone;
 	symbol?: string;
 	warn?: boolean;
+	/** The path has a problem that keeps the form from being published. */
+	error?: boolean;
 	/** A rule on a number of the step the card changes in place: its field, unit and bounds. */
 	number?: { field: string; rule: NumberRule; unit: string; unitBefore: boolean; max?: number; step?: number };
 };
@@ -138,13 +148,12 @@ const KIND_NAMES = (): Record<FormNode[ 'type' ], string> => ( {
 } );
 
 const NodeView = memo( function NodeView( { data, selected }: NodeProps<CanvasNode> ) {
-	const { node, locale, start, unreachable, variant, hints, actions, selectedField, onSelectField, onAfterSending } = data;
+	const { node, locale, start, unreachable, variant, issues, flash, actions, selectedField, onSelectField, onAfterSending } = data;
 	// While a path is drawn from another node, the whole card takes the drop.
 	const drop = useConnection( ( c ) => c.inProgress && c.fromNode.id !== node.id );
 	// The card the path under the pointer leads to.
 	const aimed = useStore( useContext( HotContext ), ( s ) => s.to === node.id );
-	const problems = hints.filter( ( h ) => 'info' !== h.level );
-	const worst = problems.some( ( h ) => 'error' === h.level ) ? 'error' : 'warn';
+	const worst = issues.tone;
 	const figures = useContext( FiguresContext )?.get( node.id );
 	// The figures of the prediction or of the analytics; one of the two modes is on at a time.
 	const forecast = 'free' === process.env.FUNNELFORMS_EDITION ? undefined : usePrediction()?.figures?.nodes.get( node.id );
@@ -162,8 +171,11 @@ const NodeView = memo( function NodeView( { data, selected }: NodeProps<CanvasNo
 				( unreachable ? ' is-unreachable' : '' ) +
 				( analytics ? ' has-analytics' + ( analytics.band ? ` is-band-${ analytics.band }` : '' ) + ( 0 === analytics.reached ? ' is-cold' : '' ) + ( analytics.strongest ? ' is-strongest' : '' ) : '' ) +
 				( drop ? ' is-drop' : '' ) +
-			( aimed ? ' is-aimed' : '' )
+				( aimed ? ' is-aimed' : '' ) +
+				( worst ? ` has-${ worst }` : '' ) +
+				( flash && ! flash.field ? ' is-flash' : '' )
 			}
+			key={ flash && ! flash.field ? 'flash-' + flash.seq : undefined }
 			data-node={ node.id }
 		>
 			<Handle type="target" position={ Position.Left } id={ TARGET } className="ffxb-handle ffxb-handle--in" isConnectableStart={ false } />
@@ -180,9 +192,9 @@ const NodeView = memo( function NodeView( { data, selected }: NodeProps<CanvasNo
 					</span>
 				) : null }
 				{ unreachable ? <span className="ffxb-node__flag ffxb-node__flag--warn">{ __( 'Not reachable', 'funnelforms-pro' ) }</span> : null }
-				{ problems.length && ! unreachable ? (
-					<span className={ `ffxb-node__flag ffxb-node__flag--${ worst }` } title={ problems.map( ( h ) => h.text ).join( '\n' ) }>
-						{ 'error' === worst ? __( 'Stuck', 'funnelforms-pro' ) : __( 'Check', 'funnelforms-pro' ) }
+				{ worst && ( 'error' === worst || ! unreachable ) ? (
+					<span className={ `ffxb-node__flag ffxb-node__flag--${ 'error' === worst ? 'error' : 'warn' }` } title={ issues.titles.join( '\n' ) }>
+						{ 'error' === worst ? 1 === issues.titles.length ? __( 'Problem', 'funnelforms-pro' ) : sprintf( /* translators: %d: number of problems */ __( 'Problems: %d', 'funnelforms-pro' ), issues.titles.length ) : __( 'Notice', 'funnelforms-pro' ) }
 					</span>
 				) : null }
 			</div>
@@ -193,7 +205,8 @@ const NodeView = memo( function NodeView( { data, selected }: NodeProps<CanvasNo
 						<li key={ f.id }>
 							<button
 								type="button"
-								className={ 'ffxb-node__field nodrag' + ( selectedField === f.id ? ' is-selected' : '' ) }
+								className={ 'ffxb-node__field nodrag' + ( selectedField === f.id ? ' is-selected' : '' ) + ( issues.fields[ f.id ] ? ` is-${ issues.fields[ f.id ] }` : '' ) + ( flash?.field === f.id ? ' is-flash' : '' ) }
+								key={ flash?.field === f.id ? 'flash-' + flash.seq : undefined }
 								onClick={ ( e ) => {
 									e.stopPropagation();
 									onSelectField( f.id );
@@ -210,12 +223,12 @@ const NodeView = memo( function NodeView( { data, selected }: NodeProps<CanvasNo
 										{ __( 'hidden', 'funnelforms-pro' ) }
 									</span>
 								) : null }
-								{ prefillParam( f ) ? (
+								{ prefillParam( f ) && isHidden( f, 'contact' === node.type ) ? (
 									<span className="ffxb-node__field-if" title={ sprintf( /* translators: %s: name of the URL parameter */ __( 'Filled from the URL parameter %s', 'funnelforms-pro' ), prefillParam( f ) ?? '' ) }>
 										URL
 									</span>
 								) : null }
-								<span className="ffxb-node__field-label" title={ text( f.label, locale ) || undefined }>{ text( f.label, locale ) || ( 'contact' === node.type ? contactFieldName( f.type ) : '' ) }</span>
+								<span className="ffxb-node__field-label" title={ caption( f, locale ) || undefined }>{ caption( f, locale ) || ( 'contact' === node.type ? contactFieldName( f.type ) : '' ) }</span>
 							</button>
 						</li>
 					) ) }
@@ -247,6 +260,15 @@ const NodeView = memo( function NodeView( { data, selected }: NodeProps<CanvasNo
 						<span className="ffxb-node__after-none">{ __( 'Only saved. Add a mail …', 'funnelforms-pro' ) }</span>
 					) }
 				</button>
+			) : null }
+			{ worst && issues.titles[ 0 ] ? (
+				<div className={ `ffxb-node__issue is-${ worst }` } title={ issues.titles.join( '\n' ) }>
+					<span aria-hidden="true" className="ffxb-node__issue-icon">
+						!
+					</span>
+					<span className="ffxb-node__issue-text">{ issues.titles[ 0 ] }</span>
+					{ issues.titles.length > 1 ? <span className="ffxb-node__issue-more">+{ issues.titles.length - 1 }</span> : null }
+				</div>
 			) : null }
 			{ 'free' !== process.env.FUNNELFORMS_EDITION && analytics ? <NodeAnalyticsView type={ node.type } figures={ analytics } forecast={ !! forecast } played={ forecast ? played : null } /> : figures ? <NodeFigures figures={ figures } /> : null }
 			{ data.outputs ? <NodeOutputs id={ node.id } outputs={ data.outputs } selected={ !! selected } onChooseField={ data.onChooseField } onSelectPath={ data.onSelectPath } onAddRule={ data.onAddRule } onClearOutput={ data.onClearOutput } onSetNumber={ data.onSetNumber } /> : null }
@@ -437,6 +459,7 @@ function NodeOutputs( { id, outputs, selected, onChooseField, onSelectPath, onAd
 						( r.edge ? ' is-linked' : ' is-free' ) +
 						( r.tone ? ` is-${ r.tone }` : '' ) +
 						( r.warn ? ' is-warn' : '' ) +
+						( r.error ? ' is-error' : '' ) +
 						( r.edge && hot === r.edge ? ' is-hot' : '' ) +
 						( i > 0 && rows[ i - 1 ]?.group !== r.group ? ' is-group-start' : '' )
 					}
@@ -558,6 +581,9 @@ function wayPoints( from: PlaybackBox, to: PlaybackBox ): Array<[ number, number
 	return points.length ? points : [ from.out, to.in ];
 }
 
+/** How long the canvas takes to bring the whole form into view before the visitors run, ms. */
+const PLAY_CAMERA = 450;
+
 /** Space kept between a path's pill and the steps beside it, and the narrowest and widest pill, in px. */
 const LABEL_GAP = 8;
 const LABEL_MIN = 72;
@@ -566,16 +592,41 @@ const LABEL_MAX = 200;
 /** Size of the arrowhead at the end of a path, in px. */
 const ARROW = 13;
 
+/** Where along a path its pill may sit, the middle first: the first of them where it covers no step. */
+const LABEL_AT = [ 0.5, 0.38, 0.62, 0.27, 0.73, 0.17, 0.83 ];
+
+/**
+ * The point of a path for its pill (width × height, px): the preferred one, else the middle, unless
+ * a step lies there (a path that skips a step runs across it), then further along the path.
+ */
+export function labelPoint( path: string, preferred: number | undefined, boxes: Array<{ x: number; y: number; width: number; height: number }>, width: number, height: number ): [ number, number ] | null {
+	const covers = ( [ x, y ]: [ number, number ] ): boolean => boxes.some( ( b ) => x + width / 2 + 4 > b.x && x - width / 2 - 4 < b.x + b.width && y + height / 2 + 4 > b.y && y - height / 2 - 4 < b.y + b.height );
+	const first = pointOn( path, preferred ?? 0.5 );
+	for ( const t of preferred ? [ preferred, ...LABEL_AT ] : LABEL_AT ) {
+		const point = pointOn( path, t );
+		if ( point && ! covers( point ) ) {
+			return point;
+		}
+	}
+	return first;
+}
+
 /** A path with its condition as a readable label in a pill. */
 const PathView = memo( function PathView( { id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, markerEnd, selected, data }: EdgeProps<PathEdge> ) {
 	const [ path, midX, midY ] = getBezierPath( { sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition } );
-	const [ x, y ] = data?.along ? pointOn( path, data.along ) ?? [ midX, midY ] : [ midX, midY ];
 	const f = data?.figures;
-	const shown = 'free' !== process.env.FUNNELFORMS_EDITION && f ? edgeFigures( f ) : null;
+	// A path nobody took is dashed (the legend says so); a pill with 0 on it would only crowd the canvas.
+	const shown = 'free' !== process.env.FUNNELFORMS_EDITION && f && f.sessions > 0 ? edgeFigures( f ) : null;
 	// The pill sits in the middle between the two steps and is never wider than the room there, so it
 	// does not cover their titles; the condition is cut short (it is the tooltip in full).
 	const room = targetX - sourceX - 2 * LABEL_GAP;
 	const maxWidth = room > 0 ? Math.max( LABEL_MIN, Math.min( LABEL_MAX, room ) ) : undefined;
+	// Where a path runs across a step, its pill moves along it to where it covers none (an estimate of its size).
+	const flowStore = useStoreApi<CanvasNode, PathEdge>();
+	const labelled = !! ( data?.label || data?.warn || shown );
+	const pillWidth = Math.min( maxWidth ?? LABEL_MAX, 22 + 6.8 * Math.max( data?.label?.length ?? 0, ( shown?.label.length ?? 0 ) + ( f?.strongest ? 2 : 0 ) ) + ( data?.order ? 20 : 0 ) + ( data?.warn ? 20 : 0 ) );
+	const boxes = labelled ? [ ...flowStore.getState().nodeLookup.values() ].flatMap( ( n ) => ( n.measured.width && n.measured.height ? [ { ...n.internals.positionAbsolute, width: n.measured.width, height: n.measured.height } ] : [] ) ) : [];
+	const [ x, y ] = ( labelled ? labelPoint( path, data?.along, boxes, pillWidth, shown && data?.label ? 36 : 22 ) : null ) ?? [ midX, midY ];
 	return (
 		<>
 			<BaseEdge id={ id } path={ path } markerEnd={ markerEnd } style={ f ? { strokeWidth: f.width, opacity: f.opacity } : undefined } />
@@ -627,7 +678,7 @@ type NodeActions = {
 };
 
 /** The outputs of a node in words, as its card shows them. */
-function outputsView( doc: FormDocument, node: FormNode, outputs: Outputs | undefined, hints: LogicHint[], fields: ReturnType<typeof fieldIndex> ): OutputsView | null {
+function outputsView( doc: FormDocument, node: FormNode, outputs: Outputs | undefined, hints: LogicHint[], fields: ReturnType<typeof fieldIndex>, broken: Set<string> = new Set() ): OutputsView | null {
 	if ( 'end' === node.type || ! outputs ) {
 		return null;
 	}
@@ -641,7 +692,7 @@ function outputsView( doc: FormDocument, node: FormNode, outputs: Outputs | unde
 	const answers: OutputRow[] = outputs.answers.map( ( a ): OutputRow => {
 		const answer = text( a.option.label, locale ).replace( /<[^>]*>/g, ' ' ).replace( /\s+/g, ' ' ).trim() || a.option.value;
 		return a.edge
-			? { kind: 'answer', group: 0, handle: a.handle, label: answer, edge: a.edge.id, to: a.edge.to, warn: warned.has( a.edge.id ), title: sprintf( /* translators: %1$s: answer, %2$s: step */ __( 'Answer “%1$s” leads to %2$s', 'funnelforms-pro' ), answer, name( a.edge.to ) ) }
+			? { kind: 'answer', group: 0, handle: a.handle, label: answer, edge: a.edge.id, to: a.edge.to, warn: warned.has( a.edge.id ), error: broken.has( a.edge.id ), title: sprintf( /* translators: %1$s: answer, %2$s: step */ __( 'Answer “%1$s” leads to %2$s', 'funnelforms-pro' ), answer, name( a.edge.to ) ) }
 			: { kind: 'answer', group: 0, handle: a.handle, label: answer, title: __( 'Follows “Otherwise”. Drag from here to give this answer its own path.', 'funnelforms-pro' ) };
 	} );
 	const rule = ( r: RuleOutput ): OutputRow => {
@@ -655,6 +706,7 @@ function outputsView( doc: FormDocument, node: FormNode, outputs: Outputs | unde
 			tone: r.tone,
 			symbol: r.symbol,
 			warn: warned.has( r.edge.id ),
+			error: broken.has( r.edge.id ),
 			title: sprintf( /* translators: %1$s: condition, %2$s: step */ __( 'Rule “%1$s” leads to %2$s', 'funnelforms-pro' ), r.edge.when ? describeCondition( r.edge.when, doc, locale, fields ) : __( 'Always', 'funnelforms-pro' ), name( r.edge.to ) ),
 		};
 		const n = r.number;
@@ -719,7 +771,21 @@ function outputsView( doc: FormDocument, node: FormNode, outputs: Outputs | unde
 	};
 }
 
-function buildNodes( doc: FormDocument, selection: Selection, hints: LogicHint[], outputs: Map<string, Outputs>, actions: NodeActions, previous: CanvasNode[] ): CanvasNode[] {
+/** The issues that mark a node and its fields, for its card. */
+function nodeIssues( issues: Issue[], node: FormNode ): NodeData[ 'issues' ] {
+	const own = issues.filter( ( i ) => i.marks.nodes.includes( node.id ) && ! ( 'unreachable' === i.key.split( ':' )[ 1 ] ) );
+	const fields: Record<string, Issue[ 'tone' ]> = {};
+	for ( const f of 'fields' in node ? ( node.fields as Array<{ id: string }> ) : [] ) {
+		const tone = markOf( own, 'fields', f.id );
+		if ( tone ) {
+			fields[ f.id ] = tone;
+		}
+	}
+	return { tone: markOf( own, 'nodes', node.id ), titles: [ ...new Set( own.map( ( i ) => i.title ) ) ], fields };
+}
+
+function buildNodes( doc: FormDocument, selection: Selection, hints: LogicHint[], outputs: Map<string, Outputs>, actions: NodeActions, previous: CanvasNode[], issues: Issue[] = [], flash: ( Selection & { seq: number } ) | null = null ): CanvasNode[] {
+	const broken = new Set( issues.filter( ( i ) => i.blocking ).flatMap( ( i ) => i.marks.edges ) );
 	const { onSelectField, onAfterSending, onChooseField, onSelectPath, onAddRule, onClearOutput, onSetNumber } = actions;
 	const locale = doc.locales.default;
 	const fields = fieldIndex( doc );
@@ -747,11 +813,13 @@ function buildNodes( doc: FormDocument, selection: Selection, hints: LogicHint[]
 				unreachable: hints.some( ( h ) => h.node === node.id && 'unreachable' === h.code ),
 				variant: 'free' === process.env.FUNNELFORMS_EDITION ? '' : variants.get( node.id ) ?? '',
 				hints: hints.filter( ( h ) => h.node === node.id && 'unreachable' !== h.code ).map( ( h ) => ( { level: h.level, text: hintText( h, doc, locale ) } ) ),
-				actions: 'contact' === node.type ? doc.actions.filter( ( a ) => ! a.node || a.node === node.id ).map( ( a ) => kindName( a.kind ) ) : [],
+				issues: nodeIssues( issues, node ),
+				flash: flash && flash.node === node.id ? { field: flash.field, seq: flash.seq } : null,
+				actions: 'contact' === node.type ? doc.actions.filter( ( a ) => ! a.node || a.node === node.id ).map( ( a ) => actionName( a ) ) : [],
 				selectedField: selection.node === node.id ? selection.field : undefined,
 				onSelectField: ( fieldId: string ) => onSelectField( node.id, fieldId ),
 				onAfterSending: () => onAfterSending( node.id ),
-				outputs: outputsView( doc, node, outputs.get( node.id ), hints, fields ),
+				outputs: outputsView( doc, node, outputs.get( node.id ), hints, fields, broken ),
 				onChooseField: ( fieldId: string ) => onChooseField( node.id, fieldId ),
 				onSelectPath,
 				onAddRule: () => onAddRule( node.id ),
@@ -774,11 +842,16 @@ const EDGE_COLOURS: Record<string, string> = {
 	rule: '#2f6fed',
 };
 
+/** Colour of a path with a problem that keeps the form from being published. */
+const EDGE_ERROR = '#d92d20';
+
 /** Colour of the paths of the selected step and of the path under the pointer. */
 const EDGE_ACTIVE = '#6a30f5';
 
 /** `hot`: the path the pointer is on, on its card or on the canvas. */
-export function buildEdges( doc: FormDocument, selection: Selection, hints: LogicHint[], analytics: CanvasAnalytics | null, outputs: Map<string, Outputs>, hot: string | null = null ): PathEdge[] {
+export function buildEdges( doc: FormDocument, selection: Selection, hints: LogicHint[], analytics: CanvasAnalytics | null, outputs: Map<string, Outputs>, hot: string | null = null, issues: Issue[] = [] ): PathEdge[] {
+	const broken = new Map<string, string[]>();
+	issues.filter( ( i ) => 'error' === i.tone ).forEach( ( i ) => i.marks.edges.forEach( ( e ) => broken.set( e, [ ...( broken.get( e ) ?? [] ), i.title ] ) ) );
 	const locale = doc.locales.default;
 	const fields = fieldIndex( doc );
 	const warned = new Set( hints.filter( ( h ) => h.edge && 'info' !== h.level ).map( ( h ) => h.edge ) );
@@ -808,6 +881,11 @@ export function buildEdges( doc: FormDocument, selection: Selection, hints: Logi
 				.concat( data.title ?? [] )
 				.join( '\n' );
 		}
+		const problems = broken.get( edge.id );
+		if ( problems ) {
+			data.warn = true;
+			data.title = [ ...problems, ...( data.title ? [ data.title ] : [] ) ].join( '\n' );
+		}
 		const figures = analytics?.edges.get( edge.id );
 		if ( figures ) {
 			data.figures = figures;
@@ -823,12 +901,12 @@ export function buildEdges( doc: FormDocument, selection: Selection, hints: Logi
 		const out = selection.node === edge.from;
 		const lit = hot === edge.id;
 		const chosen = selection.edge === edge.id;
-		const colour = out || lit || chosen ? EDGE_ACTIVE : EDGE_COLOURS[ tone ?? kind ];
+		const colour = problems ? EDGE_ERROR : out || lit || chosen ? EDGE_ACTIVE : EDGE_COLOURS[ tone ?? kind ];
 		const className =
 			'ffxb-edge ffxb-edge--' +
 			kind +
 			( tone && tone !== kind ? ` ffxb-edge--${ tone }` : '' ) +
-			( data.warn ? ' ffxb-edge--warn' : '' ) +
+			( problems ? ' ffxb-edge--error' : data.warn ? ' ffxb-edge--warn' : '' ) +
 			( figures ? ( figures.sessions ? '' : ' ffxb-edge--none' ) + ( figures.strongest ? ' ffxb-edge--strongest' : '' ) : '' ) +
 			( out ? ' is-out' : '' ) +
 			( selection.node === edge.to ? ' is-in' : '' ) +
@@ -893,8 +971,14 @@ function Flow() {
 	const [ nodes, setNodes ] = useState<CanvasNode[]>( [] );
 	// Large forms open on their beginning, readable, instead of all of it tiny.
 	const [ focus ] = useState( () => ( doc && doc.nodes.length > 6 ? opening( doc, 3 ) : undefined ) );
+	// The same object on every render: React Flow takes a new one as the options of the next fitView,
+	// also of one asked for meanwhile (the playback brings the whole form into view).
+	const [ opened ] = useState( () => ( { padding: 0.15, minZoom: 0.6, maxZoom: 1, nodes: focus } ) );
 
 	const hints = useHints();
+	const issues = useIssues();
+	const wanted = useBuilder( ( s ) => s.focus );
+	const [ flash, setFlash ] = useState<( Selection & { seq: number } ) | null>( null );
 	const prediction = 'free' === process.env.FUNNELFORMS_EDITION ? null : usePrediction();
 	const predicted = prediction?.figures ?? null;
 	const measured = 'free' === process.env.FUNNELFORMS_EDITION ? null : useAnalytics()?.figures ?? null;
@@ -910,13 +994,42 @@ function Flow() {
 			playback.reset();
 		}
 	}, [ predicted, playback ] );
-	const boxOf = useCallback( ( id: string ) => boxOfNode( flow.getInternalNode( id ) ), [ flow ] );
+	// Stops when the canvas goes (another workspace).
+	useEffect( () => () => playback.stop(), [ playback ] );
+	// Where the nodes are now, read on every frame of the playback.
+	const geometry = useMemo<PlaybackGeometry>( () => ( { boxOf: ( id ) => boxOfNode( flow.getInternalNode( id ) ), wayPoints } ), [ flow ] );
 	const traces = prediction?.result?.simulation.traces;
+	const personas = prediction?.resultOf?.model.personas;
 	const play = useCallback( () => {
-		if ( traces?.length ) {
-			playback.start( planPlayback( traces, boxOf, wayPoints, prediction?.resultOf?.model.personas.map( ( p ) => p.id ), flow.getNodes().map( ( n ) => n.id ) ) );
+		if ( ! traces?.length ) {
+			return;
 		}
-	}, [ traces, boxOf, playback, prediction?.resultOf, flow ] );
+		const plan = planPlayback( traces, geometry.boxOf, wayPoints, personas?.map( ( p ) => p.id ), flow.getNodes().map( ( n ) => n.id ) );
+		// The whole form comes into view first (never closer than now), then the dots start.
+		void flow.fitView( { padding: 0.14, duration: PLAY_CAMERA, maxZoom: Math.min( 1, Math.max( 0.5, flow.getZoom() ) ) } );
+		playback.start( plan, PLAY_CAMERA + 80 );
+	}, [ traces, geometry, playback, personas, flow ] );
+	// Show on the canvas in the tab of the Predictive AI: plays once the prediction is on the canvas,
+	// after the nodes have their figures and are measured.
+	const cue = !! prediction?.cue;
+	const setCue = prediction?.setCue;
+	useEffect( () => {
+		if ( ! cue || ! predicted || ! traces?.length ) {
+			return undefined;
+		}
+		const timer = window.setTimeout( () => {
+			setCue?.( false );
+			play();
+		}, 150 );
+		return () => window.clearTimeout( timer );
+	}, [ cue, setCue, predicted, traces, play ] );
+	// A step or path added or taken away ends the playback: its ways would no longer be those of the form.
+	const shape = doc ? doc.nodes.map( ( n ) => n.id ).join( ',' ) + '|' + doc.edges.map( ( e ) => e.from + '>' + e.to ).join( ',' ) : '';
+	useEffect( () => {
+		playback.stop();
+	}, [ shape, playback ] );
+	// While the dots run, the steps stay where they are: nothing is moved, connected or dropped.
+	const still = readOnly || playing;
 
 	// The path under the pointer, on a card or on the canvas.
 	const [ hotStore ] = useState( () => createStore<Hot>( () => COLD ) );
@@ -955,11 +1068,53 @@ function Flow() {
 
 	useEffect( () => {
 		if ( doc ) {
-			setNodes( ( previous ) => buildNodes( doc, selection, hints, outputs, actions, previous ) );
+			setNodes( ( previous ) => buildNodes( doc, selection, hints, outputs, actions, previous, issues, flash ) );
 		}
-	}, [ doc, selection, hints, outputs, actions ] );
+	}, [ doc, selection, hints, outputs, actions, issues, flash ] );
 
-	const edges = useMemo( () => ( doc ? buildEdges( doc, selection, hints, shown, outputs, hot ) : [] ), [ doc, selection, hints, shown, outputs, hot ] );
+	const edges = useMemo( () => ( doc ? buildEdges( doc, selection, hints, shown, outputs, hot, issues ) : [] ), [ doc, selection, hints, shown, outputs, hot, issues ] );
+
+	// "Show" of an issue: the place into view, once the card is measured (also when the canvas opens
+	// for it from another workspace), and lit up once.
+	useEffect( () => {
+		if ( ! wanted || ! doc ) {
+			return undefined;
+		}
+		const edge = wanted.edge ? doc.edges.find( ( e ) => e.id === wanted.edge ) : undefined;
+		// A path is edited at the step it leaves (its rule is on that card), so that step comes into view.
+		const ids = edge ? [ edge.from ].filter( ( id ) => flow.getNode( id ) ) : wanted.node ? [ wanted.node ] : [];
+		let tries = 0;
+		let timer: ReturnType<typeof setTimeout> | undefined;
+		const go = (): void => {
+			const ready = ids.length > 0 && ids.every( ( id ) => flow.getInternalNode( id )?.measured?.width );
+			if ( ! ready && ++tries < 40 ) {
+				timer = setTimeout( go, 50 );
+				return;
+			}
+			if ( ready ) {
+				// setCenter, not fitView: fitView is queued, and the canvas's own fitViewOptions (its
+				// opening steps) replace the nodes asked for when it renders before the fit runs.
+				const boxes = ids.map( ( id ) => flow.getInternalNode( id ) ).map( ( n ) => ( { x: n?.internals.positionAbsolute.x ?? 0, y: n?.internals.positionAbsolute.y ?? 0, w: n?.measured.width ?? 0, h: n?.measured.height ?? 0 } ) );
+				const x = Math.min( ...boxes.map( ( b ) => b.x ) );
+				const y = Math.min( ...boxes.map( ( b ) => b.y ) );
+				const width = Math.max( ...boxes.map( ( b ) => b.x + b.w ) ) - x;
+				const height = Math.max( ...boxes.map( ( b ) => b.y + b.h ) ) - y;
+				// Readable, and not larger than before.
+				const pane = document.querySelector( '.ffxb-canvas .react-flow' )?.getBoundingClientRect();
+				const fits = pane ? Math.min( ( pane.width * 0.8 ) / Math.max( width, 1 ), ( pane.height * 0.8 ) / Math.max( height, 1 ) ) : 1;
+				const zoom = Math.max( 0.5, Math.min( Math.max( flow.getZoom(), 0.85 ), 1.1, fits ) );
+				void flow.setCenter( x + width / 2, y + height / 2, { zoom, duration: 450 } );
+			}
+			setFlash( { ...wanted, node: edge ? edge.from : wanted.node } );
+			store.setState( { focus: null } );
+		};
+		go();
+		return () => clearTimeout( timer );
+	}, [ wanted, doc, flow, store ] );
+	useEffect( () => {
+		const timer = flash ? setTimeout( () => setFlash( null ), 2000 ) : undefined;
+		return () => clearTimeout( timer );
+	}, [ flash ] );
 	const toggleMap = (): void => {
 		setMap( ! map );
 		try {
@@ -999,6 +1154,9 @@ function Flow() {
 
 	const onConnect = useCallback(
 		( connection: Connection ) => {
+			if ( playback.store.getState().playing ) {
+				return;
+			}
 			let id: string | null = null;
 			change( ( d ) => {
 				id = connectOutput( d, connection.source, connection.sourceHandle, connection.target );
@@ -1007,12 +1165,12 @@ function Flow() {
 				select( { edge: id } );
 			}
 		},
-		[ change, select ]
+		[ change, select, playback ]
 	);
 
 	const onDrop = ( event: React.DragEvent ): void => {
 		const item = readItem( event );
-		if ( ! item || readOnly ) {
+		if ( ! item || still ) {
 			return;
 		}
 		event.preventDefault();
@@ -1049,7 +1207,7 @@ function Flow() {
 		<HotContext.Provider value={ hotStore }>
 		<PlaybackContext.Provider value={ playback }>
 			<ReactFlow<CanvasNode, PathEdge>
-				className={ hot ? 'has-hot' : undefined }
+				className={ [ hot ? 'has-hot' : '', playing ? 'is-playing' : '' ].filter( Boolean ).join( ' ' ) || undefined }
 				nodes={ nodes }
 				edges={ edges }
 				nodeTypes={ nodeTypes }
@@ -1065,19 +1223,19 @@ function Flow() {
 				connectionLineComponent={ ConnectionLine }
 				onPaneClick={ () => select( {} ) }
 				onDragOver={ ( e ) => {
-					if ( e.dataTransfer.types.includes( DRAG_TYPE ) ) {
+					if ( ! still && e.dataTransfer.types.includes( DRAG_TYPE ) ) {
 						e.preventDefault();
 						e.dataTransfer.dropEffect = 'copy';
 					}
 				} }
 				onDrop={ onDrop }
-				nodesDraggable={ ! readOnly }
-				nodesConnectable={ ! readOnly }
+				nodesDraggable={ ! still }
+				nodesConnectable={ ! still }
 				deleteKeyCode={ null }
 				selectionKeyCode={ null }
 				multiSelectionKeyCode={ null }
 				fitView
-				fitViewOptions={ { padding: 0.15, minZoom: 0.6, maxZoom: 1, nodes: focus } }
+				fitViewOptions={ opened }
 				minZoom={ 0.2 }
 				maxZoom={ 1.5 }
 				proOptions={ { hideAttribution: true } }
@@ -1121,12 +1279,12 @@ function Flow() {
 						</div>
 					) }
 				</Panel>
-				{ 'free' !== process.env.FUNNELFORMS_EDITION && predicted && prediction?.result && prediction.resultOf ? (
+				{ 'free' !== process.env.FUNNELFORMS_EDITION && prediction?.on ? (
 					<>
-						<Panel position="top-left" className="ffxb-pai-play-panel">
-							<PlaybackControl created={ prediction.resultOf.created } visitors={ prediction.result.visitors } traced={ prediction.result.simulation.traces.length } onPlay={ play } />
+						<Panel position="top-left" className="ffxb-pai-hud-panel">
+							<PredictionBar onPlay={ play } />
 						</Panel>
-						<PlaybackLayer boxOf={ boxOf } />
+						{ predicted ? <PlaybackLayer geometry={ geometry } /> : null }
 					</>
 				) : null }
 				{ 'free' !== process.env.FUNNELFORMS_EDITION && shown ? (

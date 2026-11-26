@@ -273,6 +273,21 @@ describe( 'WpRestAdapter', () => {
 		expect( new WpRestAdapter( { root: 'https://site.test/?rest_route=/', nonce: 'n' } ).url( '^wp/v2/pages', { search: 'a' } ) ).toBe( 'https://site.test/?rest_route=%2Fwp%2Fv2%2Fpages&search=a' );
 	} );
 
+	it( 'asks a Telegram bot for its chats with the token in the body, or by the saved connection', async () => {
+		const chats = [ { id: '-1001234567890', title: 'Vertrieb Nord', type: 'supergroup' } ];
+		const fetch = vi.fn( async () => respond( 200, { chats } ) );
+		const api = new WpRestAdapter( { root: '/wp-json/', nonce: 'abc', fetch } );
+		expect( await api.telegramChats( { botToken: '10000:fake-token-for-tests-only-not-a-secret-0000' } ) ).toEqual( chats );
+		await api.telegramChats( { ref: 'telegram:a1' } );
+		const calls = fetch.mock.calls as unknown as Array<[ string, RequestInit ]>;
+		expect( calls.map( ( [ url, init ] ) => [ url, init.method ] ) ).toEqual( [
+			[ '/wp-json/funnelforms/v1/connections/telegram/chats', 'POST' ],
+			[ '/wp-json/funnelforms/v1/connections/telegram/chats', 'POST' ],
+		] );
+		expect( JSON.parse( String( calls[ 0 ]?.[ 1 ].body ) ) ).toEqual( { botToken: '10000:fake-token-for-tests-only-not-a-secret-0000' } );
+		expect( JSON.parse( String( calls[ 1 ]?.[ 1 ].body ) ) ).toEqual( { ref: 'telegram:a1' } );
+	} );
+
 	it( 'puts the method into the address also without pretty permalinks', async () => {
 		const fetch = vi.fn( async () => respond( 200, { deleted: true } ) );
 		await new WpRestAdapter( { root: 'https://site.test/?rest_route=/', nonce: 'n', fetch } ).deleteConnection( 'twilio:a1' );

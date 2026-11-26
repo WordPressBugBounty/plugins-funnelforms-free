@@ -27,6 +27,8 @@ export interface HubConnection {
 	webhookUrl?: string;
 	/** CalDAV: icloud for Apple iCloud. */
 	service?: string;
+	/** Telegram: the name of the chat that gets the messages, else its ID. */
+	chat?: string;
 }
 
 /** A form plugin with forms on this site. */
@@ -112,6 +114,8 @@ export const SERVICES: HubService[] = [
 	{ id: 'teams-meetings', name: 'Microsoft Teams', category: 'meetings', kind: 'meeting', types: [ 'microsoft' ], mark: 'T', color: '#5b5fc7' },
 	{ id: 'slack', name: 'Slack', category: 'messages', kind: 'connection', types: [ 'slack' ], dashboard: 'https://api.slack.com/messaging/webhooks', mark: 'S', color: '#4a154b' },
 	{ id: 'teams', name: 'Microsoft Teams', category: 'messages', kind: 'connection', types: [ 'teams' ], mark: 'T', color: '#5b5fc7' },
+	// The customer's own bot; the token comes from @BotFather. A darker blue than the brand, for the white mark.
+	{ id: 'telegram', name: 'Telegram', category: 'messages', kind: 'connection', types: [ 'telegram' ], dashboard: 'https://t.me/BotFather', mark: 'T', color: '#0f77c0' },
 	{ id: 'whatsapp', name: 'WhatsApp Business', category: 'messages', kind: 'connection', types: [ 'whatsapp' ], dashboard: 'https://business.facebook.com/wa/manage/home/', mark: 'W', color: '#25d366' },
 	{ id: 'twilio', name: 'Twilio', category: 'messages', kind: 'connection', types: [ 'twilio' ], dashboard: 'https://console.twilio.com/', mark: 'T', color: '#f22f46' },
 	{ id: 'bird', name: 'Bird', category: 'messages', kind: 'connection', types: [ 'bird' ], dashboard: 'https://app.bird.com/', mark: 'B', color: '#0b0b0b' },
@@ -136,8 +140,11 @@ const CRM_COLORS: Record<string, string> = {
 	googlesheets: '#0f9d58',
 };
 
-/** All services: the fixed ones with the CRM tools of the server in their categories. */
-export function hubServices( providers: CrmProvider[] ): HubService[] {
+/**
+ * All services: the fixed ones with the CRM tools of the server in their categories, without
+ * those given (services the host cannot connect, such as Telegram where it has no chat search).
+ */
+export function hubServices( providers: CrmProvider[], without: string[] = [] ): HubService[] {
 	const crm: HubService[] = providers.map( ( p ) => ( {
 		id: p.provider,
 		name: p.label,
@@ -147,7 +154,7 @@ export function hubServices( providers: CrmProvider[] ): HubService[] {
 		mark: p.label.charAt( 0 ).toUpperCase(),
 		color: CRM_COLORS[ p.provider ] ?? '#4b5563',
 	} ) );
-	return HUB_CATEGORIES.flatMap( ( c ) => [ ...SERVICES, ...crm ].filter( ( s ) => s.category === c ) );
+	return HUB_CATEGORIES.flatMap( ( c ) => [ ...SERVICES, ...crm ].filter( ( s ) => s.category === c && ! without.includes( s.id ) ) );
 }
 
 /** Which service a connection belongs to (CalDAV at iCloud is Apple iCloud). */

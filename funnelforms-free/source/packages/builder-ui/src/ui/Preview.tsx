@@ -9,6 +9,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from
 import { ApiError, type FormsApi } from '../api';
 import type { Device } from '../store';
 import { problemTexts } from './catalog';
+import { ProblemIssues } from './Issues';
 import { useBuilder, useEnv } from './context';
 import { __ } from './i18n';
 import { Button, icons, Notice, Spinner } from './ui';
@@ -28,6 +29,8 @@ export interface PreviewDialogProps {
 	/** More buttons in the bar, e.g. "Use this template". */
 	actions?: React.ReactNode;
 	onClose: () => void;
+	/** The problems that keep the page from showing, with their places; a plain list without. `close` closes the preview. */
+	problemList?: ( problems: string[], close: () => void ) => React.ReactNode;
 }
 
 /** The draft of the form being edited; saved first. */
@@ -41,10 +44,10 @@ export function DraftPreview( { api, formId, onClose }: { api: FormsApi; formId:
 		await store.getState().saveNow();
 		return locale ? api.preview( formId, locale ) : api.preview( formId );
 	}, [ api, formId, store, locale ] );
-	return <PreviewDialog fetchPage={ fetchPage } device={ device } onDevice={ ( d ) => store.getState().setDevice( d ) } onClose={ onClose } />;
+	return <PreviewDialog fetchPage={ fetchPage } device={ device } onDevice={ ( d ) => store.getState().setDevice( d ) } onClose={ onClose } problemList={ ( problems, close ) => <ProblemIssues problems={ problems } onShow={ close } /> } />;
 }
 
-export function PreviewDialog( { title, fetchPage, device, onDevice, actions, onClose }: PreviewDialogProps ) {
+export function PreviewDialog( { title, fetchPage, device, onDevice, actions, onClose, problemList }: PreviewDialogProps ) {
 	const ref = useRef<HTMLDialogElement>( null );
 	const [ state, setState ] = useState<State>( { state: 'loading' } );
 
@@ -100,6 +103,12 @@ export function PreviewDialog( { title, fetchPage, device, onDevice, actions, on
 			{ 'loading' === state.state ? <Spinner label={ __( 'Loading preview…', 'funnelforms-pro' ) } /> : null }
 			{ 'failed' === state.state ? (
 				<div className="ffxb-preview__error">
+					{ state.problems.length && problemList ? (
+						<div className="ffxb-preview__issues">
+							<h3>{ __( 'Fix these to see the preview', 'funnelforms-pro' ) }</h3>
+							{ problemList( state.problems, () => ref.current?.close() ) }
+						</div>
+					) : (
 					<Notice tone="danger" title={ state.problems.length ? __( 'Fix these to see the preview', 'funnelforms-pro' ) : __( 'The preview could not be loaded.', 'funnelforms-pro' ) }>
 						{ state.problems.length ? (
 							<ul>
@@ -111,6 +120,7 @@ export function PreviewDialog( { title, fetchPage, device, onDevice, actions, on
 							state.message
 						) }
 					</Notice>
+					) }
 				</div>
 			) : null }
 			{ 'ready' === state.state ? <Stage key={ state.run } html={ state.html } width={ DEVICE_WIDTH[ device ] } device={ device } /> : null }

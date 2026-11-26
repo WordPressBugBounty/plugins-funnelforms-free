@@ -417,6 +417,26 @@ describe( 'form schema v1', () => {
 		expect( validateDocument( doc ).valid ).toBe( false );
 	} );
 
+	it( 'accepts Telegram messages, with the bot token and chat in the connection only', () => {
+		const doc = load( 'synthetic-kitchen-sink.json' );
+		doc.actions.push( {
+			id: 'a_telegram',
+			on: 'submit',
+			kind: 'chat',
+			config: { service: 'telegram', connectionRef: 'telegram:x', message: { en_US: 'New lead {{field:email}}' }, showAnswers: true, showContact: true },
+		} );
+		expect( validateDocument( doc ).errors ).toEqual( [] );
+		const config = doc.actions.at( -1 )?.config as Record<string, unknown>;
+		config.botToken = '10000:fake-token-for-tests-only-not-a-secret-0000';
+		expect( validateDocument( doc ).valid ).toBe( false );
+		delete config.botToken;
+		config.chatId = '-1001234567890';
+		expect( validateDocument( doc ).valid ).toBe( false );
+		delete config.chatId;
+		config.service = 'discord';
+		expect( validateDocument( doc ).valid ).toBe( false );
+	} );
+
 	it( 'accepts double opt-in on an e-mail contact field', () => {
 		const doc = load( 'synthetic-kitchen-sink.json' );
 		doc.settings.doubleOptIn = { field: 'c_email', subject: { en_US: 'Please confirm' }, body: { en_US: 'Click {{confirm_url}}' }, confirmation: { en_US: '<p>Thanks</p>' } };

@@ -27,11 +27,17 @@ defined( 'ABSPATH' ) || exit;
  * in the log name the cause only (HTTP status, error code), never visitor data. The mails are
  * delivered here; the actions of Funnelforms Pro (webhooks, CRM, messages, conversions, double
  * opt-in, appointments, AI calls) by ProActions, which Funnelforms Free does not have. An action
- * that answers "later:<seconds>" runs again then, without using up an attempt.
+ * that answers "later:<seconds>" runs again then, without using up an attempt. One that answers
+ * "wait:<seconds>:<error>" (a rate limit that names its end, as Telegram's retry_after) failed
+ * with <error>, and its next attempt waits at least that long, at most MAX_WAIT; the attempts
+ * still count, so a service that keeps refusing ends after MAX_ATTEMPTS as well.
  */
 final class ActionRunner {
 
 	public const MAX_ATTEMPTS = 3;
+
+	/** Longest wait, in seconds, a "wait:" answer sets before the next attempt. */
+	public const MAX_WAIT = 3600;
 
 	/**
 	 * Creates the runner.
@@ -117,6 +123,7 @@ final class ActionRunner {
 			ActionQueue::schedule( $job_id, $delay );
 			return;
 		}
+		list( $error, $wait ) = self::wait_of( $error );
 		// Nobody to send to, no consent, no GA4 client or an appointment changed since: nothing to
 		// do, not a failure.
 		if ( null === $error || in_array( $error, array_merge( array( 'no_recipient' ), null === $pro ? array() : $pro::NOTHING_TO_DO ), true ) ) {
@@ -125,10 +132,24 @@ final class ActionRunner {
 		}
 		if ( $attempts < self::MAX_ATTEMPTS && ! str_starts_with( $error, 'permanent:' ) ) {
 			$this->entries->update_job( $job_id, 'retrying', $attempts, $error );
-			ActionQueue::schedule( $job_id, 60 * ( 4 ** ( $attempts - 1 ) ) );
+			ActionQueue::schedule( $job_id, max( 60 * ( 4 ** ( $attempts - 1 ) ), $wait ) );
 			return;
 		}
 		$this->entries->update_job( $job_id, 'failed', $attempts, $error );
+	}
+
+	/**
+	 * The error of an answer and how long the next attempt has to wait at least: "wait:600:http_429"
+	 * gives http_429 and 600 seconds (at most MAX_WAIT); every other answer itself and 0.
+	 *
+	 * @param string|null $error Answer of an action.
+	 * @return array{0:string|null,1:int}
+	 */
+	public static function wait_of( ?string $error ): array {
+		if ( null !== $error && 1 === preg_match( '/^wait:(\d{1,9}):(.+)$/sD', $error, $match ) ) {
+			return array( $match[2], min( self::MAX_WAIT, (int) $match[1] ) );
+		}
+		return array( $error, 0 );
 	}
 
 	/**

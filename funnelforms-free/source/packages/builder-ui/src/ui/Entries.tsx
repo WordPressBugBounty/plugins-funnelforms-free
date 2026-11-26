@@ -9,7 +9,7 @@ import { localeTag } from '@funnelforms/form-core';
 import type { Appointment, BulkChanges, EntryDevice, EntriesApi, EntryDetail, EntryFigures, EntryFilter, EntryList, EntrySummary, EntryVisit, LeadStage, LeadStageTone, LeadStatus, PaymentStatus, SpamReason, UserRef } from '../api';
 import { addressOf, avatarTone, byLeadStatus, change, DEVICES, entryEmail, entryName, entryPhone, exportLink, figureMoments, filtered, initials, MAX_STAGE_NAME, MAX_STAGES, moveStage, parseTags, periodStart, relativeTime, STAGE_TONES, stageInputs, stageNameProblem, standardStages, stateFromAddress, valueText, type EntriesState, type Period } from '../entries';
 import { pageLocale, zoneName } from '../appointments';
-import { kindName } from './Actions';
+import { actionName } from './Actions';
 import { EmptyState, Frame, FrameButton, Icon, Kpi, Pill, type PillTone } from './Frame';
 import { __, sprintf } from './i18n';
 import { Badge, Button, Dialog, icons, Notice, Spinner } from './ui';
@@ -98,8 +98,9 @@ function paymentName( status: PaymentStatus ): string {
 
 const PAYMENT_TONE: Record<PaymentStatus, Tone> = { open: 'neutral', pending: 'warning', paid: 'success', failed: 'danger', canceled: 'neutral', refunded: 'neutral', disputed: 'danger' };
 
-function actionName( kind: string ): string {
-	return 'optin' === kind ? __( 'Confirmation link (double opt-in)', 'funnelforms-pro' ) : kindName( kind );
+/** The name of a step of an entry, as the builder names the action: a chat message by its service. */
+function stepName( action: EntryDetail[ 'actions' ][ number ] ): string {
+	return 'optin' === action.kind ? __( 'Confirmation link (double opt-in)', 'funnelforms-pro' ) : actionName( { kind: action.kind, config: { service: action.service } } );
 }
 
 /** Date and time of an appointment in the time zone of its type, in the editor's language. */
@@ -177,13 +178,19 @@ export function deliveryAction( channel: string ): string {
 	return channel.startsWith( ':again:' ) ? channel.slice( 7 ) : channel;
 }
 
-/** Why a step did nothing, in words, for the codes that are no failure; other codes as they are. */
+/**
+ * Why a step did nothing or failed, in words: for the codes that are no failure, and for what
+ * Telegram refused (as ConnectionsController::telegram_reason says it); other codes as they are.
+ */
 function skipReason( code: string ): string {
 	return (
 		{
 			condition_not_met: __( 'Its condition does not apply to this entry', 'funnelforms-pro' ),
 			no_recipient: __( 'Nobody to send to', 'funnelforms-pro' ),
 			no_consent: __( 'No consent to be called', 'funnelforms-pro' ),
+			'permanent:telegram_chat_not_found': __( 'Telegram does not know this chat. Check the chat ID, and that the bot was started in the private chat or added to the group or channel.', 'funnelforms-pro' ),
+			'permanent:telegram_unauthorized': __( 'Telegram refused the bot token. Copy it again from @BotFather; a new token replaces the old one.', 'funnelforms-pro' ),
+			'permanent:telegram_forbidden': __( 'The bot may not write in this chat: it was blocked, removed or never started. Start the bot again or add it back to the group; in a channel it has to be an admin.', 'funnelforms-pro' ),
 		}[ code ] ?? code
 	);
 }
@@ -2105,7 +2112,7 @@ function AfterSending( { entry, busy, date, onRun }: { entry: EntryDetail; busy:
 							return (
 								<li key={ a.id } className="ffxb-after__step">
 									<div className="ffxb-after__row">
-										<span className="ffxb-after__name">{ actionName( a.kind ) }</span>
+										<span className="ffxb-after__name">{ stepName( a ) }</span>
 										{ call ? (
 											<Badge tone={ 'done' === call.status ? 'success' : 'warning' }>{ running ? __( 'Call running', 'funnelforms-pro' ) : 'scheduled' === call.status ? __( 'Planned', 'funnelforms-pro' ) : __( 'Done', 'funnelforms-pro' ) }</Badge>
 										) : last ? (
@@ -2149,10 +2156,10 @@ function AfterSending( { entry, busy, date, onRun }: { entry: EntryDetail; busy:
 					{ actions.length ? <h4 className="ffxb-after__more">{ __( 'More steps', 'funnelforms-pro' ) }</h4> : null }
 					<ul className="ffxb-deliveries">
 						{ others.map( ( d ) => {
-							const kind = entry.actions.find( ( a ) => a.id === deliveryAction( d.action ) )?.kind;
+							const action = entry.actions.find( ( a ) => a.id === deliveryAction( d.action ) );
 							return (
 								<li key={ d.id }>
-									<span>{ kind ? actionName( kind ) : deliveryName( deliveryAction( d.action ) ) }</span>
+									<span>{ action ? stepName( action ) : deliveryName( deliveryAction( d.action ) ) }</span>
 									{ deliveryBadge( d.status ) }
 									<span className="ffxb-deliveries__time">{ date( d.updatedAt ) }</span>
 									{ d.error ? <span className="ffxb-deliveries__error">{ skipReason( d.error ) }</span> : null }

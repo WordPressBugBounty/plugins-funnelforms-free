@@ -43,7 +43,6 @@ describe( 'styles', () => {
 		expect( topLevel( read( 'runtime.css' ) ) ).toEqual( [
 			'@layer ffx, ffx-strong, ffx-custom;',
 			'@layer ffx',
-			'html:has(.ffx-popup[open])',
 			'@layer ffx-strong',
 			'.ffx-form i:is(.ffx-option-icon, .ffx-input-icon)',
 			':is(.ffx-form, .ffx-popup):not(#ffx-shield#ffx-shield)',
@@ -54,7 +53,8 @@ describe( 'styles', () => {
 		const box = read( 'runtime.css' ).match( /\n:is\(\.ffx-form, \.ffx-popup\):not\(#ffx-shield#ffx-shield\) \{([^}]*)\}/ )?.[ 1 ] ?? '';
 		expect( box ).toMatch( /padding: revert-layer;[\s\S]*font: revert-layer;/ );
 		expect( box ).not.toMatch( /\b(all|margin|width|max-width|display|position):/ );
-		// The second sheet can load first (styles.ts): it names the order of the layers as well.
-		expect( topLevel( read( 'runtime-more.css' ) ) ).toEqual( [ '@layer ffx, ffx-strong, ffx-custom;', '@layer ffx', '@layer ffx', '@layer ffx-strong' ] );
+		// The second sheet can load first (styles.ts): it names the order of the layers as well. Outside
+		// them only the page's scroll lock behind an open popup, which loads with the popup's rules.
+		expect( topLevel( read( 'runtime-more.css' ) ) ).toEqual( [ '@layer ffx, ffx-strong, ffx-custom;', '@layer ffx', '@layer ffx', '@layer ffx-strong', 'html:has(.ffx-popup[open])' ] );
 	} );
 } );

@@ -191,6 +191,22 @@ final class SetupPage {
 			case 'retry_backup':
 				LegacyBackup::start( 'before_migration', 'migration' );
 				break;
+			case 'skip_goal':
+				// No template wanted: the assistant ends here, the overview takes over.
+				if ( 'new' === $state['path'] && 'goal' === $state['step'] ) {
+					self::skip_first_form( $state );
+					wp_safe_redirect( admin_url( 'admin.php?page=' . Menu::SLUG ) );
+					exit;
+				}
+				break;
+			case 'switch_account':
+				// Frees this website in the account it is connected to; the step then offers the sign-in again.
+				$license = Edition::pro( License::class );
+				if ( null === $license || 'new' !== $state['path'] || 'account' !== $state['step'] ) {
+					break;
+				}
+				wp_safe_redirect( add_query_arg( 'license', $license::disconnect() ?? 'switched', self::url() ) );
+				exit;
 			case 'connect':
 				$license = Edition::pro( License::class );
 				$account = Edition::pro( AccountPage::class );
@@ -224,6 +240,30 @@ final class SetupPage {
 		$url = '' === $news ? self::url() : add_query_arg( 'newsletter', $news, self::url() );
 		wp_safe_redirect( '' === $error ? $url : add_query_arg( 'error', $error, $url ) );
 		exit;
+	}
+
+	/**
+	 * Ends the new path without a first form ("Skip" on the step "Your goal"). A form the
+	 * assistant made on an earlier visit of the step and nobody published goes, as it does when
+	 * another template is picked. The answer about diagnostic data from the step "Region, language
+	 * and privacy" applies now, since the step "Go live" that applies it otherwise does not come.
+	 *
+	 * @param array<string,mixed> $state State.
+	 */
+	private static function skip_first_form( array $state ): void {
+		$forms = new FormRepository();
+		$form  = 0 === $state['form_id'] ? null : $forms->by_id( $state['form_id'] );
+		if ( null !== $form && null === $form['current_revision_id'] ) {
+			$forms->delete( (int) $form['id'] );
+		}
+		SetupFlow::apply_diagnostics( $state['choices'] );
+		SetupFlow::save(
+			array(
+				'status'  => 'done',
+				'form_id' => 0,
+				'choices' => array( 'template' => '' ) + $state['choices'],
+			)
+		);
 	}
 
 	/**
@@ -560,7 +600,12 @@ final class SetupPage {
 				<?php else : ?>
 					<span></span>
 				<?php endif; ?>
-				<?php self::next_button( $state ); ?>
+				<div class="ffx-setup__nav-end">
+					<?php if ( 'new' === $state['path'] && 'goal' === $state['step'] ) : ?>
+						<button type="submit" name="do" value="skip_goal" class="ffx-btn ffx-btn--ghost" formnovalidate><span><?php esc_html_e( 'Skip', 'funnelforms-free' ); ?></span></button>
+					<?php endif; ?>
+					<?php self::next_button( $state ); ?>
+				</div>
 			</footer>
 		</form>
 	</main>
@@ -630,7 +675,7 @@ final class SetupPage {
 			'update:live'    => __( 'Go live now', 'funnelforms-free' ),
 			'update:done'    => __( 'Go to the overview', 'funnelforms-free' ),
 			'new:welcome'    => __( 'Let\'s start', 'funnelforms-free' ),
-			'new:account'    => 'active' === self::license()['status'] ? __( 'Continue', 'funnelforms-free' ) : __( 'Skip for now', 'funnelforms-free' ),
+			'new:account'    => self::connected() ? __( 'Continue', 'funnelforms-free' ) : __( 'Skip for now', 'funnelforms-free' ),
 			'new:goal'       => __( 'Use this template', 'funnelforms-free' ),
 			'new:live'       => __( 'Publish', 'funnelforms-free' ),
 			'new:done'       => __( 'Go to the overview', 'funnelforms-free' ),
@@ -638,7 +683,7 @@ final class SetupPage {
 		$key      = $state['path'] . ':' . $state['step'];
 		$label    = $labels[ $key ] ?? __( 'Continue', 'funnelforms-free' );
 		$disabled = 'update:import' === $key && 'done' !== SetupFlow::import_status()['phase'];
-		$kind     = 'new:account' === $key && 'active' !== self::license()['status'] ? 'ffx-btn' : 'ffx-btn ffx-btn--primary ffx-btn--lg';
+		$kind     = 'new:account' === $key && ! self::connected() ? 'ffx-btn' : 'ffx-btn ffx-btn--primary ffx-btn--lg';
 		?>
 		<button type="submit" name="do" value="next" class="<?php echo esc_attr( $kind ); ?>" data-ffx-next <?php disabled( $disabled ); ?>><span><?php echo esc_html( $label ); ?></span><?php echo Ui::icon( in_array( $key, array( 'update:live', 'new:live' ), true ) ? 'rocket' : 'arrow' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?></button>
 		<?php
@@ -662,6 +707,9 @@ final class SetupPage {
 		$license = isset( $_GET['license'] ) ? sanitize_key( wp_unslash( $_GET['license'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display only.
 		$account = Edition::pro( AccountPage::class );
 		$message = '' === $license || null === $account ? null : $account::message( $license );
+		if ( 'switched' === $license ) {
+			$message = array( 'info', __( 'This website is no longer connected to the previous account. Now sign in with the account you want to use.', 'funnelforms-free' ) );
+		}
 		if ( null !== $message ) {
 			echo '<div class="ffx-setup__note is-' . esc_attr( $message[0] ) . '" role="status">' . esc_html( $message[1] ) . '</div>';
 		}
@@ -1090,7 +1138,7 @@ final class SetupPage {
 	private static function retention_title( int $days ): string {
 		switch ( $days ) {
 			case 0:
-				return __( 'Never', 'funnelforms-free' );
+				return __( 'Permanently', 'funnelforms-free' );
 			case 180:
 				return __( '6 months', 'funnelforms-free' );
 			case 365:
@@ -1352,6 +1400,13 @@ final class SetupPage {
 	}
 
 	/**
+	 * Whether the website is connected: the license is active or in its grace period.
+	 */
+	private static function connected(): bool {
+		return in_array( self::license()['status'], array( 'active', 'grace' ), true );
+	}
+
+	/**
 	 * A tile that is a link.
 	 *
 	 * @param string $icon  Icon.
@@ -1416,23 +1471,97 @@ final class SetupPage {
 	 */
 	private static function step_new_account( array $state ): void {
 		unset( $state );
-		$license = self::license();
-		$active  = in_array( $license['status'], array( 'active', 'grace' ), true );
 		self::head( __( 'Connect your Funnelforms account', 'funnelforms-free' ), __( 'The connection brings updates, support from our team and the Pro services. Your forms work without it too.', 'funnelforms-free' ) );
+		if ( self::connected() ) {
+			self::account_connected( self::license() );
+			return;
+		}
 		?>
-		<div class="ffx-setup__card ffx-setup__account<?php echo $active ? ' is-active' : ''; ?>">
-			<span class="ffx-setup__icon<?php echo $active ? ' is-success' : ''; ?>"><?php echo Ui::icon( $active ? 'check' : 'user' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?></span>
+		<div class="ffx-setup__card ffx-setup__account">
+			<span class="ffx-setup__icon"><?php echo Ui::icon( 'user' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?></span>
 			<div>
-				<?php if ( $active ) : ?>
-					<h3><?php esc_html_e( 'This website is connected', 'funnelforms-free' ); ?></h3>
-					<p><?php echo esc_html( (string) ( $license['claims']['plan'] ?? '' ) ); ?></p>
-				<?php else : ?>
-					<h3><?php esc_html_e( 'Sign in once, done', 'funnelforms-free' ); ?></h3>
-					<p><?php esc_html_e( 'You sign in at Funnelforms and come straight back here. No key to copy.', 'funnelforms-free' ); ?></p>
-					<button type="submit" class="ffx-btn ffx-btn--primary" name="do" value="connect" formnovalidate><?php echo Ui::icon( 'link' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?><span><?php esc_html_e( 'Connect with Funnelforms', 'funnelforms-free' ); ?></span></button>
-				<?php endif; ?>
+				<h3><?php esc_html_e( 'Sign in once, done', 'funnelforms-free' ); ?></h3>
+				<p><?php esc_html_e( 'You sign in at Funnelforms and come straight back here. No key to copy.', 'funnelforms-free' ); ?></p>
+				<button type="submit" class="ffx-btn ffx-btn--primary" name="do" value="connect" formnovalidate><?php echo Ui::icon( 'link' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?><span><?php esc_html_e( 'Connect with Funnelforms', 'funnelforms-free' ); ?></span></button>
 			</div>
 		</div>
+		<?php
+	}
+
+	/**
+	 * The connected account on the step "Your account": plan, account, websites and renewal as
+	 * the account page shows them, the state of the plan, and a way to another account.
+	 *
+	 * @param array{status:string,claims:?array<string,mixed>,graceUntil:?int} $license State of the license.
+	 */
+	private static function account_connected( array $license ): void {
+		$page  = Edition::pro( AccountPage::class );
+		$brain = Edition::pro( License::class );
+		if ( null === $page || null === $brain ) {
+			return;
+		}
+		$claims  = (array) $license['claims'];
+		$account = $brain::account();
+		$last    = null === $account ? $brain::last_account() : null;
+		$data    = $account ?? ( null === $last ? array() : $last['account'] );
+		$sub     = is_array( $data['subscription'] ?? null ) ? $data['subscription'] : array();
+		$plan    = $page::plan_name( $sub, $claims );
+		$email   = (string) ( $data['account']['email'] ?? '' );
+		$status  = $page::status_text( $license );
+		$badge   = $page::badge( $license );
+		$renewal = $page::renewal( $sub, $claims );
+		$used    = (int) ( $sub['sites']['used'] ?? $claims['sites']['used'] ?? 0 );
+		$max     = array_key_exists( 'max', (array) ( $sub['sites'] ?? array() ) ) ? $sub['sites']['max'] : ( $claims['sites']['max'] ?? null );
+		$links   = array_filter(
+			array_map( 'strval', is_array( $data['links'] ?? null ) ? $data['links'] : array() ),
+			static fn( string $url ): bool => str_starts_with( $url, 'https://' )
+		);
+		$manage  = isset( $links['portal'] ) ? array( __( 'Plan, payment and invoices', 'funnelforms-free' ), $links['portal'] ) : ( isset( $links['account'] ) ? array( __( 'Open my Funnelforms account', 'funnelforms-free' ), $links['account'] ) : null );
+		$facts   = array(
+			array( 'key', __( 'Plan', 'funnelforms-free' ), '' !== $plan ? $plan : 'Funnelforms Pro', '' ),
+			array( 'user', __( 'Account', 'funnelforms-free' ), $email, '' ),
+			array(
+				'globe',
+				__( 'Websites', 'funnelforms-free' ),
+				null === $max
+					/* translators: %s: websites in use. */
+					? sprintf( __( '%s in use · no limit', 'funnelforms-free' ), number_format_i18n( $used ) )
+					/* translators: 1: websites in use, 2: websites of the plan. */
+					: sprintf( __( '%1$s of %2$s', 'funnelforms-free' ), number_format_i18n( $used ), number_format_i18n( (int) $max ) ),
+				'',
+			),
+			array( 'calendar', __( 'Renewal', 'funnelforms-free' ), $renewal[0], $renewal[1] ),
+		);
+		?>
+		<div class="ffx-setup__card ffx-setup__connected is-<?php echo esc_attr( $status[0] ); ?>">
+			<div class="ffx-setup__connected-head">
+				<span class="ffx-setup__connected-mark"><?php echo Ui::icon( 'check' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?></span>
+				<div>
+					<h3><?php esc_html_e( 'This website is connected', 'funnelforms-free' ); ?> <?php echo Ui::badge( $badge[0], $badge[1] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in badge(). ?></h3>
+					<p><?php echo esc_html( $status[1] ); ?></p>
+				</div>
+			</div>
+			<dl class="ffx-setup__connected-facts">
+				<?php foreach ( $facts as $fact ) : ?>
+					<?php
+					if ( '' === $fact[2] ) {
+						continue;
+					}
+					?>
+					<div>
+						<dt><?php echo Ui::icon( $fact[0] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?><span><?php echo esc_html( $fact[1] ); ?></span></dt>
+						<dd><?php echo esc_html( $fact[2] ); ?><?php echo '' !== $fact[3] ? '<small>' . esc_html( $fact[3] ) . '</small>' : ''; ?></dd>
+					</div>
+				<?php endforeach; ?>
+			</dl>
+			<div class="ffx-setup__connected-actions">
+				<?php if ( null !== $manage ) : ?>
+					<a class="ffx-btn ffx-btn--sm" href="<?php echo esc_url( $manage[1] ); ?>" target="_blank" rel="noopener noreferrer"><span><?php echo esc_html( $manage[0] ); ?></span><?php echo Ui::icon( 'external' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?><span class="screen-reader-text"> <?php esc_html_e( '(opens in a new tab)', 'funnelforms-free' ); ?></span></a>
+				<?php endif; ?>
+				<button type="submit" name="do" value="switch_account" class="ffx-link-button" formnovalidate onclick="return confirm(<?php echo esc_attr( (string) wp_json_encode( __( 'Disconnect this website from the current account and sign in with another one? Your forms keep working.', 'funnelforms-free' ) ) ); ?>)"><?php echo Ui::icon( 'history' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?><span><?php esc_html_e( 'Use a different account', 'funnelforms-free' ); ?></span></button>
+			</div>
+		</div>
+		<p class="ffx-setup__hint ffx-setup__next"><?php echo Ui::icon( 'arrow' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG. ?><span><?php esc_html_e( 'Next, you pick a template for your first form.', 'funnelforms-free' ); ?></span></p>
 		<?php
 	}
 
@@ -1470,6 +1599,7 @@ final class SetupPage {
 				</label>
 			<?php endforeach; ?>
 		</div>
+		<p class="ffx-setup__hint"><?php esc_html_e( 'No template for now? "Skip" ends the setup here. You create forms any time under Funnelforms → Forms.', 'funnelforms-free' ); ?></p>
 		<?php
 	}
 

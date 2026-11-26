@@ -19,7 +19,7 @@ import { formProtection, setSpam } from '../src/spam';
 import { today } from '../src/experiments';
 import { periodDays } from '../src/stats';
 import { blank } from './blank';
-import { validateDocument, type Action, type ChoiceField, type ContactField, type ContentField, type FormDocument, type FormNode } from '@funnelforms/form-schema';
+import { validateDocument, type Action, type ChoiceField, type ContactField, type ContentField, type FormDocument, type FormNode, type StepNode } from '@funnelforms/form-schema';
 
 ( globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean } ).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -336,6 +336,31 @@ describe( 'builder', () => {
 		expect( container.textContent ).toContain( 'Unsaved changes' );
 	} );
 
+	it( 'lets a step with a single choice move on after a click or wait for Next', async () => {
+		const api = fakeApi();
+		const store = createBuilderStore( api, 7, { autosaveMs: 60000 } );
+		await act( async () => root.render( <Builder api={ api } formId={ 7 } onBack={ () => undefined } store={ store } /> ) );
+		await settle();
+		await act( async () => button( 'Choice' ).click() );
+		// As the form says (on by default), or always or never in this step.
+		const step = (): StepNode => store.getState().doc?.nodes.find( ( n ) => 'step' === n.type && 'choice' === n.fields[ 0 ]?.type ) as StepNode;
+		const select = labelled<HTMLSelectElement>( 'After a click on an answer' );
+		expect( select.value ).toBe( 'form' );
+		expect( select.options[ 0 ]?.textContent ).toBe( 'As set for the form: go to the next step' );
+		await fill( 'After a click on an answer', 'off' );
+		expect( step().autoAdvance ).toBe( false );
+		await fill( 'After a click on an answer', 'on' );
+		expect( step().autoAdvance ).toBe( true );
+		await fill( 'After a click on an answer', 'form' );
+		expect( step() ).not.toHaveProperty( 'autoAdvance' );
+		await act( async () => store.getState().change( ( d ) => void ( d.settings.autoAdvance = false ) ) );
+		expect( labelled<HTMLSelectElement>( 'After a click on an answer' ).options[ 0 ]?.textContent ).toBe( 'As set for the form: wait for Next' );
+		// Several answers wait for Next anyway: no choice then.
+		const multiple = [ ...container.querySelectorAll<HTMLInputElement>( 'input[role="switch"]' ) ].find( ( i ) => i.parentElement?.querySelector( 'label' )?.textContent === 'Several answers allowed' ) as HTMLInputElement;
+		await act( async () => multiple.click() );
+		expect( () => labelled( 'After a click on an answer' ) ).toThrow();
+	} );
+
 	it( 'says after publishing when the pages still show the Funnelforms 3 version of a form', async () => {
 		const legacy = { ...summary, status: 'published' as const, renderer: 'legacy' as const, legacyId: 12, currentRevision: 2, hasDraft: false };
 		const stays = [ { title: 'No restore point yet', fix: 'Create a restore point. It takes a few seconds.', link: 'Go to the way back', url: 'admin.php?page=funnelforms-migration&tab=wayback' } ];
@@ -646,6 +671,13 @@ describe( 'builder', () => {
 		const before = store.getState().doc?.settings.autoHeight;
 		await act( async () => height.click() );
 		expect( store.getState().doc?.settings.autoHeight ).toBe( ! before );
+		// Moving on after a click is on unless turned off; on is not written into the form.
+		const advance = [ ...container.querySelectorAll<HTMLLabelElement>( '.ffxb-flow .ffxb-toggle label' ) ].find( ( l ) => 'Go to the next step after a click on an answer' === l.textContent ) as HTMLLabelElement;
+		expect( store.getState().doc?.settings ).not.toHaveProperty( 'autoAdvance' );
+		await act( async () => advance.click() );
+		expect( store.getState().doc?.settings.autoAdvance ).toBe( false );
+		await act( async () => advance.click() );
+		expect( store.getState().doc?.settings ).not.toHaveProperty( 'autoAdvance' );
 	} );
 
 	it( 'saves the style for other forms and applies a saved one', async () => {
@@ -1668,7 +1700,7 @@ describe( 'actions', () => {
 		}
 	} );
 
-	it( 'sends a webhook in the format of Funnelforms 4', async () => {
+	it( 'starts a new webhook in the format of Funnelforms 5 and switches to the formats of 3 and 4', async () => {
 		const api = fakeApi();
 		const store = createBuilderStore( api, 7, { autosaveMs: 60000 } );
 		await act( async () => root.render( <Builder api={ api } formId={ 7 } onBack={ () => undefined } store={ store } /> ) );
@@ -1677,13 +1709,23 @@ describe( 'actions', () => {
 		await fill( 'Add an action', 'webhook' );
 		await fill( 'Web address', 'https://hooks.zapier.com/hooks/catch/1/abc/' );
 		const hook = () => store.getState().doc?.actions[ 0 ];
-		expect( hook()?.config ).toEqual( { url: 'https://hooks.zapier.com/hooks/catch/1/abc/' } );
+		expect( hook()?.config ).toEqual( { url: 'https://hooks.zapier.com/hooks/catch/1/abc/', format: 'ff5' } );
+		const format = [ ...container.querySelectorAll( 'select' ) ].find( ( el ) => [ ...el.options ].some( ( o ) => 'ff4' === o.value ) ) as HTMLSelectElement;
+		expect( [ ...format.options ].map( ( o ) => [ o.value, o.textContent ] ) ).toEqual( [
+			[ 'ff5', 'Funnelforms 5 (recommended)' ],
+			[ '', 'Funnelforms 3 (for existing Zaps and scenarios from Pro 3)' ],
+			[ 'ff4', 'Funnelforms 4 (for Zaps and scenarios built on the online version)' ],
+		] );
+		expect( container.textContent ).toContain( 'the same fields as the Zapier, Make and n8n trigger' );
 		await fill( 'Format', 'ff4' );
 		expect( hook()?.config ).toMatchObject( { url: 'https://hooks.zapier.com/hooks/catch/1/abc/', format: 'ff4' } );
 		expect( container.textContent ).toContain( 'existing Zaps keep working' );
 		await fill( 'Format', '' );
 		const config = hook()?.config as { format?: string };
 		expect( config.format ).toBeUndefined();
+		expect( container.textContent ).toContain( 'For a new receiver choose Funnelforms 5' );
+		await fill( 'Format', 'ff5' );
+		expect( hook()?.config ).toMatchObject( { format: 'ff5' } );
 	} );
 
 	it( 'chooses a WhatsApp template of the account with a preview and submits a new one', async () => {
@@ -2178,7 +2220,8 @@ describe( 'connections', () => {
 		await act( async () => tool( 'Delete' ).click() );
 		const confirm = [ ...container.querySelectorAll( 'dialog' ) ].find( ( d ) => d.getAttribute( 'aria-label' )?.startsWith( 'Delete' ) ) as HTMLElement;
 		expect( confirm.textContent ).toContain( 'Still in use in this form' );
-		expect( confirm.textContent ).toContain( 'Slack or Teams message' );
+		// The action by its service, not as "Slack, Teams or Telegram message".
+		expect( confirm.textContent ).toContain( 'These stop working: Slack message.' );
 		await act( async () => button( 'Delete connection' ).click() );
 		await settle();
 		expect( api.deleteConnection ).toHaveBeenCalledWith( slack );
@@ -2279,6 +2322,85 @@ describe( 'connections', () => {
 		expect( testConnection ).toHaveBeenLastCalledWith( twilio, { to: '+49 170 1234567', sender: 'Firma' } );
 		expect( container.querySelector( 'dialog.ffxb-dialog' ) ).toBeNull();
 		expect( container.textContent ).toContain( 'The test message was sent.' );
+	} );
+
+	it( 'sends entries to a Telegram chat that the bot found, where the host can search', async () => {
+		const telegram = 'telegram:5c2e7a10-3b4d-4e6f-8a9b-0c1d2e3f4a5b';
+		const token = '10000:fake-token-for-tests-only-not-a-secret-0000';
+		const telegramChats = vi.fn<NonNullable<FormsApi[ 'telegramChats' ]>>( async () => [
+			{ id: '-1001234567890', title: 'Vertrieb Nord', type: 'supergroup' },
+			{ id: '123456789', title: 'Erika Beispiel', type: 'private' },
+		] );
+		const createConnection = vi.fn( async ( type: string, label: string ) => ( { ref: telegram, type, label } ) );
+		const testConnection = vi.fn( async () => undefined );
+		const api = fakeApi( { connections: vi.fn( async () => [ { ref: slack, type: 'slack', label: 'Vertrieb' } ] ), createConnection, telegramChats, testConnection } );
+		const store = createBuilderStore( api, 7, { autosaveMs: 60000 } );
+		await act( async () => root.render( <Builder api={ api } formId={ 7 } onBack={ () => undefined } store={ store } rights={ { entries: true, code: false, settings: true } } /> ) );
+		await settle();
+		await afterSending();
+		expect( [ ...labelled<HTMLSelectElement>( 'Add an action' ).options ].map( ( o ) => o.textContent ) ).toContain( 'Slack, Teams or Telegram message' );
+		await fill( 'Add an action', 'chat' );
+		const config = () => ( store.getState().doc?.actions[ 0 ] as Extract<Action, { kind: 'chat' }> ).config;
+		expect( [ ...labelled<HTMLSelectElement>( 'Service' ).options ].map( ( o ) => o.textContent ) ).toEqual( [ 'Slack', 'Microsoft Teams', 'Telegram' ] );
+		await fill( 'Connection', slack );
+		await fill( 'Service', 'telegram' );
+		// A Slack connection cannot send to Telegram.
+		expect( config() ).toMatchObject( { service: 'telegram', connectionRef: '' } );
+		expect( container.querySelector( '.ffxb-action__toggle strong' )?.textContent ).toBe( 'Telegram message' );
+
+		await act( async () => button( 'Add connection' ).click() );
+		const dialog = container.querySelector( 'dialog.ffxb-dialog' ) as HTMLElement;
+		expect( dialog.textContent ).toContain( 'In Telegram open @BotFather' );
+		const inDialog = <T extends HTMLElement>( label: string ): T => document.getElementById( ( [ ...dialog.querySelectorAll( 'label' ) ].find( ( l ) => l.textContent === label ) as HTMLLabelElement ).htmlFor ) as T;
+		await fill( 'Bot token', token, dialog );
+		await act( async () => button( 'Find chat' ).click() );
+		await settle();
+		expect( telegramChats ).toHaveBeenCalledWith( { botToken: token } );
+		expect( dialog.textContent ).toContain( 'Chats found: 2. Choose the one that gets the messages.' );
+		expect( [ ...inDialog<HTMLSelectElement>( 'Chat' ).options ].map( ( o ) => o.textContent ) ).toEqual( [ 'Choose…', 'Vertrieb Nord (Group chat)', 'Erika Beispiel (Private chat)' ] );
+		await fill( 'Chat', '123456789', dialog );
+		// The name of a person does not name the connection; a group does.
+		expect( inDialog<HTMLInputElement>( 'Name' ).value ).toBe( '' );
+		await fill( 'Chat', '-1001234567890', dialog );
+		expect( inDialog<HTMLInputElement>( 'Name' ).value ).toBe( 'Vertrieb Nord' );
+		expect( inDialog<HTMLInputElement>( 'Chat ID' ).value ).toBe( '-1001234567890' );
+		await act( async () => button( 'Save connection' ).click() );
+		await settle();
+		expect( createConnection ).toHaveBeenCalledWith( 'telegram', 'Vertrieb Nord', { botToken: token, chatId: '-1001234567890', chatTitle: 'Vertrieb Nord' } );
+		expect( config().connectionRef ).toBe( telegram );
+		expect( [ ...labelled<HTMLSelectElement>( 'Connection' ).options ].map( ( o ) => o.textContent ) ).toContain( 'Vertrieb Nord (Telegram)' );
+		// The test goes straight to the chat.
+		await act( async () => [ ...container.querySelectorAll<HTMLButtonElement>( '.ffxb-connection-tools button' ) ].find( ( b ) => 'Test' === b.textContent )?.click() );
+		await settle();
+		expect( testConnection ).toHaveBeenCalledWith( telegram, {} );
+		expect( container.textContent ).toContain( 'The test message was sent. Check that it arrived.' );
+	} );
+
+	it( 'offers Telegram only where the host can find chats, and keeps an action that sends there', async () => {
+		const doc = blank();
+		doc.actions.push( { id: 'a_tg', on: 'submit', kind: 'chat', config: { service: 'telegram', connectionRef: '', message: { de_DE: 'Neu' }, showAnswers: true, showContact: true } } );
+		const api = fakeApi( { get: vi.fn( async () => ( { ...summary, document: doc, lockTtl: 150 } ) ) } );
+		const store = createBuilderStore( api, 7, { autosaveMs: 60000 } );
+		await act( async () => root.render( <Builder api={ api } formId={ 7 } onBack={ () => undefined } store={ store } rights={ { entries: true, code: false, settings: true } } /> ) );
+		await settle();
+		await afterSending();
+		await act( async () => container.querySelector<HTMLButtonElement>( '.ffxb-action__toggle' )?.click() );
+		await settle();
+		expect( [ ...labelled<HTMLSelectElement>( 'Service' ).options ].map( ( o ) => o.textContent ) ).toEqual( [ 'Slack', 'Microsoft Teams', 'Telegram' ] );
+		// Without the search the chat ID is typed in.
+		await act( async () => button( 'Add connection' ).click() );
+		const dialog = container.querySelector( 'dialog.ffxb-dialog' ) as HTMLElement;
+		expect( [ ...dialog.querySelectorAll( 'label' ) ].map( ( l ) => l.textContent ) ).toEqual( [ 'Name', 'Bot token', 'Chat ID' ] );
+		expect( dialog.textContent ).not.toContain( 'Find chat' );
+		await act( async () => button( 'Cancel' ).click() );
+		// The list of actions does not promise Telegram where the service select has none.
+		const kinds = [ ...labelled<HTMLSelectElement>( 'Add an action' ).options ].map( ( o ) => o.textContent );
+		expect( kinds ).toContain( 'Slack or Teams message' );
+		expect( kinds.join( ' ' ) ).not.toContain( 'Telegram' );
+		// A new message opens right away.
+		await fill( 'Add an action', 'chat' );
+		expect( container.querySelector( '.ffxb-action.is-open strong' )?.textContent ).toBe( 'Slack message' );
+		expect( [ ...labelled<HTMLSelectElement>( 'Service' ).options ].map( ( o ) => o.textContent ) ).toEqual( [ 'Slack', 'Microsoft Teams' ] );
 	} );
 } );
 
@@ -2452,7 +2574,27 @@ describe( 'appointments', () => {
 			const step = store.getState().doc?.nodes.find( ( n ) => 'step' === n.type && n.fields[ 0 ]?.type === 'booking' );
 			return step && 'step' === step.type ? ( step.fields[ 0 ]?.props as Record<string, unknown> ) : undefined;
 		};
+		// New appointment questions list the earliest free times, with filters.
+		expect( field() ).toEqual( { bookingTypeRef: '', earliest: { filters: true } } );
+		const toggle = async ( label: string ): Promise<void> => {
+			const input = [ ...container.querySelectorAll<HTMLInputElement>( 'input[role="switch"]' ) ].find( ( i ) => i.parentElement?.querySelector( 'label' )?.textContent === label );
+			if ( ! input ) {
+				throw new Error( 'No switch ' + label );
+			}
+			await act( async () => input.click() );
+		};
+		await fill( 'Number of times in the box', '9' );
+		expect( field()?.earliest ).toEqual( { filters: true, count: 9 } );
+		await fill( 'Number of times in the box', '40' );
+		expect( field()?.earliest ).toEqual( { filters: true, count: 12 } );
+		await fill( 'Number of times in the box', '6' );
+		await toggle( 'Filters for time of day and weekday' );
+		expect( field()?.earliest ).toEqual( {} );
+		await toggle( 'Show the earliest free times' );
 		expect( field() ).toEqual( { bookingTypeRef: '' } );
+		expect( () => labelled( 'Number of times in the box' ) ).toThrow();
+		await toggle( 'Show the earliest free times' );
+		expect( field()?.earliest ).toEqual( { filters: true } );
 
 		await fill( 'Appointment type', 'legacy:7001' );
 		expect( field()?.bookingTypeRef ).toBe( 'legacy:7001' );

@@ -478,6 +478,17 @@ export interface Connection {
 	test?: boolean;
 }
 
+/** A chat a Telegram bot heard from lately, as POST connections/telegram/chats lists it. */
+export interface TelegramChat {
+	/** ID as Telegram gives it: negative for groups and channels. */
+	id: string;
+	/** Name of the group or channel; in a private chat the name of the person. */
+	title: string;
+	type: 'private' | 'group' | 'supergroup' | 'channel';
+	/** A group or channel with a @name: anyone can read it, so the finder warns. */
+	public?: boolean;
+}
+
 /** What a test of a connection sends: the number for SMS and WhatsApp, the sender of an SMS, the template of WhatsApp. */
 export interface ConnectionTest {
 	to?: string;
@@ -717,6 +728,12 @@ export interface FormsApi {
 	deleteConnection?( ref: string ): Promise<void>;
 	/** Sends a test message through a connection (SMS and WhatsApp to the number given), or reads its calendar; fails with not_testable, invalid_number or delivery_failed. */
 	testConnection?( ref: string, test: ConnectionTest ): Promise<ConnectionTestResult | undefined>;
+	/**
+	 * The chats a Telegram bot heard from lately: by the token typed in, or by a saved connection
+	 * (ref), whose token stays on the server. Fails with invalid_token, token_rejected, bot_in_use
+	 * (webhook) or unreachable. Missing where the host has no Telegram connections.
+	 */
+	telegramChats?( bot: { botToken: string } | { ref: string } ): Promise<TelegramChat[]>;
 	/** Published pages of the site whose title holds the search, for redirects. */
 	pages?( search: string ): Promise<SitePage[]>;
 	/** Agents of Funnelforms → AI Phone Agent, for the action aiCall. */
@@ -939,8 +956,8 @@ export interface EntryDetail extends EntrySummary {
 	pdfUrl: string;
 	notes: EntryNote[];
 	deliveries: Array<{ id: number; action: string; status: string; attempts: number; error: string | null; updatedAt: string | null }>;
-	/** Actions that can run again for this entry. */
-	actions: Array<{ id: string; kind: string }>;
+	/** Actions that can run again for this entry; a chat message with its service (slack, teams, telegram). */
+	actions: Array<{ id: string; kind: string; service?: string }>;
 	appointments: Appointment[];
 	/** Calls of the AI Phone Agent (Funnelforms Pro), per action of the form. */
 	aiCalls?: EntryAiCall[];

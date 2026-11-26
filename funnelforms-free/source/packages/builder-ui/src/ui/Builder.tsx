@@ -14,6 +14,7 @@ import { ChangeNotice, fieldsOf, removeWithNotice } from './Removal';
 import { createBuilderStore, type BuilderStore } from '../store';
 import { Canvas } from './Canvas';
 import { problemTexts, rightName } from './catalog';
+import { CheckButton, IssueList, useIssues } from './Issues';
 import { BuilderContext, DEFAULT_RIGHTS, SHORTCUTS_EVENT, useBuilder, useEnv, ViewContext, type BuilderEnv, type Rights, type View } from './context';
 import { __, sprintf } from './i18n';
 import { Inspector } from './Inspector';
@@ -69,6 +70,13 @@ export function Builder( { api, formId, onBack, labelsFor, store: given, rights 
 	// A language removed meanwhile (or by undo) falls back to the default language.
 	const lang = useStore( store, ( s ) => ( s.lang && s.doc?.locales.available.includes( s.lang ) ? s.lang : locale ) );
 	const locked = useStore( store, ( s ) => 'locked' === s.save.state );
+	// Fields of the draft that shared an id got their own when it was opened (store.load()).
+	const separated = useStore( store, ( s ) => s.separated.length );
+	useEffect( () => {
+		if ( separated > 0 ) {
+			store.getState().notify( __( 'Two elements had the same ID. Funnelforms gave the second one its own ID, so the preview and publishing work again. Nothing else changed.', 'funnelforms-pro' ), false );
+		}
+	}, [ separated, store ] );
 
 	// Funnelforms Free shows the figures per step on the canvas; Pro has the analytics mode instead.
 	const [ figures, setFigures ] = useState<{ figures: StepFigures; label: string } | null>( null );
@@ -202,7 +210,9 @@ export function Builder( { api, formId, onBack, labelsFor, store: given, rights 
 	return (
 		<BuilderContext.Provider value={ env }>
 			<div className="ffxb-builder">
-				<TopBar api={ api } formId={ formId } onBack={ onBack } view={ view } onView={ setView } onTour={ tour ? startTour : undefined } prediction={ prediction } publishNote={ publishNote } onPublish={ setPublishNote } />
+				<ViewContext.Provider value={ setView }>
+					<TopBar api={ api } formId={ formId } onBack={ onBack } view={ view } onView={ setView } onTour={ tour ? startTour : undefined } prediction={ prediction } publishNote={ publishNote } onPublish={ setPublishNote } />
+				</ViewContext.Provider>
 				<LockedBanner />
 				{ figures && 'build' === view ? (
 					<div className="ffxb-figures-bar" role="status">
@@ -240,6 +250,9 @@ export function Builder( { api, formId, onBack, labelsFor, store: given, rights 
 									prediction.setOn( true );
 									if ( node ) {
 										store.getState().select( { node } );
+									} else {
+										// The whole form: the visitors run through it at once.
+										prediction.setCue( true );
 									}
 									setView( 'build' );
 								} }
@@ -318,7 +331,9 @@ function TopBar( { api, formId, onBack, view, onView, onTour, prediction, publis
 	const title = useBuilder( ( s ) => s.doc?.title ?? '' );
 	const canUndo = useBuilder( ( s ) => s.canUndo );
 	const canRedo = useBuilder( ( s ) => s.canRedo );
-	const problems = useBuilder( ( s ) => problemTexts( s.problems ).length + s.missingRights.length );
+	const issues = useIssues();
+	const missing = useBuilder( ( s ) => s.missingRights.length );
+	const problems = issues.filter( ( i ) => i.blocking ).length + missing;
 	const { undo, redo } = store.getState();
 	const [ revisions, setRevisions ] = useState( false );
 	const [ previewing, setPreviewing ] = useState( false );
@@ -342,12 +357,13 @@ function TopBar( { api, formId, onBack, view, onView, onTour, prediction, publis
 				<Button variant="ghost" icon={ icons.redo } aria-label={ __( 'Redo', 'funnelforms-pro' ) } title={ __( 'Redo (Ctrl+Shift+Z)', 'funnelforms-pro' ) } disabled={ ! canRedo || readOnly } onClick={ redo } />
 				<Button variant="ghost" icon={ icons.history } aria-label={ __( 'Versions', 'funnelforms-pro' ) } title={ __( 'Versions', 'funnelforms-pro' ) } onClick={ () => setRevisions( true ) } />
 				<span className="ffxb-topbar__sep" aria-hidden="true" />
+				<CheckButton />
 				<Button icon={ icons.eye } data-tour="preview" onClick={ () => setPreviewing( true ) }>
 					{ __( 'Preview', 'funnelforms-pro' ) }
 				</Button>
 				<Button variant="primary" icon={ icons.check } data-tour="publish" disabled={ readOnly } onClick={ () => onPublish( '' ) }>
 					{ __( 'Publish', 'funnelforms-pro' ) }
-					{ problems > 0 ? <span className="ffxb-count">{ problems }</span> : null }
+					{ problems > 0 ? <span className="ffxb-count ffxb-count--danger" title={ __( 'Problems that keep the form from being published', 'funnelforms-pro' ) }>{ problems }</span> : null }
 				</Button>
 			</div>
 			{ null !== publishNote ? (
@@ -427,7 +443,7 @@ function LockedBanner() {
 function PublishDialog( { note: initialNote = '', onClose, onEmbed }: { note?: string; onClose: () => void; onEmbed: () => void } ) {
 	const { store } = useEnv();
 	const publishing = useBuilder( ( s ) => s.publishing );
-	const problems = useBuilder( ( s ) => s.problems );
+	const blocking = useIssues().filter( ( i ) => i.blocking );
 	const missingRights = useBuilder( ( s ) => s.missingRights );
 	const form = useBuilder( ( s ) => s.form );
 	const doc = useBuilder( ( s ) => s.doc );
@@ -435,7 +451,7 @@ function PublishDialog( { note: initialNote = '', onClose, onEmbed }: { note?: s
 	const [ note, setNote ] = useState( initialNote );
 	const busy = 'publishing' === publishing.state;
 	const done = 'published' === publishing.state;
-	const blocked = problems.length > 0 || missingRights.length > 0;
+	const blocked = blocking.length > 0 || missingRights.length > 0;
 	const stays = publishing.stays ?? [];
 	const onLegacy = 'legacy' === form?.renderer && stays.length > 0;
 
@@ -502,14 +518,13 @@ function PublishDialog( { note: initialNote = '', onClose, onEmbed }: { note?: s
 				</>
 			) : (
 				<>
-					{ problems.length ? (
-						<Notice tone="danger" title={ __( 'Fix these first', 'funnelforms-pro' ) }>
-							<ul>
-								{ problemTexts( problems ).map( ( p ) => (
-									<li key={ p }>{ p }</li>
-								) ) }
-							</ul>
-						</Notice>
+					{ blocking.length ? (
+						<div className="ffxb-publish-issues">
+							<p className="ffxb-issues-summary is-blocked">
+								{ sprintf( /* translators: %d: number of problems */ __( 'Problems that keep the form from being published: %d', 'funnelforms-pro' ), blocking.length ) }
+							</p>
+							<IssueList issues={ blocking } onShow={ onClose } />
+						</div>
 					) : null }
 					{ missingRights.length ? (
 						<Notice tone="warning" title={ __( 'Someone with more rights has to publish this', 'funnelforms-pro' ) }>

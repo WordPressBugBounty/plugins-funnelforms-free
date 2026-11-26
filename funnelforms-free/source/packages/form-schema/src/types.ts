@@ -47,6 +47,11 @@ export interface StepNode {
 	id: string;
 	type: 'step';
 	fields: Field[];
+	/**
+	 * Whether a click on a single choice or a rating moves on by itself (steps with one question);
+	 * without it the form's setting (Settings.autoAdvance) applies.
+	 */
+	autoAdvance?: boolean;
 	/** Custom JavaScript the site owner attached in 3.x; runs only if the owner allows it. */
 	tracking?: { onShow?: string };
 	legacy?: { questionId?: number };
@@ -363,8 +368,16 @@ export interface AddressField extends FieldBase {
 
 export interface BookingField extends FieldBase {
 	type: 'booking';
-	/** Reference to a booking type (3.x: appointment event). */
-	props: { bookingTypeRef: string };
+	props: {
+		/** Reference to a booking type (3.x: appointment event). */
+		bookingTypeRef: string;
+		/**
+		 * A box above the calendar with the earliest free times of the next two months, so visitors
+		 * need not click through booked days: `count` times (3 to 12, 6 without it), and with
+		 * `filters` buttons for the time of day (morning, afternoon, evening) and the weekdays.
+		 */
+		earliest?: { count?: number; filters?: boolean };
+	};
 }
 
 /** E-mail address as a step field (3.x had it only in the contact step). */
@@ -732,8 +745,12 @@ export interface CalculationFormat {
 export type Action = { id: string; on: 'submit' | 'paid'; node?: string; when?: Condition } & (
 	| { kind: 'email'; config: EmailConfig }
 	| { kind: 'autoresponder'; config: EmailConfig & { recipientField?: string; attachmentUrl?: string } }
-	/** format: the 3.x payload (default) or "ff4", the payload of Funnelforms 4 (Domain\Entry\Ff4Payload). */
-	| { kind: 'webhook'; config: { url: string; format?: 'ff4' } }
+	/**
+	 * format: the 3.x payload when missing (webhooks made before 5.0.11 and migrated 3.x forms), "ff4" the
+	 * payload of Funnelforms 4 (Domain\Entry\Ff4Payload), "ff5" the entry of the automation API
+	 * (Http\AutomationController::entry), which new webhooks start with.
+	 */
+	| { kind: 'webhook'; config: { url: string; format?: 'ff4' | 'ff5' } }
 	| { kind: 'crm'; config: { provider: string; connectionRef: string; mapping: Record<string, unknown> } }
 	| { kind: 'chat'; config: ChatConfig }
 	| { kind: 'sms'; config: SmsConfig }
@@ -831,9 +848,12 @@ export interface SmsConfig {
 	countryCode?: string;
 }
 
-/** Message about a new entry in Slack or Microsoft Teams; the webhook address lives in the connection. */
+/**
+ * Message about a new entry in Slack, Microsoft Teams or Telegram. The webhook address, and for
+ * Telegram the bot token and the chat, live in the connection.
+ */
 export interface ChatConfig {
-	service: 'slack' | 'teams';
+	service: 'slack' | 'teams' | 'telegram';
 	connectionRef: string;
 	/** Plain text above the answers, with the tokens of mail templates. */
 	message: Template;
@@ -898,6 +918,12 @@ export interface Settings {
 	/** A choice of the form's languages on its first step (forms in several languages). */
 	languageSwitch?: boolean;
 	autoHeight: boolean;
+	/**
+	 * false: a click on a single choice or a rating only marks the answer, and visitors go on with
+	 * Next. Absent or true: steps with one such question move on by themselves (as since 5.0). A step
+	 * can say otherwise (StepNode.autoAdvance).
+	 */
+	autoAdvance?: boolean;
 	iconFont: boolean;
 	/** Save incomplete entries step by step. */
 	savePartialEntries: boolean;

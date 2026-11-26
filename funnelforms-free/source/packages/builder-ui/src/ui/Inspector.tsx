@@ -4,7 +4,7 @@
  * the top bar: the form's default language, or a translation.
  */
 import React from 'react';
-import type { ContactField, Field, FormDocument, FormNode, Text } from '@funnelforms/form-schema';
+import type { BookingField, ContactField, Field, FormDocument, FormNode, StepNode, Text } from '@funnelforms/form-schema';
 import {
 	duplicateField,
 	duplicateNode,
@@ -18,7 +18,6 @@ import {
 	removeField,
 	removeNode,
 	setStart,
-	text,
 } from '../document';
 import type { Panel, Recipe } from '../store';
 import { BookingTypeField } from './BookingTypes';
@@ -39,20 +38,21 @@ import { AnswerInsert } from './AnswerInsert';
 import { editText } from '../languages';
 import { spamProtection } from '../spam';
 import { InputIcon } from './IconPicker';
-import { HiddenFieldProps, isHidden, PrefillProps } from './Prefill';
+import { caption, HiddenFieldProps, isHidden, PrefillProps } from './Prefill';
 import { contactFieldName, stepFieldName } from './catalog';
 import { useBuilder, useEnv, ViewContext, type View } from './context';
 import { put, TextProp } from './texts';
 import { fieldsOf, removeWithNotice } from './Removal';
 import { describeCondition, edgeLabel, fieldIndex } from './describe';
-import { ActionsSection, kindName } from './Actions';
+import { actionName, ActionsSection } from './Actions';
 import { NodeAnalyticsSection, PathsSection } from './Analytics';
 import { PredictionNodeSection, PredictionOverview } from './Prediction';
-import { HintList, useHints } from './Hints';
+import { IssueList, IssueOverview, useIssues } from './Issues';
+import { issuesAt } from './formCheck';
 import { EdgeInspector, FieldVisibility, NodeLogic } from './Logic';
 import { StepVariants } from './Experiments';
 import { __, sprintf } from './i18n';
-import { Button, IconButton, icons, Notice, Section, TextInput, Toggle } from './ui';
+import { Button, IconButton, icons, Notice, NumberInput, Section, Select, TextInput, Toggle } from './ui';
 
 type AnyField = Field | ContactField;
 
@@ -270,7 +270,7 @@ function FormOverview( { doc }: { doc: FormDocument } ) {
 				</dl>
 				<p className="ffxb-hint">{ __( 'Select a step on the canvas to edit it.', 'funnelforms-pro' ) }</p>
 			</Section>
-			<LogicCheck doc={ doc } />
+			<LogicCheck />
 			<nav className="ffxb-jumps" aria-label={ __( 'More of this form', 'funnelforms-pro' ) }>
 				{ jumps
 					.filter( ( j ) => j.show )
@@ -288,12 +288,12 @@ function FormOverview( { doc }: { doc: FormDocument } ) {
 	);
 }
 
-/** All hints about the logic of the form, or that everything leads somewhere. */
-function LogicCheck( { doc }: { doc: FormDocument } ) {
-	const hints = useHints().filter( ( h ) => 'info' !== h.level );
+/** Everything that is wrong with the form, with a way to each place, or that all is in order. */
+function LogicCheck() {
+	const issues = useIssues();
 	return (
-		<Section title={ __( 'Logic check', 'funnelforms-pro' ) }>
-			{ hints.length ? <HintList doc={ doc } hints={ hints } /> : <p className="ffxb-check-ok">{ __( 'Every step leads on and every end can be reached.', 'funnelforms-pro' ) }</p> }
+		<Section title={ __( 'Check', 'funnelforms-pro' ) }>
+			<IssueOverview issues={ issues } />
 		</Section>
 	);
 }
@@ -305,7 +305,8 @@ function NodeInspector( { doc, node }: { doc: FormDocument; node: FormNode } ) {
 	const change = useChange();
 	const select = store.getState().select;
 	const panel = useBuilder( ( s ) => s.panel );
-	const hints = useHints().filter( ( h ) => h.node === node.id );
+	const all = useIssues();
+	const issues = issuesAt( all, { node: node.id } );
 	const title = 'step' === node.type ? __( 'Step', 'funnelforms-pro' ) : 'contact' === node.type ? __( 'Contact step', 'funnelforms-pro' ) : __( 'End', 'funnelforms-pro' );
 	const ask = useAiAsk();
 	const { ctx } = useEnv();
@@ -345,13 +346,13 @@ function NodeInspector( { doc, node }: { doc: FormDocument; node: FormNode } ) {
 			/>
 		</>
 	);
-	// Hints about the node itself; those about its paths are on the logic panel.
-	const own = hints.filter( ( h ) => ! h.edge && ! h.field && ! LOGIC_CODES.includes( h.code ) );
+	// Issues of the node itself and its fields; those about its paths are on the logic panel.
+	const own = issues.filter( ( i ) => 'logic' !== i.target?.panel );
 	if ( 'end' === node.type ) {
 		return (
 			<>
 				<Section title={ title } actions={ actions }>
-					<HintList doc={ doc } hints={ own.filter( ( h ) => 'noEntry' !== h.code ) } compact />
+					<IssueList issues={ own } compact />
 					<EndProps node={ node } />
 					<EndCode doc={ doc } node={ node } />
 				</Section>
@@ -359,13 +360,13 @@ function NodeInspector( { doc, node }: { doc: FormDocument; node: FormNode } ) {
 			</>
 		);
 	}
-	const logicCount = hints.filter( ( h ) => 'info' !== h.level && ( h.edge || LOGIC_CODES.includes( h.code ) ) ).length;
+	const logicCount = all.filter( ( i ) => i.marks.nodes.includes( node.id ) && ( 'logic' === i.target?.panel || i.marks.edges.length > 0 ) ).length;
 	const single = 'step' === node.type && 1 === node.fields.length ? node.fields[ 0 ] : undefined;
 	const content = (
 		<>
 			<Section title={ title } actions={ actions }>
 				{ 'step' === node.type && 'free' !== process.env.FUNNELFORMS_EDITION ? <StepVariants doc={ doc } nodeId={ node.id } /> : null }
-				<HintList doc={ doc } hints={ own } compact />
+				<IssueList issues={ own } compact />
 				{ doc.start !== node.id ? (
 					<Button size="sm" icon={ icons.start } onClick={ () => change( ( d ) => setStart( d, node.id ) ) } disabled={ readOnly }>
 						{ __( 'Make this the first step', 'funnelforms-pro' ) }
@@ -402,9 +403,6 @@ function NodeInspector( { doc, node }: { doc: FormDocument; node: FormNode } ) {
 		</>
 	);
 }
-
-/** Hints that belong on the logic panel of a step. */
-const LOGIC_CODES: string[] = [ 'deadEnd', 'noOtherwise', 'contactNoEnd' ];
 
 /** The two panels of a step: what it asks, and where visitors go (or what happens on sending). */
 function PanelTabs( { panel, contentLabel, logicLabel, count }: { panel: Panel; contentLabel: string; logicLabel: string; count: number } ) {
@@ -474,7 +472,7 @@ function EndArrivals( { doc, node }: { doc: FormDocument; node: Extract<FormNode
 							{ contact ? (
 								<p className="ffxb-arrival__note">
 									{ run.length
-										? sprintf( __( 'After sending: %s', 'funnelforms-pro' ), run.map( ( a ) => kindName( a.kind ) ).join( ', ' ) )
+										? sprintf( __( 'After sending: %s', 'funnelforms-pro' ), run.map( ( a ) => actionName( a ) ).join( ', ' ) )
 										: __( 'After sending: the entry is saved, nothing else happens.', 'funnelforms-pro' ) }{ ' ' }
 									<button type="button" className="ffxb-link" onClick={ () => select( { node: from.id }, 'logic' ) }>
 										{ __( 'Edit', 'funnelforms-pro' ) }
@@ -555,7 +553,7 @@ function FieldList( { node }: { node: Extract<FormNode, { type: 'step' | 'contac
 					<li key={ f.id } className="ffxb-fields__row">
 						<button type="button" className="ffxb-fields__main" onClick={ () => select( { node: node.id, field: f.id } ) }>
 							<span className="ffxb-fields__type">{ name( f ) }</span>
-							<span className="ffxb-fields__label">{ text( f.label, ctx.locale ) || '—' }</span>
+							<span className="ffxb-fields__label">{ caption( f, ctx.locale ) || '—' }</span>
 							{ 'showWhen' in f && f.showWhen ? (
 								<span className="ffxb-fields__cond" title={ describeCondition( f.showWhen, doc, ctx.locale ) }>
 									{ __( 'Only if …', 'funnelforms-pro' ) }
@@ -592,9 +590,20 @@ function FieldInspector( { doc, node, fieldId }: { doc: FormDocument; node: Form
 					{ 'contact' === node.type ? __( 'Contact step', 'funnelforms-pro' ) : __( 'Step', 'funnelforms-pro' ) }
 				</Button>
 			</div>
+			<FieldIssues nodeId={ node.id } fieldId={ fieldId } />
 			<FieldProps node={ node } field={ field } />
 		</>
 	);
+}
+
+/** What is wrong with the field, at the top of its properties. */
+function FieldIssues( { nodeId, fieldId }: { nodeId: string; fieldId: string } ) {
+	const issues = issuesAt( useIssues(), { node: nodeId, field: fieldId } );
+	return issues.length ? (
+		<div className="ffxb-field-issues">
+			<IssueList issues={ issues } compact />
+		</div>
+	) : null;
 }
 
 function FieldProps( { node, field }: { node: Extract<FormNode, { type: 'step' | 'contact' }>; field: AnyField } ) {
@@ -699,6 +708,7 @@ function FieldProps( { node, field }: { node: Extract<FormNode, { type: 'step' |
 			) : null }
 			{ 'step' === node.type ? <FieldVisibility node={ node } fieldId={ field.id } /> : null }
 			{ contact ? null : <StepFieldProps node={ node } field={ field as Field } edit={ edit } propText={ propText } /> }
+			{ 'step' === node.type && picksAdvance( node, field as Field ) ? <StepAdvance node={ node } /> : null }
 			<PrefillProps field={ field } contact={ contact } edit={ edit } readOnly={ readOnly } />
 			{ clash ? (
 				<Notice tone="warning">
@@ -719,6 +729,118 @@ function FieldProps( { node, field }: { node: Extract<FormNode, { type: 'step' |
 }
 
 type Edit = ( recipe: ( f: AnyField ) => void, key?: string ) => void;
+
+/**
+ * Whether a click on this field can move on by itself: a single choice or a rating, alone in its
+ * step (live results do not count, as in the runtime).
+ */
+export function picksAdvance( node: StepNode, field: Field ): boolean {
+	const asks = node.fields.filter( ( f ) => 'result' !== f.type );
+	return 1 === asks.length && asks[ 0 ]?.id === field.id && ( 'rating' === field.type || ( 'choice' === field.type && ! field.props.multiple ) );
+}
+
+/** Whether a click on the answer of a step moves on: as the form says (Design), or always or never here. */
+function StepAdvance( { node }: { node: StepNode } ) {
+	const change = useChange();
+	const { readOnly } = useEnv();
+	const form = false !== useBuilder( ( s ) => s.doc?.settings.autoAdvance );
+	const value = undefined === node.autoAdvance ? 'form' : node.autoAdvance ? 'on' : 'off';
+	return (
+		<Select
+			label={ __( 'After a click on an answer', 'funnelforms-pro' ) }
+			value={ value }
+			disabled={ readOnly }
+			options={ [
+				{ value: 'form', label: form ? __( 'As set for the form: go to the next step', 'funnelforms-pro' ) : __( 'As set for the form: wait for Next', 'funnelforms-pro' ) },
+				{ value: 'on', label: __( 'Go to the next step', 'funnelforms-pro' ) },
+				{ value: 'off', label: __( 'Wait for Next', 'funnelforms-pro' ) },
+			] }
+			onChange={ ( v ) =>
+				change( ( d ) => {
+					const step = findNode( d, node.id );
+					if ( step && 'step' === step.type ) {
+						if ( 'form' === v ) {
+							delete step.autoAdvance;
+						} else {
+							step.autoAdvance = 'on' === v;
+						}
+					}
+				} )
+			}
+			hint={ __( 'Wait for Next: visitors see the answer they chose and go on with Next. The setting for the whole form is under Design, Steps and progress.', 'funnelforms-pro' ) }
+		/>
+	);
+}
+
+/** The appointment type of a booking field and the box with the earliest free times. */
+function BookingProps( { field, edit, set }: { field: BookingField; edit: Edit; set: ( key: string, value: unknown ) => void } ) {
+	const { readOnly } = useEnv();
+	const earliest = field.props.earliest;
+	const props = ( recipe: ( e: NonNullable<BookingField[ 'props' ][ 'earliest' ]> ) => void, key?: string ): void =>
+		edit( ( f ) => {
+			const p = ( f as BookingField ).props;
+			if ( p.earliest ) {
+				recipe( p.earliest );
+			}
+		}, key );
+	return (
+		<>
+			<BookingTypeField value={ field.props.bookingTypeRef } onChange={ ( v ) => set( 'bookingTypeRef', v ) } />
+			<Toggle
+				label={ __( 'Show the earliest free times', 'funnelforms-pro' ) }
+				hint={ __( 'A box above the calendar lists the next free times of the coming two months, so visitors need not click through booked days.', 'funnelforms-pro' ) }
+				checked={ Boolean( earliest ) }
+				disabled={ readOnly }
+				onChange={ ( on ) =>
+					edit( ( f ) => {
+						const p = ( f as BookingField ).props;
+						if ( on ) {
+							p.earliest = { filters: true };
+						} else {
+							delete p.earliest;
+						}
+					} )
+				}
+			/>
+			{ earliest ? (
+				<>
+					<NumberInput
+						label={ __( 'Number of times in the box', 'funnelforms-pro' ) }
+						value={ earliest.count ?? 6 }
+						min={ 3 }
+						max={ 12 }
+						step={ 1 }
+						disabled={ readOnly }
+						onChange={ ( v ) =>
+							props( ( e ) => {
+								if ( undefined === v || 6 === Math.round( v ) ) {
+									delete e.count;
+								} else {
+									e.count = Math.min( 12, Math.max( 3, Math.round( v ) ) );
+								}
+							}, 'props.earliest.count' )
+						}
+					/>
+					<Toggle
+						label={ __( 'Filters for time of day and weekday', 'funnelforms-pro' ) }
+						hint={ __( 'Visitors narrow the times down to mornings, afternoons or evenings and to the weekdays that suit them.', 'funnelforms-pro' ) }
+						checked={ Boolean( earliest.filters ) }
+						disabled={ readOnly }
+						onChange={ ( on ) =>
+							props( ( e ) => {
+								if ( on ) {
+									e.filters = true;
+								} else {
+									delete e.filters;
+								}
+							} )
+						}
+					/>
+				</>
+			) : null }
+		</>
+	);
+}
 
 function StepFieldProps( { node, field, edit, propText }: { node: FormNode; field: Field; edit: Edit; propText: ( key: string ) => ( value: string ) => void } ) {
 	const set = ( key: string, value: unknown ): void => edit( ( f ) => void ( ( f.props as Record<string, unknown> )[ key ] = value ), 'props.' + key );
@@ -762,7 +884,7 @@ function StepFieldProps( { node, field, edit, propText }: { node: FormNode; fiel
 		case 'address':
 			return 'free' === process.env.FUNNELFORMS_EDITION ? <ProField /> : <AddressProps field={ field } edit={ edit } />;
 		case 'booking':
-			return 'free' === process.env.FUNNELFORMS_EDITION ? <ProField /> : <BookingTypeField value={ field.props.bookingTypeRef } onChange={ ( v ) => set( 'bookingTypeRef', v ) } />;
+			return 'free' === process.env.FUNNELFORMS_EDITION ? <ProField /> : <BookingProps field={ field } edit={ edit } set={ set } />;
 		case 'result':
 			return 'free' === process.env.FUNNELFORMS_EDITION ? <ProField /> : <ResultProps field={ field } edit={ edit } />;
 		case 'repeat':

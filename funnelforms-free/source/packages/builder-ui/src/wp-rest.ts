@@ -9,7 +9,7 @@ import { createLeadcallerApi, type AiAgentSummary, type LeadcallerApi } from './
 import { restFetch } from './rest-bridge';
 import { __ } from './ui/i18n';
 import type { PredictionFigures, PredictionParameters, StoredPrediction } from './predict';
-import type { AiChange, AiCreated, PredictionHistory, PredictionQuota, PredictionRun, Appointment, BookingConfig, BookingType, BookingTypes, Branding, BulkChanges, CalendarChoice, CalendarSignIn, CalendarsOverview, Connection, ConnectionTest, ConnectionTestResult, EntriesApi, EntryChanges, EntryDetail, EntryFigures, EntryFiguresQuery, EntryFilter, EntryList, EntryNote, EntryPayment, EntrySummary, ExperimentStats, LeadStage, LeadStageInput, FontFile, FormDetail, FormFigures, FormList, FormsApi, FormStatsReport, FormStatus, GoogleFont, IconLibrary, ImportedForm, ListQuery, MediaFile, MediaImage, MoveResult, NewWhatsAppTemplate, PublishResult, Revision, SavedStyle, SaveResult, SiteDesign, SitePage, TemplateCatalog, UserRef, WhatsAppTemplate } from './api';
+import type { AiChange, AiCreated, PredictionHistory, PredictionQuota, PredictionRun, Appointment, BookingConfig, BookingType, BookingTypes, Branding, BulkChanges, CalendarChoice, CalendarSignIn, CalendarsOverview, Connection, ConnectionTest, ConnectionTestResult, EntriesApi, EntryChanges, EntryDetail, EntryFigures, EntryFiguresQuery, EntryFilter, EntryList, EntryNote, EntryPayment, EntrySummary, ExperimentStats, LeadStage, LeadStageInput, FontFile, FormDetail, FormFigures, FormList, FormsApi, FormStatsReport, FormStatus, GoogleFont, IconLibrary, ImportedForm, ListQuery, MediaFile, MediaImage, MoveResult, NewWhatsAppTemplate, PublishResult, Revision, SavedStyle, SaveResult, SiteDesign, SitePage, TelegramChat, TemplateCatalog, UserRef, WhatsAppTemplate } from './api';
 
 export interface WpRestOptions {
 	/** REST root as WordPress prints it (wpApiSettings.root): …/wp-json/ or …/?rest_route=/ */
@@ -316,6 +316,11 @@ export class WpRestAdapter implements FormsApi, EntriesApi {
 
 	testConnection( ref: string, test: ConnectionTest ): Promise<ConnectionTestResult> {
 		return this.request<ConnectionTestResult>( 'POST', '~/connections/' + ref + '/test', test );
+	}
+
+	async telegramChats( bot: { botToken: string } | { ref: string } ): Promise<TelegramChat[]> {
+		// The token goes in the body, never in the address.
+		return ( await this.request<{ chats: TelegramChat[] }>( 'POST', '~/connections/telegram/chats', bot ) ).chats;
 	}
 
 	async pages( search: string ): Promise<SitePage[]> {

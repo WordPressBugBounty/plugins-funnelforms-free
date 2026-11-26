@@ -10,6 +10,7 @@ import { referrerOf } from '../src/visit';
 import { ORIGIN_KEY } from '../src/origin';
 // The chunks of address, booking and repeat fields are there from the start, as on the plugin's pages.
 import '../src/chunks/address';
+import { typedNumber } from '../src/address';
 import '../src/chunks/booking';
 import '../src/chunks/repeat';
 import type { Field } from '@funnelforms/form-schema';
@@ -907,17 +908,29 @@ describe( 'file fields', () => {
 } );
 
 describe( 'appointments', () => {
-	function bookingForm( locale = 'de_DE' ): HTMLElement {
+	function bookingForm( locale = 'de_DE', props: Record<string, unknown> = {} ): HTMLElement {
 		const base = { ...config(), locale };
 		const doc = base.document as unknown as { nodes: unknown[]; edges: unknown[]; start: string };
 		doc.nodes.unshift( {
 			id: 'nb',
 			type: 'step',
-			fields: [ { id: 'qb', key: 'termin', type: 'booking', label: de( 'Wann passt es?' ), description: de( '' ), required: true, props: { bookingTypeRef: 'bt:1' } } ],
+			fields: [ { id: 'qb', key: 'termin', type: 'booking', label: de( 'Wann passt es?' ), description: de( '' ), required: true, props: { bookingTypeRef: 'bt:1', ...props } } ],
 		} );
 		doc.edges.unshift( { id: 'xb', from: 'nb', to: 'n1' } );
 		doc.start = 'nb';
-		Object.assign( base.strings, { booking_selected: 'Ihr Termin: %s', slot_taken: 'Schon vergeben', booking_no_times: 'Nichts frei', booking_timezone: 'Zeiten in %s' } );
+		Object.assign( base.strings, {
+			booking_selected: 'Ihr Termin: %s',
+			slot_taken: 'Schon vergeben',
+			booking_no_times: 'Nichts frei',
+			booking_timezone: 'Zeiten in %s',
+			booking_earliest: 'Früheste freie Termine',
+			booking_earliest_none: 'Keine passenden Termine',
+			booking_time_of_day: 'Tageszeit',
+			booking_weekday: 'Wochentag',
+			booking_morning: 'Vormittags',
+			booking_afternoon: 'Nachmittags',
+			booking_evening: 'Abends',
+		} );
 		const root = document.createElement( 'div' );
 		document.body.append( root );
 		new FormApp( root, base, { url: '', query: '', title: '' } );
@@ -991,6 +1004,84 @@ describe( 'appointments', () => {
 		expect( pressed( root, '.ffx-booking-day' ) ).toEqual( [ '2026-11-02' ] );
 		expect( pressed( root, '.ffx-booking-time' ) ).toEqual( [] );
 		expect( $( root, '.ffx-button-back' ).hidden ).toBe( true );
+	} );
+
+	it( 'lists the earliest free times and narrows them down by time of day and weekday', async () => {
+		vi.setSystemTime( new Date( '2026-10-28T08:00:00Z' ) );
+		// Times in the visitor's time zone, whatever it is where the tests run.
+		const at = ( month: number, day: number, hour: number, minute = 0 ): string => new Date( 2026, month - 1, day, hour, minute ).toISOString();
+		const times = [ at( 11, 2, 9 ), at( 11, 2, 14 ), at( 11, 2, 15 ), at( 11, 3, 18 ), at( 11, 7, 10 ), at( 12, 7, 18, 30 ) ];
+		const days: Record<string, string[]> = {};
+		for ( const iso of times ) {
+			( days[ iso.slice( 0, 10 ) ] ??= [] ).push( iso );
+		}
+		for ( let i = 0; i < 4; i++ ) {
+			reply( '/slots', 200, free( days ) );
+		}
+		const root = bookingForm( 'de_DE', { earliest: { count: 3, filters: true } } );
+		await vi.advanceTimersByTimeAsync( 0 );
+
+		// One more request for the next two months, from yesterday (time zones) on.
+		expect( requests.filter( ( r ) => r.path === '/slots' ).map( ( r ) => r.body ) ).toContainEqual( { field: 'qb', from: '2026-10-27', to: '2026-12-27', duration: 0 } );
+		const box = $( root, '.ffx-booking-earliest' );
+		expect( box.hidden ).toBe( false );
+		expect( box.getAttribute( 'aria-label' ) ).toBe( 'Früheste freie Termine' );
+		// Above the calendar.
+		expect( box.nextElementSibling?.classList.contains( 'ffx-booking-main' ) ).toBe( true );
+		const shown = (): string[] => [ ...root.querySelectorAll<HTMLElement>( '.ffx-booking-soon' ) ].map( ( b ) => b.dataset.start ?? '' );
+		// Two a day at most, so the box shows more than one day.
+		expect( shown() ).toEqual( [ times[ 0 ], times[ 1 ], times[ 3 ] ] );
+		const chips = ( label: string ): HTMLButtonElement[] => [ ...root.querySelectorAll<HTMLButtonElement>( `.ffx-booking-filter[aria-label="${ label }"] .ffx-booking-chip` ) ];
+		expect( chips( 'Tageszeit' ).map( ( c ) => c.textContent ) ).toEqual( [ 'Vormittags', 'Nachmittags', 'Abends' ] );
+		// Only weekdays with free times, Monday first in German.
+		expect( chips( 'Wochentag' ).map( ( c ) => c.getAttribute( 'aria-label' ) ) ).toEqual( [ 'Montag', 'Dienstag', 'Samstag' ] );
+
+		chips( 'Tageszeit' )[ 2 ]?.click();
+		expect( shown() ).toEqual( [ times[ 3 ], times[ 5 ] ] );
+		expect( chips( 'Tageszeit' )[ 2 ]?.getAttribute( 'aria-pressed' ) ).toBe( 'true' );
+		chips( 'Wochentag' )[ 0 ]?.click();
+		expect( shown() ).toEqual( [ times[ 5 ] ] );
+
+		// A time from the box is the answer, and the calendar goes to its month and day.
+		$( root, '.ffx-booking-soon' ).click();
+		await vi.advanceTimersByTimeAsync( 0 );
+		expect( $( root, '.ffx-booking-month' ).textContent ).toBe( 'Dezember 2026' );
+		expect( pressed( root, '.ffx-booking-day' ) ).toEqual( [ '2026-12-07' ] );
+		expect( $( root, '.ffx-booking-time[aria-pressed="true"]' ) ).not.toBeNull();
+		expect( $( root, '.ffx-booking-soon' ).getAttribute( 'aria-pressed' ) ).toBe( 'true' );
+		expect( $( root, '.ffx-booking-chosen' ).textContent ).toMatch( /^Ihr Termin: .*Dezember 2026/ );
+
+		// Nothing fits: the box says so and keeps the filters.
+		chips( 'Wochentag' )[ 2 ]?.click();
+		chips( 'Wochentag' )[ 0 ]?.click();
+		expect( shown() ).toEqual( [] );
+		expect( $( box, '.ffx-booking-status' ).textContent ).toBe( 'Keine passenden Termine' );
+		// Off again: all times.
+		chips( 'Wochentag' )[ 2 ]?.click();
+		chips( 'Tageszeit' )[ 2 ]?.click();
+		expect( shown() ).toEqual( [ times[ 0 ], times[ 1 ], times[ 3 ] ] );
+		// Afternoons: the third time of 2 November comes up now.
+		chips( 'Tageszeit' )[ 1 ]?.click();
+		expect( shown() ).toEqual( [ times[ 1 ], times[ 2 ] ] );
+	} );
+
+	it( 'shows no box without the setting and no filters unless asked', async () => {
+		vi.setSystemTime( new Date( '2026-10-28T08:00:00Z' ) );
+		const days = { '2026-11-02': [ '2026-11-02T09:00:00Z', '2026-11-02T15:00:00Z' ], '2026-11-03': [ '2026-11-03T09:00:00Z' ] };
+		for ( let i = 0; i < 3; i++ ) {
+			reply( '/slots', 200, free( days ) );
+		}
+		let root = bookingForm();
+		await vi.advanceTimersByTimeAsync( 0 );
+		expect( root.querySelector( '.ffx-booking-earliest:not([hidden])' ) ).toBeNull();
+		document.body.innerHTML = '';
+		for ( let i = 0; i < 3; i++ ) {
+			reply( '/slots', 200, free( days ) );
+		}
+		root = bookingForm( 'de_DE', { earliest: {} } );
+		await vi.advanceTimersByTimeAsync( 0 );
+		expect( root.querySelectorAll( '.ffx-booking-soon' ) ).toHaveLength( 3 );
+		expect( root.querySelector( '.ffx-booking-filter' ) ).toBeNull();
 	} );
 
 	it( 'checks the answer like the plugin', () => {
@@ -1860,44 +1951,133 @@ describe( 'address fields', () => {
 		expect( slide?.answer ).toBe( 'Hauptstraße 5, 10115 Berlin, Deutschland' );
 	} );
 
-	it( 'fills the parts from a Google suggestion', async () => {
-		const box = document.createElement( 'div' );
+	/** A Google stand-in: suggestions of the Places API (New), a map and markers. */
+	function googleStub( suggest: ( request: Record<string, unknown> ) => Promise<unknown>, more: Record<string, Record<string, unknown>> = {} ) {
 		const marker = vi.fn();
-		const importLibrary = vi.fn( async ( name: string ) => ( name === 'places'
-			? { PlaceAutocompleteElement: function () {
-				return box;
-			} }
-			: { Map: function () {
-				return { setCenter: vi.fn(), setZoom: vi.fn() };
-			} } ) );
+		const center = vi.fn();
+		const libraries: Record<string, Record<string, unknown>> = {
+			places: { AutocompleteSuggestion: { fetchAutocompleteSuggestions: vi.fn( suggest ) }, AutocompleteSessionToken: function () {
+				return { token: true };
+			} },
+			maps: { Map: function () {
+				return { setCenter: center, setZoom: vi.fn() };
+			} },
+			marker: { Marker: marker },
+			...more,
+		};
+		const api = { importLibrary: vi.fn( async ( name: string ) => libraries[ name ] ?? {} ) };
+		// The loader may be done from an earlier test; it then hands out the same object.
+		if ( window.google?.maps ) {
+			Object.assign( window.google.maps, api );
+		} else {
+			window.google = { maps: api };
+		}
+		window.ffxMapsReady?.();
+		return { marker, center, libraries, fetch: libraries.places?.AutocompleteSuggestion as { fetchAutocompleteSuggestions: ReturnType<typeof vi.fn> } };
+	}
+
+	const hauptstrasse = {
+		location: { lat: 1, lng: 2 },
+		addressComponents: [
+			{ longText: 'Hauptstraße', types: [ 'route' ] },
+			{ longText: 'Berlin', types: [ 'locality', 'political' ] },
+			{ longText: 'Deutschland', types: [ 'country', 'political' ] },
+			{ longText: '10115', types: [ 'postal_code' ] },
+		],
+		fetchFields: vi.fn( async () => ( {} ) ),
+	};
+
+	it( 'suggests addresses in its own search and fills the parts, next to the map', async () => {
 		const root = addressForm( false, 'maps-key' );
 		expect( document.head.querySelector( 'script[src*="maps.googleapis.com"]' ) ).toBeNull();
+		// Before consent: the inputs on the left, a placeholder with the button in the map column.
 		expect( root.querySelector( '.ffx-address-search' ) ).toBeNull();
-		$( root, '.ffx-field-address .ffx-consent-load' ).click();
+		expect( root.querySelector( '.ffx-address-layout .ffx-address-main .ffx-address' ) ).not.toBeNull();
+		$( root, '.ffx-field-address .ffx-address-map-column .ffx-consent-load' ).click();
 		const script = document.head.querySelector<HTMLScriptElement>( 'script[src*="maps.googleapis.com"]' );
 		expect( script?.src ).toContain( 'key=maps-key' );
-		window.google = { maps: { importLibrary, Marker: marker as unknown as new () => { setMap(): void } } };
-		window.ffxMapsReady?.();
+		const { marker, fetch } = googleStub( async () => ( {
+			suggestions: [ { placePrediction: { mainText: { text: 'Hauptstraße 5' }, secondaryText: { text: 'Berlin, Deutschland' }, toPlace: () => hauptstrasse } } ],
+		} ) );
 		await vi.advanceTimersByTimeAsync( 0 );
-		expect( root.querySelector( '.ffx-address-search' )?.contains( box ) ).toBe( true );
+		const query = $<HTMLInputElement>( root, '.ffx-address-search input.ffx-address-query' );
+		expect( query.getAttribute( 'role' ) ).toBe( 'combobox' );
+		expect( root.querySelector( '.ffx-address-map-column .ffx-address-map' ) ).not.toBeNull();
+		expect( root.querySelector( '.ffx-address-map-idle' ) ).toBeNull();
 
-		const place = {
-			location: { lat: 1, lng: 2 },
-			addressComponents: [
-				{ longText: '5', types: [ 'street_number' ] },
-				{ longText: 'Hauptstraße', types: [ 'route' ] },
-				{ longText: 'Berlin', types: [ 'locality', 'political' ] },
-				{ longText: 'Deutschland', types: [ 'country', 'political' ] },
-				{ longText: '10115', types: [ 'postal_code' ] },
-			],
-			fetchFields: vi.fn( async () => ( {} ) ),
-		};
-		box.dispatchEvent( Object.assign( new Event( 'gmp-select' ), { placePrediction: { toPlace: () => place } } ) );
+		type( query, 'Ha' );
+		await vi.advanceTimersByTimeAsync( 300 );
+		expect( fetch.fetchAutocompleteSuggestions ).not.toHaveBeenCalled();
+		type( query, 'Hauptstraße 5' );
+		await vi.advanceTimersByTimeAsync( 300 );
+		expect( fetch.fetchAutocompleteSuggestions ).toHaveBeenCalledWith( expect.objectContaining( { input: 'Hauptstraße 5', sessionToken: { token: true }, locationBias: { lat: 52.5, lng: 13.4 } } ) );
+		const options = root.querySelectorAll<HTMLElement>( '.ffx-address-suggestions [role="option"]' );
+		expect( options ).toHaveLength( 1 );
+		expect( options[ 0 ]?.textContent ).toBe( 'Hauptstraße 5Berlin, Deutschland' );
+		expect( query.getAttribute( 'aria-expanded' ) ).toBe( 'true' );
+
+		// Keyboard: down picks the first, Enter takes it (and does not go to the next step).
+		query.dispatchEvent( new KeyboardEvent( 'keydown', { key: 'ArrowDown', bubbles: true } ) );
+		expect( options[ 0 ]?.getAttribute( 'aria-selected' ) ).toBe( 'true' );
+		query.dispatchEvent( new KeyboardEvent( 'keydown', { key: 'Enter', bubbles: true, cancelable: true } ) );
 		await vi.advanceTimersByTimeAsync( 0 );
+		expect( $( root, '[data-node]' ).dataset.node ).toBe( 'na' );
+		expect( hauptstrasse.fetchFields ).toHaveBeenCalledWith( { fields: [ 'addressComponents', 'location' ] } );
+		expect( $<HTMLInputElement>( root, '.ffx-address-street input' ).value ).toBe( 'Hauptstraße' );
+		// Google knew only the street: the number comes from what the visitor typed.
+		expect( $<HTMLInputElement>( root, '.ffx-address-number input' ).value ).toBe( '5' );
+		expect( $<HTMLInputElement>( root, '.ffx-address-zip input' ).value ).toBe( '10115' );
 		expect( $<HTMLInputElement>( root, '.ffx-address-city input' ).value ).toBe( 'Berlin' );
-		expect( marker ).toHaveBeenCalledWith( expect.objectContaining( { position: place.location } ) );
+		expect( $<HTMLInputElement>( root, '.ffx-address-country input' ).value ).toBe( 'Deutschland' );
+		expect( query.value ).toBe( '' );
+		expect( query.getAttribute( 'aria-expanded' ) ).toBe( 'false' );
+		expect( marker ).toHaveBeenCalledWith( expect.objectContaining( { position: hauptstrasse.location } ) );
 		next( root );
 		expect( $( root, '[data-node]' ).dataset.node ).toBe( 'n1' );
+	} );
+
+	it( 'drops the search and says which API is missing when Google refuses the Places API', async () => {
+		const errors = vi.spyOn( console, 'error' ).mockImplementation( () => undefined );
+		window.wp_has_consent = () => true;
+		try {
+			const root = addressForm( false, 'maps-key' );
+			googleStub( async () => {
+				throw new Error( 'Places API (New) has not been used in project 123 before or it is disabled.' );
+			} );
+			await vi.advanceTimersByTimeAsync( 0 );
+			type( $<HTMLInputElement>( root, '.ffx-address-query' ), 'Altenhof 10' );
+			await vi.advanceTimersByTimeAsync( 300 );
+			expect( root.querySelector( '.ffx-address-search' ) ).toBeNull();
+			expect( root.querySelector( '.ffx-address-map-column' ) ).toBeNull();
+			expect( root.querySelector( '.ffx-address-wrap' )?.classList.contains( 'is-plain' ) ).toBe( true );
+			expect( errors ).toHaveBeenCalledWith( expect.stringContaining( 'Places API (New)' ) );
+			type( $<HTMLInputElement>( root, '.ffx-address-street input' ), 'Altenhof' );
+			expect( $<HTMLInputElement>( root, '.ffx-address-street input' ).value ).toBe( 'Altenhof' );
+		} finally {
+			errors.mockRestore();
+			Reflect.deleteProperty( window, 'wp_has_consent' );
+		}
+	} );
+
+	it( 'keeps the one input of combined fields when Google refuses the Places API', async () => {
+		const errors = vi.spyOn( console, 'error' ).mockImplementation( () => undefined );
+		window.wp_has_consent = () => true;
+		try {
+			const root = addressForm( true, 'maps-key' );
+			googleStub( async () => {
+				throw new Error( 'PERMISSION_DENIED' );
+			} );
+			await vi.advanceTimersByTimeAsync( 0 );
+			// Combined fields search in their one input; it stays when Google refuses.
+			const input = $<HTMLInputElement>( root, '.ffx-address-combined .ffx-address-search input' );
+			type( input, 'Altenhof 10' );
+			await vi.advanceTimersByTimeAsync( 300 );
+			expect( errors ).toHaveBeenCalled();
+			expect( root.querySelector( '.ffx-address-combined input' ) ).toBe( input );
+		} finally {
+			errors.mockRestore();
+			Reflect.deleteProperty( window, 'wp_has_consent' );
+		}
 	} );
 
 	it( 'fills the address from the visitor\'s location after a click', async () => {
@@ -1926,31 +2106,12 @@ describe( 'address fields', () => {
 				],
 			} ],
 		} ) );
-		const center = vi.fn();
-		const api = {
-			importLibrary: vi.fn( async ( name: string ) => ( {
-				places: { PlaceAutocompleteElement: function () {
-					return document.createElement( 'div' );
-				} },
-				maps: { Map: function () {
-					return { setCenter: center, setZoom: vi.fn() };
-				} },
-				geocoding: { Geocoder: function () {
-					return { geocode };
-				} },
-			} as Record<string, Record<string, unknown>> )[ name ] ?? {} ),
-			Marker: vi.fn() as unknown as new () => { setMap(): void },
-		};
 		window.wp_has_consent = () => true;
 		try {
 			const root = addressForm( true, 'maps-key', { locate: true } );
-			// The loader may be done from an earlier test; it then hands out the same object.
-			if ( window.google?.maps ) {
-				Object.assign( window.google.maps, api );
-			} else {
-				window.google = { maps: api };
-			}
-			window.ffxMapsReady?.();
+			const { center } = googleStub( async () => ( { suggestions: [] } ), { geocoding: { Geocoder: function () {
+				return { geocode };
+			} } } );
 			await vi.advanceTimersByTimeAsync( 0 );
 			const button = $<HTMLButtonElement>( root, '.ffx-address-locate' );
 			expect( button.textContent ).toBe( 'Meinen Standort nutzen' );
@@ -1979,6 +2140,40 @@ describe( 'address fields', () => {
 	it( 'offers no location button unless set', () => {
 		const root = addressForm( false, 'maps-key' );
 		expect( root.querySelector( '.ffx-address-locate' ) ).toBeNull();
+	} );
+
+	it( 'takes the house number the visitor typed when Google knows only the street', () => {
+		expect( typedNumber( 'Altenhof 10, Hamburg', 'Altenhof' ) ).toBe( '10' );
+		expect( typedNumber( 'Hauptstr. 12a', 'Hauptstraße' ) ).toBe( '12a' );
+		expect( typedNumber( 'Am Markt 3-5', 'Am Markt' ) ).toBe( '3-5' );
+		expect( typedNumber( '10115 Berlin', 'Hauptstraße' ) ).toBe( '' );
+		expect( typedNumber( 'Altenhof 10', '' ) ).toBe( '' );
+		expect( typedNumber( 'Ringstraße 4', 'Bahnhofstraße' ) ).toBe( '' );
+	} );
+
+	// Last: Google's refusal of the key holds for the whole page, so later fields learn it at once.
+	it( 'falls back to the plain inputs when Google refuses the key', async () => {
+		const errors = vi.spyOn( console, 'error' ).mockImplementation( () => undefined );
+		window.wp_has_consent = () => true;
+		try {
+			const root = addressForm( false, 'maps-key' );
+			googleStub( async () => ( { suggestions: [] } ) );
+			await vi.advanceTimersByTimeAsync( 0 );
+			expect( root.querySelector( '.ffx-address-map-column .ffx-address-map' ) ).not.toBeNull();
+			window.gm_authFailure?.();
+			expect( root.querySelector( '.ffx-address-map-column' ) ).toBeNull();
+			expect( root.querySelector( '.ffx-address-search' ) ).toBeNull();
+			expect( root.querySelector( '.ffx-address-wrap' )?.classList.contains( 'is-plain' ) ).toBe( true );
+			expect( errors ).toHaveBeenCalledWith( expect.stringContaining( 'Maps JavaScript API' ) );
+			expect( root.querySelectorAll( '.ffx-address input' ) ).toHaveLength( 5 );
+
+			const later = addressForm( false, 'maps-key' );
+			await vi.advanceTimersByTimeAsync( 0 );
+			expect( later.querySelector( '.ffx-address-map-column' ) ).toBeNull();
+		} finally {
+			errors.mockRestore();
+			Reflect.deleteProperty( window, 'wp_has_consent' );
+		}
 	} );
 } );
 
@@ -2645,10 +2840,11 @@ describe( 'quiz feedback', () => {
 
 describe( 'answers', () => {
 	/** The form with the first question replaced. */
-	function withQuestion( field: Record<string, unknown> ): HTMLElement {
+	function withQuestion( field: Record<string, unknown>, step: Record<string, unknown> = {} ): HTMLElement {
 		const base = config();
 		const doc = base.document as unknown as { nodes: Array<{ fields?: Array<Record<string, unknown>> }>; edges: Array<{ id: string }> };
 		doc.edges = doc.edges.filter( ( e ) => e.id !== 'x1' );
+		Object.assign( doc.nodes[ 0 ] as object, step );
 		const fields = doc.nodes[ 0 ]?.fields as Array<Record<string, unknown>>;
 		fields[ 0 ] = { ...fields[ 0 ], ...field };
 		Object.assign( base.strings, { too_few_choices: 'Mindestens %d', too_many_choices: 'Höchstens %d', search: 'Suchen', no_matches: 'Nichts gefunden', choose: 'Bitte wählen' } );
@@ -2768,6 +2964,55 @@ describe( 'answers', () => {
 		expect( $( rating, '.ffx-step' ).dataset.node ).toBe( 'n2' );
 		document.body.innerHTML = '';
 		expect( $( withQuestion( { type: 'rating', props: { min: 1, max: 5, style: 'stars', lowLabel: {}, highLabel: {} } } ), '.ffx-button-next' ).hidden ).toBe( true );
+	} );
+
+	it( 'waits for Next after a pick when the form or the step turns moving on off', () => {
+		const off = ( settings: Record<string, unknown>, step: Record<string, unknown> = {} ): HTMLElement => {
+			const base = config();
+			const doc = base.document as unknown as { settings: Record<string, unknown>; nodes: Array<Record<string, unknown>> };
+			Object.assign( doc.settings, settings );
+			Object.assign( doc.nodes[ 0 ] as object, step );
+			const root = document.createElement( 'div' );
+			document.body.append( root );
+			new FormApp( root, base, { url: '', query: '', title: '' } );
+			return root;
+		};
+		// The form turns it off: the pick is marked, Next is shown and goes on.
+		let root = off( { autoAdvance: false } );
+		expect( $( root, '.ffx-button-next' ).hidden ).toBe( false );
+		clickOption( root, 'Immobilie' );
+		expect( $( root, '[data-node]' ).dataset.node ).toBe( 'n1' );
+		expect( $( root, '.ffx-option[aria-pressed="true"]' ).textContent ).toContain( 'Immobilie' );
+		// Another pick changes the answer; Next takes the path of the last one.
+		clickOption( root, 'Grünes Auto' );
+		clickOption( root, 'Immobilie' );
+		next( root );
+		expect( $( root, '[data-node]' ).dataset.node ).toBe( 'n2' );
+		// Required stays required.
+		document.body.innerHTML = '';
+		root = off( { autoAdvance: false } );
+		next( root );
+		expect( $( root, '[data-node]' ).dataset.node ).toBe( 'n1' );
+		expect( $( root, '.ffx-error' ).textContent ).toBe( 'Pflichtfeld' );
+		// The step says otherwise than the form, in both directions.
+		document.body.innerHTML = '';
+		root = off( { autoAdvance: false }, { autoAdvance: true } );
+		expect( $( root, '.ffx-button-next' ).hidden ).toBe( true );
+		clickOption( root, 'Immobilie' );
+		expect( $( root, '[data-node]' ).dataset.node ).toBe( 'n2' );
+		document.body.innerHTML = '';
+		root = off( {}, { autoAdvance: false } );
+		clickOption( root, 'Immobilie' );
+		expect( $( root, '[data-node]' ).dataset.node ).toBe( 'n1' );
+		// Ratings too.
+		document.body.innerHTML = '';
+		const rating = withQuestion( { type: 'rating', props: { min: 1, max: 5, style: 'stars', lowLabel: {}, highLabel: {} } }, { autoAdvance: false } );
+		expect( $( rating, '.ffx-button-next' ).hidden ).toBe( false );
+		rating.querySelectorAll<HTMLButtonElement>( '.ffx-rating-option' )[ 2 ]?.click();
+		expect( $( rating, '.ffx-step' ).dataset.node ).not.toBe( 'n2' );
+		expect( rating.querySelectorAll( '.ffx-rating-option[aria-pressed="true"]' ) ).toHaveLength( 1 );
+		next( rating );
+		expect( $( rating, '.ffx-step' ).dataset.node ).toBe( 'n2' );
 	} );
 
 	it( 'checks the number of choices like the plugin', () => {

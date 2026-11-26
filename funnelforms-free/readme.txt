@@ -4,7 +4,7 @@ Tags: contact form, multi step form, form builder, lead generation, conversation
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 5.0.10
+Stable tag: 5.0.11
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -221,6 +221,13 @@ If you set up a mail server under Funnelforms > Settings > E-mail, the mails of 
 The scripts in assets/builder and assets/runtime are built and minified from TypeScript. The sources, with the build scripts, are in the folder source/ of this plugin. To build them: `pnpm install` and `pnpm -r build` in that folder (Node.js 20 or newer).
 
 == Changelog ==
+
+= 5.0.11 =
+* Setup assistant: the step "What is your first form for?" can be skipped. The assistant then ends without a form and opens the overview. The storage period "Never" is now called "Permanently".
+* Editor: forms from Funnelforms 3 whose draft still had two fields with the same ID ("Two elements have the same ID") are fixed when you open them, so the preview and publishing work again. Contact fields with only a placeholder show it as their name on the canvas, and the tag "URL" marks only hidden fields.
+* Builder: every problem now names its place, marks the step, field or path in red, jumps there with "Show" and offers a one-click fix where it is safe. A new "Check" in the top bar lists all problems, and "Publish" lists what blocks it.
+* Forms can wait for "Next" after a click on an answer: turn off moving on by itself for the whole form (Design, Steps and progress) or for a single step. Existing forms keep moving on as before.
+* Editor: icons of answers (Font Awesome, from Funnelforms 3) show in the preview again instead of empty squares.
 
 = 5.0.10 =
 * Security: the heading above the steps and other texts of a form can no longer carry scripts onto the website (stored XSS reported by Wordfence, needed the right to edit forms without the right to post unfiltered HTML). The heading is shown as plain text.

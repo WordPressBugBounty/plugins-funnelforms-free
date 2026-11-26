@@ -1,7 +1,7 @@
 import { produce } from 'immer';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { checkReferences, validateDocument, type Field, type FormDocument } from '@funnelforms/form-schema';
-import { addContact, addEnd, addField, addRepeatField, moveRepeatField, removeRepeatField, REPEAT_FIELD_TYPES, setRepeatFieldType, addOption, addOptions, addStep, connect, CONTACT_FIELD_TYPES, CONTACT_PALETTE, duplicateField, duplicateNode, isClip, keyClash, pasteField, pasteNode, moveField, moveOption, nodeName, removeField, removeNode, removeOption, reorderEdge, setCondition, setRandom, splitOptionList, STEP_FIELD_TYPES, usedIds } from '../src/document';
+import { addContact, addEnd, addField, addRepeatField, moveRepeatField, removeRepeatField, REPEAT_FIELD_TYPES, setRepeatFieldType, addOption, addOptions, addStep, connect, CONTACT_FIELD_TYPES, CONTACT_PALETTE, duplicateField, duplicateNode, isClip, keyClash, pasteField, pasteNode, moveField, moveOption, nodeName, removeField, removeNode, removeOption, reorderEdge, separateDuplicateIds, setCondition, setRandom, splitOptionList, STEP_FIELD_TYPES, usedIds } from '../src/document';
 import { blank } from './blank';
 
 const ctx = { locale: 'de_DE', labels: { question: 'Neue Frage', option: 'Option %d' } };
@@ -362,5 +362,83 @@ describe( 'answer order and variable names', () => {
 			fb.type = fa.type;
 			expect( keyClash( d, fa.id ) ).toBeNull();
 		} );
+	} );
+} );
+
+describe( 'separateDuplicateIds', () => {
+	beforeEach( seeded );
+
+	/** Two contact steps with the same field ids, as drafts of forms imported from Funnelforms 3 before 5.0.10 have them. */
+	function clash(): FormDocument {
+		const doc = blank();
+		const contact = structuredClone( at( doc.nodes, 0 ) );
+		contact.id = 'contact2';
+		doc.nodes.push( contact );
+		doc.layout = { nodes: { ...doc.layout?.nodes, contact2: { x: 0, y: 200 } } };
+		doc.edges.push( { id: 'e_contact2_end', from: 'contact2', to: 'end', default: true } );
+		const responder = ( node: string ) => ( {
+			id: 'a_' + node + '_autoresponder',
+			on: 'submit' as const,
+			node,
+			kind: 'autoresponder' as const,
+			config: { to: { de_DE: '{{field:c_email}}' }, cc: { de_DE: '' }, bcc: { de_DE: '' }, from: { de_DE: '' }, fromName: { de_DE: '' }, replyTo: { de_DE: '' }, subject: { de_DE: 'Danke' }, body: { de_DE: 'Hallo' }, nl2br: true, transport: { type: 'wp_mail' as const }, layout: 'plain' as const, recipientField: 'c_email' },
+		} );
+		doc.actions.push( responder( 'contact' ), responder( 'contact2' ) );
+		return doc;
+	}
+
+	it( 'gives the second of two fields with the same id its own, and the mail of its step follows', () => {
+		expect( validateDocument( clash() ).errors ).toContain( 'duplicate field id c_email' );
+		let changed: string[] = [];
+		const doc = produce( clash(), ( d ) => {
+			changed = separateDuplicateIds( d );
+		} );
+		expect( changed ).toEqual( [ 'c_name', 'c_email' ] );
+		expect( validateDocument( doc ).errors ).toEqual( [] );
+		expect( checkReferences( doc ) ).toEqual( [] );
+		const second = at( fields( doc, 'contact2' ), 1 );
+		expect( second.id ).not.toBe( 'c_email' );
+		expect( second.key ).toBe( 'email' );
+		expect( fields( doc, 'contact' ).map( ( f ) => f.id ) ).toEqual( [ 'c_name', 'c_email' ] );
+		const [ first, own ] = doc.actions as Array<{ config: { recipientField: string; to: Record<string, string> } }>;
+		expect( first?.config.recipientField ).toBe( 'c_email' );
+		expect( own?.config.recipientField ).toBe( second.id );
+		expect( own?.config.to.de_DE ).toBe( '{{field:' + second.id + '}}' );
+	} );
+
+	it( 'separates seven contact steps that share all their field ids (draft of a 3.x form imported before 5.0.10)', () => {
+		const doc = blank();
+		const base = at( doc.nodes, 0 );
+		const ids = [ 'c_name', 'c_firmenname', 'c_mail', 'c_telefon', 'c_text', 'c_text1', 'c_checkbox' ];
+		const template = at( ( base as { fields: unknown[] } ).fields, 0 ) as AnyField;
+		doc.nodes = [];
+		doc.start = 'n19_0';
+		for ( let i = 0; i < 7; i++ ) {
+			const node = structuredClone( base ) as typeof base & { fields: AnyField[] };
+			node.id = 'n19_' + i;
+			node.fields = ids.map( ( id ) => ( { ...structuredClone( template ), id, key: id.slice( 2 ) + i } ) );
+			doc.nodes.push( node );
+		}
+		doc.edges = [];
+		doc.layout = { nodes: {} };
+		expect( validateDocument( doc ).errors.filter( ( e ) => e.startsWith( 'duplicate field id' ) ) ).toHaveLength( 42 );
+		let changed: string[] = [];
+		const fixed = produce( doc, ( d ) => void ( changed = separateDuplicateIds( d ) ) );
+		expect( changed ).toHaveLength( 42 );
+		expect( validateDocument( fixed ).errors ).toEqual( [] );
+		expect( fields( fixed, 'n19_0' ).map( ( f ) => f.id ) ).toEqual( ids );
+		expect( fields( fixed, 'n19_6' ).map( ( f ) => f.key ) ).toEqual( ids.map( ( id ) => id.slice( 2 ) + 6 ) );
+	} );
+
+	it( 'separates steps, paths and actions with the same id and leaves a clean form alone', () => {
+		const plain = clash();
+		separateDuplicateIds( plain );
+		plain.edges.push( structuredClone( at( plain.edges, 0 ) ) );
+		plain.actions.push( structuredClone( at( plain.actions, 0 ) ) );
+		plain.nodes.push( structuredClone( at( plain.nodes, 1 ) ) );
+		expect( validateDocument( plain ).errors ).toEqual( expect.arrayContaining( [ 'duplicate node id end', 'duplicate edge id e_contact_end' ] ) );
+		const doc = produce( plain, ( d ) => void separateDuplicateIds( d ) );
+		expect( validateDocument( doc ).errors ).toEqual( [] );
+		expect( produce( doc, ( d ) => void separateDuplicateIds( d ) ) ).toBe( doc );
 	} );
 } );

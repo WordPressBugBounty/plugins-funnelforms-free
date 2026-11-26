@@ -345,6 +345,30 @@ describe( 'entries screen', () => {
 		expect( panel.textContent ).toContain( 'Call planned. The result appears under AI Phone Agent.' );
 	} );
 
+	it( 'says in words why Telegram refused a message', async () => {
+		const deliveries = [
+			{ id: 3, action: 'a_tg', status: 'failed', attempts: 1, error: 'permanent:telegram_forbidden', updatedAt: '2026-11-20T08:01:00Z' },
+			{ id: 4, action: ':again:a_other', status: 'failed', attempts: 3, error: 'http_429', updatedAt: '2026-11-20T08:05:00Z' },
+		];
+		const actions = [
+			{ id: 'a_tg', kind: 'chat', service: 'telegram' },
+			{ id: 'a_slack', kind: 'chat', service: 'slack' },
+			// An older server sends no service.
+			{ id: 'a_old', kind: 'chat' },
+		];
+		const api = fakeApi( { entry: vi.fn( async ( id: number ) => detail( id, { deliveries, actions } ) ) } );
+		await act( async () => root.render( <EntriesScreen api={ api } config={ { user: { id: 1, admin: false } } } /> ) );
+		await settle();
+		await click( button( 'Erika Muster' ) );
+		const panel = container.querySelector( '.ffxb-panel' ) as HTMLElement;
+		// Named by the service, as in the builder, so two chat messages can be told apart.
+		expect( [ ...panel.querySelectorAll( '.ffxb-after__name' ) ].map( ( n ) => n.textContent ) ).toEqual( [ 'Telegram message', 'Slack message', 'Slack, Teams or Telegram message' ] );
+		const step = panel.querySelector( '.ffxb-after__step' ) as HTMLElement;
+		expect( step.querySelector( '.ffxb-deliveries__error' )?.textContent ).toBe( 'The bot may not write in this chat: it was blocked, removed or never started. Start the bot again or add it back to the group; in a channel it has to be an admin.' );
+		// Codes without words stay as they are.
+		expect( panel.querySelector( '.ffxb-deliveries .ffxb-deliveries__error' )?.textContent ).toBe( 'http_429' );
+	} );
+
 	it( 'names what running a step again does, by kind, and finds the step of a run by hand', () => {
 		expect( [ 'email', 'autoresponder', 'webhook', 'crm', 'aiCall', 'optin' ].map( ( k ) => againTexts( k ).button ) ).toEqual( [ 'Send again', 'Send again', 'Trigger again', 'Transfer again', 'Call again', 'Send link again' ] );
 		expect( [ ':again:a1', 'a1', ':optin' ].map( deliveryAction ) ).toEqual( [ 'a1', 'a1', ':optin' ] );

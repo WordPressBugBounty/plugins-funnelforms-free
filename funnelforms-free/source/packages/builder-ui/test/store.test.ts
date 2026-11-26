@@ -121,6 +121,28 @@ describe( 'builder store', () => {
 		expect( api.lock ).toHaveBeenCalledTimes( 2 );
 	} );
 
+	it( 'gives fields of an old draft that share an id their own and saves the draft', async () => {
+		const timers = clock();
+		const clashing = blank();
+		const second = structuredClone( clashing.nodes[ 0 ] ) as FormDocument[ 'nodes' ][ number ];
+		second.id = 'contact2';
+		clashing.nodes.push( second );
+		const api = fakeApi( { get: vi.fn( async () => ( { ...summary, document: clashing, lockTtl: 150 } ) ) } );
+		const store = createBuilderStore( api, 7, { timers, autosaveMs: 1000 } );
+		await store.getState().load();
+		expect( store.getState().separated ).toEqual( [ 'c_name', 'c_email' ] );
+		expect( store.getState().canUndo ).toBe( false );
+		await timers.tick( 1000 );
+		const saved = api.saved[ 0 ];
+		const ids = saved?.nodes.flatMap( ( n ) => ( 'fields' in n ? n.fields.map( ( f ) => f.id ) : [] ) ) ?? [];
+		expect( new Set( ids ).size ).toBe( 4 );
+
+		const clean = createBuilderStore( fakeApi(), 7, { timers } );
+		await clean.getState().load();
+		expect( clean.getState().separated ).toEqual( [] );
+		expect( clean.getState().save.state ).toBe( 'saved' );
+	} );
+
 	it( 'undoes a run of typing in one step and redoes it', async () => {
 		const timers = clock();
 		const store = createBuilderStore( fakeApi(), 7, { timers } );

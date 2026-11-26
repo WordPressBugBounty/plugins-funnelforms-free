@@ -408,3 +408,159 @@ describe( 'CRM tools in the overview', () => {
 		vi.restoreAllMocks();
 	} );
 } );
+
+describe( 'Telegram in the overview', () => {
+	const token = '10000:fake-token-for-tests-only-not-a-secret-0000';
+	const bot: HubConnection = { ref: 'telegram:6d3f8b21-4c5e-4f70-9a8b-1c2d3e4f5a6b', type: 'telegram', label: 'Vertrieb Nord', createdAt: '2026-11-20T09:00:00Z', forms: [], formCount: 0, attention: null, chat: 'Vertrieb Nord' };
+	const chat = ( dialog: HTMLElement ): HTMLSelectElement => field( dialog, 'Chat' ) as unknown as HTMLSelectElement;
+	const choose = async ( select: HTMLSelectElement, value: string ): Promise<void> => {
+		await act( async () => {
+			Object.getOwnPropertyDescriptor( HTMLSelectElement.prototype, 'value' )?.set?.call( select, value );
+			select.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+		} );
+	};
+	const messages = (): Array<string | null> => {
+		const group = [ ...container.querySelectorAll( '.ffx-hub-group' ) ].find( ( g ) => 'Messages' === g.querySelector( 'h3' )?.textContent );
+		return group ? [ ...group.querySelectorAll( '.ffx-hub-tile strong' ) ].map( ( s ) => s.textContent ) : [];
+	};
+
+	it( 'shows the tile only where the host can find the chat of a bot, or a bot is connected', async () => {
+		await act( async () => root.render( <IntegrationsHub api={ fakeApi() } config={ config } onCalendar={ () => undefined } /> ) );
+		await settle();
+		expect( messages() ).toEqual( [ 'Slack', 'Microsoft Teams', 'WhatsApp Business', 'Twilio', 'Bird', 'ElevenLabs' ] );
+		await act( async () => root.render( <IntegrationsHub api={ fakeApi( {}, { telegramChats: vi.fn( async () => [] ) } ) } config={ config } onCalendar={ () => undefined } /> ) );
+		await settle();
+		expect( messages() ).toEqual( [ 'Slack', 'Microsoft Teams', 'Telegram', 'WhatsApp Business', 'Twilio', 'Bird', 'ElevenLabs' ] );
+		await act( async () => root.render( <IntegrationsHub key="other" api={ fakeApi( { overview: vi.fn( async () => overview( { connections: [ bot ] } ) ) } ) } config={ config } onCalendar={ () => undefined } /> ) );
+		await settle();
+		expect( tile( 'Telegram' ).textContent ).toContain( 'Connected' );
+	} );
+
+	it( 'connects a bot: checks the token, finds its chat and takes the name of the group', async () => {
+		// Called as a method of the API, as the REST adapter (a class) needs.
+		const telegramChats = vi.fn( async function ( this: HubScreenApi | undefined ) {
+			if ( ! this?.hub ) {
+				throw new Error( 'Called without the API' );
+			}
+			return [ { id: '-1001234567890', title: 'Vertrieb Nord', type: 'channel' as const } ];
+		} );
+		const api = fakeApi( { overview: vi.fn( async () => overview( { connections: [] } ) ) }, { telegramChats } );
+		await act( async () => root.render( <IntegrationsHub api={ api } config={ config } onCalendar={ () => undefined } /> ) );
+		await settle();
+		await act( async () => tile( 'Telegram' ).click() );
+		const dialog = container.querySelector( 'dialog[aria-label="Telegram"]' ) as HTMLDialogElement;
+		expect( dialog.textContent ).toContain( 'In Telegram open @BotFather, create a bot with /newbot' );
+		expect( dialog.querySelector( 'a[href="https://t.me/BotFather"]' )?.textContent ).toContain( 'Open Telegram' );
+		expect( field( dialog, 'Name' ).value ).toBe( 'Telegram' );
+		expect( field( dialog, 'Bot token' ).type ).toBe( 'password' );
+		// Nothing is asked before the token has the form of a token.
+		expect( button( 'Find chat', dialog ).disabled ).toBe( true );
+		await type( field( dialog, 'Bot token' ), '12345:short' );
+		expect( button( 'Find chat', dialog ).disabled ).toBe( true );
+		expect( dialog.textContent ).toContain( 'This is not a bot token.' );
+		await type( field( dialog, 'Bot token' ), ' ' + token + ' ' );
+		await act( async () => button( 'Find chat', dialog ).click() );
+		await settle();
+		expect( telegramChats ).toHaveBeenCalledWith( { botToken: token } );
+		// One group or channel is taken right away, named with its kind; a channel names the connection.
+		expect( dialog.querySelector( '.ffxb-notice--success' )?.textContent ).toBe( 'Chat found: Vertrieb Nord (Telegram channel).' );
+		expect( dialog.querySelector( '.ffxb-notice--warning' ) ).toBeNull();
+		expect( field( dialog, 'Chat ID' ).value ).toBe( '-1001234567890' );
+		expect( field( dialog, 'Name' ).value ).toBe( 'Vertrieb Nord' );
+		await act( async () => button( 'Connect', dialog ).click() );
+		await settle();
+		expect( api.createConnection ).toHaveBeenCalledWith( 'telegram', 'Vertrieb Nord', { botToken: token, chatId: '-1001234567890', chatTitle: 'Vertrieb Nord' } );
+	} );
+
+	it( 'takes a private chat found alone only when chosen, and a chat ID typed by hand without its name', async () => {
+		const telegramChats = vi.fn( async () => [ { id: '123456789', title: 'Erika Beispiel', type: 'private' as const, public: false } ] );
+		const api = fakeApi( { overview: vi.fn( async () => overview( { connections: [] } ) ) }, { telegramChats } );
+		await act( async () => root.render( <IntegrationsHub api={ api } config={ config } onCalendar={ () => undefined } /> ) );
+		await settle();
+		await act( async () => tile( 'Telegram' ).click() );
+		const dialog = container.querySelector( 'dialog[aria-label="Telegram"]' ) as HTMLDialogElement;
+		await type( field( dialog, 'Bot token' ), token );
+		await act( async () => button( 'Find chat', dialog ).click() );
+		await settle();
+		// Anyone can write to a bot: a private chat found alone could be a stranger's, so it is not taken.
+		expect( field( dialog, 'Chat ID' ).value ).toBe( '' );
+		expect( dialog.querySelector( '.ffxb-notice--success' ) ).toBeNull();
+		expect( [ ...chat( dialog ).options ].map( ( o ) => o.textContent ) ).toEqual( [ 'Choose…', 'Erika Beispiel (Private chat)' ] );
+		await choose( chat( dialog ), '123456789' );
+		// The name of a person does not name the connection.
+		expect( field( dialog, 'Name' ).value ).toBe( 'Telegram' );
+		expect( field( dialog, 'Chat ID' ).value ).toBe( '123456789' );
+		expect( dialog.querySelector( '.ffxb-notice--success' )?.textContent ).toBe( 'Chat found: Erika Beispiel (Private chat).' );
+		await type( field( dialog, 'Chat ID' ), '@vertrieb_news' );
+		// Typed by hand: the chat found is no longer named as chosen, and a @name is a public chat.
+		expect( dialog.querySelector( '.ffxb-notice--success' ) ).toBeNull();
+		expect( chat( dialog ).value ).toBe( '' );
+		expect( dialog.querySelector( '.ffxb-notice--warning' )?.textContent ).toBe( 'This chat is public: anyone can read the entries there, with their answers and contact details. Choose a private group or channel.' );
+		await act( async () => button( 'Connect', dialog ).click() );
+		await settle();
+		expect( api.createConnection ).toHaveBeenCalledWith( 'telegram', 'Telegram', { botToken: token, chatId: '@vertrieb_news' } );
+	} );
+
+	it( 'warns of public chats and forgets the chats of a bot once another token is typed in', async () => {
+		const other = '20000:other-fake-token-for-tests-only-000000';
+		let late: ( chats: Array<{ id: string; title: string; type: 'channel' }> ) => void = () => undefined;
+		const telegramChats = vi
+			.fn()
+			.mockResolvedValueOnce( [
+				{ id: '-1009876543210', title: 'Neue Leads', type: 'channel', public: true },
+				{ id: '-4012345678', title: 'Team Nord', type: 'group', public: false },
+			] )
+			.mockImplementationOnce( () => new Promise( ( resolve ) => ( late = resolve ) ) );
+		const api = fakeApi( { overview: vi.fn( async () => overview( { connections: [] } ) ) }, { telegramChats } );
+		await act( async () => root.render( <IntegrationsHub api={ api } config={ config } onCalendar={ () => undefined } /> ) );
+		await settle();
+		await act( async () => tile( 'Telegram' ).click() );
+		const dialog = container.querySelector( 'dialog[aria-label="Telegram"]' ) as HTMLDialogElement;
+		await type( field( dialog, 'Bot token' ), token );
+		await act( async () => button( 'Find chat', dialog ).click() );
+		await settle();
+		await choose( chat( dialog ), '-1009876543210' );
+		expect( dialog.querySelector( '.ffxb-notice--warning' )?.textContent ).toContain( 'This chat is public' );
+		await choose( chat( dialog ), '-4012345678' );
+		expect( dialog.querySelector( '.ffxb-notice--warning' ) ).toBeNull();
+
+		// Another bot: the chats of the first one cannot be chosen any more.
+		await type( field( dialog, 'Bot token' ), other );
+		expect( dialog.textContent ).not.toContain( 'Chats found' );
+		expect( [ ...dialog.querySelectorAll( 'label' ) ].map( ( l ) => l.textContent ) ).not.toContain( 'Chat' );
+		// An answer that comes after the token changed is about another bot: nothing is filled in.
+		await act( async () => button( 'Find chat', dialog ).click() );
+		expect( telegramChats ).toHaveBeenLastCalledWith( { botToken: other } );
+		await type( field( dialog, 'Bot token' ), token );
+		await act( async () => late( [ { id: '-1001111111111', title: 'Kanal', type: 'channel' } ] ) );
+		await settle();
+		expect( field( dialog, 'Chat ID' ).value ).toBe( '-4012345678' );
+		expect( dialog.querySelector( '.ffxb-notice--success' ) ).toBeNull();
+		expect( dialog.textContent ).not.toContain( 'Kanal' );
+	} );
+
+	it( 'shows the chat of a connection, tests it and asks the saved bot without its token', async () => {
+		const telegramChats = vi.fn().mockResolvedValueOnce( [] ).mockRejectedValueOnce( new ApiError( 'bot_in_use', 'This bot already passes its messages to another program (a webhook or another tool), so they cannot be read here. Enter the chat ID by hand.', 409 ) );
+		const api = fakeApi( { overview: vi.fn( async () => overview( { connections: [ bot ] } ) ) }, { telegramChats } );
+		await act( async () => root.render( <IntegrationsHub api={ api } config={ config } onCalendar={ () => undefined } /> ) );
+		await settle();
+		await act( async () => tile( 'Telegram' ).click() );
+		const dialog = container.querySelector( 'dialog[aria-label="Telegram"]' ) as HTMLDialogElement;
+		const row = dialog.querySelector( '.ffx-hub-connection' ) as HTMLElement;
+		expect( row.textContent ).toContain( 'Chat: Vertrieb Nord' );
+		await act( async () => button( 'Send test', row ).click() );
+		await settle();
+		expect( api.testConnection ).toHaveBeenCalledWith( bot.ref, {} );
+		await act( async () => button( 'Edit', row ).click() );
+		expect( field( dialog, 'Bot token' ).placeholder ).toBe( 'Unchanged' );
+		await act( async () => button( 'Find chat', dialog ).click() );
+		await settle();
+		expect( telegramChats ).toHaveBeenLastCalledWith( { ref: bot.ref } );
+		expect( dialog.textContent ).toContain( 'No chat found yet.' );
+		await act( async () => button( 'Find chat', dialog ).click() );
+		await settle();
+		expect( dialog.querySelector( '.ffxb-notice--danger' )?.textContent ).toContain( 'This bot already passes its messages to another program' );
+		// No token anywhere on the page.
+		expect( dialog.innerHTML ).not.toContain( token );
+	} );
+} );

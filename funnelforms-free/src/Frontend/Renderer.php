@@ -718,6 +718,13 @@ final class Renderer {
 			/* translators: %s: date, time and duration of the appointment. */
 			'booking_selected'        => __( 'Your appointment: %s', 'funnelforms-free' ),
 			'booking_unavailable'     => __( 'The free times could not be loaded. Please try again later.', 'funnelforms-free' ),
+			'booking_earliest'        => __( 'Earliest free times', 'funnelforms-free' ),
+			'booking_earliest_none'   => __( 'No free times for this choice in the next two months.', 'funnelforms-free' ),
+			'booking_time_of_day'     => __( 'Time of day', 'funnelforms-free' ),
+			'booking_weekday'         => __( 'Weekday', 'funnelforms-free' ),
+			'booking_morning'         => __( 'Morning', 'funnelforms-free' ),
+			'booking_afternoon'       => __( 'Afternoon', 'funnelforms-free' ),
+			'booking_evening'         => __( 'Evening', 'funnelforms-free' ),
 			'slot_taken'              => __( 'This time has just been booked. Please choose another one.', 'funnelforms-free' ),
 			'invalid_booking'         => __( 'Please choose a time.', 'funnelforms-free' ),
 			'captcha_failed'          => __( 'Please confirm that you are not a robot.', 'funnelforms-free' ),
@@ -746,6 +753,7 @@ final class Renderer {
 			'required_mark'           => __( 'Required', 'funnelforms-free' ),
 			'required_note'           => __( 'Fields marked with * are required.', 'funnelforms-free' ),
 			'load_maps'               => __( 'Load Google Maps to suggest addresses', 'funnelforms-free' ),
+			'search_address'          => __( 'Search for your address', 'funnelforms-free' ),
 			/* translators: %s: company of the spam protection, such as Google or Cloudflare. */
 			'load_captcha'            => __( 'Load spam protection from %s to send the form', 'funnelforms-free' ),
 			'unlock_required'         => $unlock,

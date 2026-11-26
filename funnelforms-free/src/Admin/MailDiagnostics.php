@@ -16,6 +16,7 @@ use Funnelforms\Application\Capabilities;
 use Funnelforms\Application\DoubleOptIn;
 use Funnelforms\Domain\Form\Document;
 use Funnelforms\Edition\Edition;
+use Funnelforms\Http\ConnectionsController;
 use Funnelforms\Infrastructure\Database\Schema;
 use Funnelforms\Infrastructure\Repository\EntryRepository;
 use Funnelforms\Infrastructure\Repository\FormRepository;
@@ -195,7 +196,11 @@ final class MailDiagnostics {
 			case 'optin':
 				return __( 'Double opt-in mail', 'funnelforms-free' );
 			case 'chat':
-				return 'teams' === ( $action['config']['service'] ?? '' ) ? 'Microsoft Teams' : 'Slack';
+				$services = array(
+					'teams'    => 'Microsoft Teams',
+					'telegram' => 'Telegram',
+				);
+				return $services[ $action['config']['service'] ?? '' ] ?? 'Slack';
 			case 'crm':
 				/* translators: %s: name of the CRM, e.g. hubspot. */
 				return sprintf( __( 'CRM: %s', 'funnelforms-free' ), (string) ( $action['config']['provider'] ?? '' ) );
@@ -235,7 +240,10 @@ final class MailDiagnostics {
 		if ( 'condition_not_met' === $error ) {
 			return __( 'Not sent on purpose: the condition of this action did not hold for the entry.', 'funnelforms-free' );
 		}
-		return $error;
+		// Telegram refusals in words; Funnelforms Free has no chat connections.
+		$connections = Edition::pro( ConnectionsController::class );
+		$reason      = null === $connections ? null : $connections::telegram_reason( $error );
+		return null === $reason ? $error : $reason . ' (' . $error . ')';
 	}
 
 	/**

@@ -9,6 +9,7 @@ import { ApiError } from './api';
 import type { FormDetail, FormsApi, FormSummary, PublishStay, UserRef } from './api';
 import { syncQuiz } from './quiz';
 import { takeSchedule } from './experiments';
+import { separateDuplicateIds } from './document';
 
 enablePatches();
 
@@ -45,6 +46,13 @@ export interface BuilderState {
 	device: Device;
 	/** Language chosen for editing texts; null for the form's default language. */
 	lang: string | null;
+	/** Ids that clashed when the draft was opened and got ids of their own (separateDuplicateIds()). */
+	separated: string[];
+	/**
+	 * What "Show" of an issue asked to bring into view: the canvas fits it into the window and lets
+	 * it light up once, the inspector scrolls to it. `seq` tells a second request for the same place apart.
+	 */
+	focus: ( Selection & { seq: number } ) | null;
 }
 
 /** Changes the draft in place, or returns a whole new document. */
@@ -59,6 +67,8 @@ export interface BuilderActions {
 	/** Selects; with a panel, the properties open on it. */
 	select( selection: Selection, panel?: Panel ): void;
 	showPanel( panel: Panel ): void;
+	/** Selects and brings into view (focus); with a panel, the properties open on it. */
+	reveal( selection: Selection, panel?: Panel ): void;
 	/** Shows a message about the last change (null hides it). */
 	/** Shows a message about the last change, with undo unless `undoable` is false. */
 	notify( text: string | null, undoable?: boolean ): void;
@@ -230,6 +240,8 @@ export function createBuilderStore( api: FormsApi, formId: number, options: Buil
 			publishing: { state: 'idle', warnings: [], error: null, code: null },
 			device: 'desktop',
 			lang: null,
+			separated: [],
+			focus: null,
 
 			async load() {
 				set( { status: 'loading', loadError: null } );
@@ -238,7 +250,16 @@ export function createBuilderStore( api: FormsApi, formId: number, options: Buil
 					if ( ! document ) {
 						throw new Error( 'The form has no document.' );
 					}
-					set( { status: 'ready', form, doc: document } );
+					// A draft from before the import gave clashing fields ids of their own still has the clash,
+					// which blocks the preview and publishing: separate them and save the draft.
+					let separated: string[] = [];
+					const doc = produce( document, ( draft: FormDocument ) => {
+						separated = separateDuplicateIds( draft );
+					} );
+					set( { status: 'ready', form, doc, separated } );
+					if ( separated.length > 0 ) {
+						changed();
+					}
 					try {
 						await api.lock( formId );
 					} catch ( error ) {
@@ -313,6 +334,11 @@ export function createBuilderStore( api: FormsApi, formId: number, options: Buil
 
 			showPanel( panel ) {
 				set( { panel } );
+			},
+
+			reveal( selection, panel ) {
+				const seq = ( get().focus?.seq ?? 0 ) + 1;
+				set( { selection, focus: { ...selection, seq }, ...( panel ? { panel } : {} ) } );
 			},
 
 			notify( text, undoable = true ) {

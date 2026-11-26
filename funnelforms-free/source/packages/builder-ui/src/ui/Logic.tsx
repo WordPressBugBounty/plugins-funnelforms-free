@@ -33,6 +33,8 @@ import type { Recipe } from '../store';
 import { useBuilder, useEnv } from './context';
 import { describeCondition, fieldIndex, fieldTitle, opName, partName, ruleText } from './describe';
 import { HintList, restText, useHints } from './Hints';
+import { IssueList, useIssues } from './Issues';
+import { issuesAt } from './formCheck';
 import { covered } from '../logic';
 import { __, sprintf } from './i18n';
 import { Button, IconButton, icons, Notice, Section } from './ui';
@@ -558,7 +560,7 @@ export function PathEditor( { doc, edge, order = true, deletable = true }: { doc
 export function NodeLogic( { doc, node, title }: { doc: FormDocument; node: Extract<FormNode, { type: 'step' | 'contact' }>; title?: string } ) {
 	const { ctx, readOnly } = useEnv();
 	const change = useChange();
-	const hints = useHints().filter( ( h ) => h.node === node.id && 'unreachable' !== h.code );
+	const issues = useIssues().filter( ( i ) => i.marks.nodes.includes( node.id ) && ( 'logic' === i.target?.panel || i.marks.edges.length > 0 ) );
 	const choices = 'step' === node.type ? node.fields.filter( ( f ) => 'options' in f && f.options.length > 0 ) : [];
 	const [ by, setBy ] = useState<string>( '' );
 	const [ open, setOpen ] = useState<string | null>( null );
@@ -612,7 +614,7 @@ export function NodeLogic( { doc, node, title }: { doc: FormDocument; node: Extr
 						const up = canMoveRule( outputs, e.id, -1 );
 						const down = canMoveRule( outputs, e.id, 1 );
 						return (
-							<li key={ e.id } className={ 'ffxb-logic-rule' + ( expanded ? ' is-open' : '' ) + ( hints.some( ( h ) => h.edge === e.id ) ? ' has-hint' : '' ) }>
+							<li key={ e.id } className={ 'ffxb-logic-rule' + ( expanded ? ' is-open' : '' ) + ( issues.some( ( i ) => i.marks.edges.includes( e.id ) ) ? ' has-hint' + ( issues.some( ( i ) => 'error' === i.tone && i.marks.edges.includes( e.id ) ) ? ' has-error' : '' ) : '' ) }>
 								<div className="ffxb-logic-rule__row">
 									<button type="button" className="ffxb-logic-rule__head" aria-expanded={ expanded } onClick={ () => setOpen( expanded ? null : e.id ) }>
 										<span className="ffxb-logic-rule__when">
@@ -629,7 +631,7 @@ export function NodeLogic( { doc, node, title }: { doc: FormDocument; node: Extr
 									) : null }
 								</div>
 								{ expanded ? <PathEditor doc={ doc } edge={ e } order={ false } /> : null }
-								{ expanded ? <HintList doc={ doc } hints={ hints.filter( ( h ) => h.edge === e.id ) } compact /> : null }
+								{ expanded ? <IssueList issues={ issuesAt( issues, { edge: e.id } ) } compact /> : null }
 							</li>
 						);
 					} ) }
@@ -719,7 +721,7 @@ export function NodeLogic( { doc, node, title }: { doc: FormDocument; node: Extr
 
 	return (
 		<Section title={ title ?? __( 'Next step', 'funnelforms-pro' ) }>
-			<HintList doc={ doc } hints={ hints } compact />
+			<IssueList issues={ issues } compact />
 			{ parts.map( ( p, i ) => (
 				<Fragment key={ i }>{ 'rules' === p.kind ? ruleList( p.rules, lead( i ) ) : answerList( p.answers, i === firstAnswers, i === lastAnswers ) }</Fragment>
 			) ) }
@@ -758,7 +760,7 @@ export function EdgeInspector( { doc, edgeId }: { doc: FormDocument; edgeId: str
 	const { store, ctx, readOnly } = useEnv();
 	const change = useChange();
 	const select = store.getState().select;
-	const hints = useHints().filter( ( h ) => h.edge === edgeId );
+	const issues = issuesAt( useIssues(), { edge: edgeId } );
 	const edge = doc.edges.find( ( e ) => e.id === edgeId );
 	if ( ! edge ) {
 		return null;
@@ -800,7 +802,7 @@ export function EdgeInspector( { doc, edgeId }: { doc: FormDocument; edgeId: str
 		<>
 			<Section title={ __( 'Path', 'funnelforms-pro' ) } actions={ actions }>
 				{ route }
-				<HintList doc={ doc } hints={ hints } compact />
+				<IssueList issues={ issues } compact />
 				{ edge.when ? (
 					<>
 						<PathEditor doc={ doc } edge={ edge } deletable={ false } />

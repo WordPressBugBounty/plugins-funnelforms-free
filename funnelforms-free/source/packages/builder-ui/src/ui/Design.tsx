@@ -792,6 +792,20 @@ function StepsAndProgress( { doc, token }: { doc: FormDocument; token: SetToken 
 				] }
 				onChange={ ( v ) => token( 'button.align', 'apart' === v ? null : v ) }
 			/>
+			<Toggle
+				label={ __( 'Go to the next step after a click on an answer', 'funnelforms-pro' ) }
+				hint={ __( 'For steps with one single choice or rating. Off: visitors see the answer they chose and go on with Next. Each step can say otherwise.', 'funnelforms-pro' ) }
+				checked={ false !== settings.autoAdvance }
+				onChange={ ( v ) =>
+					change( ( d ) => {
+						if ( v ) {
+							delete d.settings.autoAdvance;
+						} else {
+							d.settings.autoAdvance = false;
+						}
+					} )
+				}
+			/>
 			<Toggle label={ __( 'Adjust height to each step', 'funnelforms-pro' ) } checked={ settings.autoHeight } onChange={ ( v ) => change( ( d ) => void ( d.settings.autoHeight = v ) ) } />
 			<Toggle
 				label={ __( 'Scroll to the form on each step (mobile)', 'funnelforms-pro' ) }
